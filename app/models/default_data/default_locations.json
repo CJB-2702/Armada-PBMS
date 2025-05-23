@@ -1,0 +1,37 @@
+{
+    "locations": [
+        {
+            "unique_name": "HQ_MAIN",
+            "common_name": "Headquarters Main Building",
+            "description": "Main office building",
+            "country": "USA",
+            "state": "CA",
+            "city": "San Francisco",
+            "street": "Market Street",
+            "building_number": "100",
+            "room": "101"
+        },
+        {
+            "unique_name": "WAREHOUSE_A",
+            "common_name": "Warehouse A",
+            "description": "Main storage facility",
+            "country": "USA",
+            "state": "CA",
+            "city": "Oakland",
+            "street": "Industrial Way",
+            "building_number": "500",
+            "room": "Storage 1"
+        },
+        {
+            "unique_name": "GARAGE_MAIN",
+            "common_name": "Main Garage",
+            "description": "Vehicle maintenance facility",
+            "country": "USA",
+            "state": "CA",
+            "city": "San Francisco",
+            "street": "Mission Street",
+            "building_number": "200",
+            "room": "Bay 1"
+        }
+    ]
+} 

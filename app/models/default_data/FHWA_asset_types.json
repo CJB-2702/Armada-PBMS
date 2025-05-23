@@ -1,0 +1,82 @@
+{
+    "asset_types": [
+        {
+            "code": "MC",
+            "name": "Motorcycles",
+            "description": "All two or three-wheeled motorized vehicles with saddle type seats and handlebar steering. Includes motorcycles, motor scooters, mopeds, motor-powered bicycles, and three-wheel motorcycles.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "PC",
+            "name": "Passenger Cars",
+            "description": "All sedans, coupes, and station wagons manufactured primarily for carrying passengers, including those pulling recreational or light trailers.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "2A4T",
+            "name": "Other Two-Axle, Four-Tire Single Unit Vehicles",
+            "description": "All two-axle, four-tire vehicles other than passenger cars. Includes pickups, panels, vans, campers, motor homes, ambulances, hearses, carryalls, and minibuses.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "BUS",
+            "name": "Buses",
+            "description": "All traditional passenger-carrying buses with two axles and six tires or three or more axles. Includes school buses functioning as passenger-carrying vehicles.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "2A6T",
+            "name": "Two-Axle, Six-Tire, Single-Unit Trucks",
+            "description": "All vehicles on a single frame with two axles and dual rear wheels. Includes trucks, camping and recreational vehicles, and motor homes.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "3A",
+            "name": "Three-Axle Single-Unit Trucks",
+            "description": "All vehicles on a single frame with three axles. Includes trucks, camping and recreational vehicles, and motor homes.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "4A+",
+            "name": "Four or More Axle Single-Unit Trucks",
+            "description": "All trucks on a single frame with four or more axles.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "4A-",
+            "name": "Four or Fewer Axle Single-Trailer Trucks",
+            "description": "All vehicles with four or fewer axles consisting of two units, one of which is a tractor or straight truck power unit.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "5A",
+            "name": "Five-Axle Single-Trailer Trucks",
+            "description": "All five-axle vehicles consisting of two units, one of which is a tractor or straight truck power unit.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "6A+",
+            "name": "Six or More Axle Single-Trailer Trucks",
+            "description": "All vehicles with six or more axles consisting of two units, one of which is a tractor or straight truck power unit.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "5A-",
+            "name": "Five or Fewer Axle Multi-Trailer Trucks",
+            "description": "All vehicles with five or fewer axles consisting of three or more units, one of which is a tractor or straight truck power unit.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "6A",
+            "name": "Six-Axle Multi-Trailer Trucks",
+            "description": "All six-axle vehicles consisting of three or more units, one of which is a tractor or straight truck power unit.",
+            "category": "Vehicle"
+        },
+        {
+            "code": "7A+",
+            "name": "Seven or More Axle Multi-Trailer Trucks",
+            "description": "All vehicles with seven or more axles consisting of three or more units, one of which is a tractor or straight truck power unit.",
+            "category": "Vehicle"
+        }
+    ]
+} 

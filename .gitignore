@@ -1,0 +1,47 @@
+static/fonts/
+# Byte-compiled Python files
+*.py[cod]
+
+# Log files
+*.log
+
+# Package files
+*.egg
+*.egg-info
+dist/
+build/
+eggs/
+parts/
+sdist/
+var/
+wheels/
+*.whl
+
+# Test files
+.coverage
+.tox/
+.coverage.*
+
+# Virtual environment
+env/
+venv/
+ENV/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Other
+*.swp
+*.swo
+*.swn
+*.pyc
+__pycache__/

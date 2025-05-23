@@ -1,0 +1,38 @@
+{
+    "assets": [
+        {
+            "common_name": "Fleet Truck 1",
+            "asset_type_code": "2A6T",
+            "status": "active",
+            "details": {
+                "make": "Ford",
+                "model": "F-150",
+                "equipment_identifier": "FT001",
+                "year_manufactured": 2020,
+                "date_delivered": "2020-01-15",
+                "meter1_reading": 15000,
+                "meter1_type": "miles",
+                "fuel_type": "gasoline",
+                "weight": 4500,
+                "registration_category": "commercial"
+            }
+        },
+        {
+            "common_name": "Forklift A",
+            "asset_type_code": "2A4T",
+            "status": "active",
+            "details": {
+                "make": "Toyota",
+                "model": "8FGCU25",
+                "equipment_identifier": "FL001",
+                "year_manufactured": 2019,
+                "date_delivered": "2019-06-01",
+                "meter1_reading": 2500,
+                "meter1_type": "hours",
+                "fuel_type": "electric",
+                "weight": 3500,
+                "registration_category": "industrial"
+            }
+        }
+    ]
+} 

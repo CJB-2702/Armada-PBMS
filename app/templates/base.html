@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Armada PBMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        :root {
+            --primary-color: #0f62fe;
+            --text-color: #161616;
+            --background-color: #ffffff;
+            --border-color: #e0e0e0;
+            --spacing-unit: 8px;
+        }
+
+        body {
+            font-family: 'Fira Code', monospace;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--background-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: calc(var(--spacing-unit) * 2);
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: calc(var(--spacing-unit) * 2);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
+
+        .header h1 {
+            font-family: 'Lora', serif;
+            margin: 0;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: calc(var(--spacing-unit) * 2);
+        }
+
+        .sidebar {
+            border-right: 1px solid var(--border-color);
+            padding-right: calc(var(--spacing-unit) * 2);
+        }
+
+        .main-content {
+            padding: calc(var(--spacing-unit) * 2);
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            padding: calc(var(--spacing-unit) * 2);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
+
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2);
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        /* Form Styles */
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: calc(var(--spacing-unit) * 1.5);
+            border: 1px solid var(--border-color);
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: calc(var(--spacing-unit));
+            font-weight: bold;
+        }
+
+        form {
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Armada PBMS</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="content">
+            <nav class="sidebar">
+                <a href="{{ url_for('main.index') }}" class="button">Dashboard</a>
+            </nav>
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html> 

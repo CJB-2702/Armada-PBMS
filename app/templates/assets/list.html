@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Assets</h2>
+        <a href="{{ url_for('main.create_asset') }}" class="btn btn-primary">Add New Asset</a>
+    </div>
+    <div class="card-body">
+        <div class="search-section">
+            <div class="form-group">
+                <label for="common_name">Common Name</label>
+                <input type="text" class="form-control" id="common_name" 
+                       hx-get="{{ url_for('main.search_assets') }}"
+                       hx-trigger="keyup changed delay:500ms"
+                       hx-target="#asset-list">
+            </div>
+            <div class="form-group">
+                <label for="asset_type_id">Asset Type</label>
+                <select class="form-control" id="asset_type_id"
+                        hx-get="{{ url_for('main.search_assets') }}"
+                        hx-trigger="change"
+                        hx-target="#asset-list">
+                    <option value="">All Types</option>
+                    {% for type in asset_types %}
+                    <option value="{{ type.type_id }}">{{ type.name }} ({{ type.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select class="form-control" id="status"
+                        hx-get="{{ url_for('main.search_assets') }}"
+                        hx-trigger="change"
+                        hx-target="#asset-list">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="maintenance">Maintenance</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="asset-list" class="asset-grid"
+             hx-get="{{ url_for('main.search_assets') }}"
+             hx-trigger="load">
+            <!-- Assets will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<style>
+.search-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.asset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.asset-card {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: var(--background-secondary);
+}
+
+.asset-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.asset-card .type {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.asset-card .status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.asset-card .status.active {
+    background-color: #28a745;
+    color: white;
+}
+
+.asset-card .status.inactive {
+    background-color: #dc3545;
+    color: white;
+}
+
+.asset-card .status.maintenance {
+    background-color: #ffc107;
+    color: black;
+}
+
+.asset-card .details {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.asset-card .details p {
+    margin: 0.25rem 0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update the asset list with search parameters
+    function updateAssetList() {
+        const commonName = document.getElementById('common_name').value;
+        const assetTypeId = document.getElementById('asset_type_id').value;
+        const status = document.getElementById('status').value;
+        
+        const url = new URL("{{ url_for('main.search_assets') }}");
+        if (commonName) url.searchParams.append('common_name', commonName);
+        if (assetTypeId) url.searchParams.append('asset_type_id', assetTypeId);
+        if (status) url.searchParams.append('status', status);
+        
+        htmx.ajax('GET', url.toString(), { target: '#asset-list' });
+    }
+
+    // Add event listeners for search inputs
+    document.getElementById('common_name').addEventListener('keyup', updateAssetList);
+    document.getElementById('asset_type_id').addEventListener('change', updateAssetList);
+    document.getElementById('status').addEventListener('change', updateAssetList);
+});
+</script>
+{% endblock %} 

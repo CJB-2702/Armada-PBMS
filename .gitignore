@@ -1,4 +1,5 @@
 static/fonts/
+instance/
 # Byte-compiled Python files
 *.py[cod]
 

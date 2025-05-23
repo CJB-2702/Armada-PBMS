@@ -366,7 +366,46 @@ CREATE TABLE maintenance_actions (
    - Use `hx-indicator` for loading states
    - Use `hx-target` for specific updates
 
-4. Error Handling
+4. API Response Patterns
+   - All API endpoints should handle both HTMX and JSON requests:
+     ```python
+     @bp.route('/api/resource/search')
+     def search_resource():
+         # Get and filter data
+         resources = Resource.query.filter(...).all()
+         
+         # Check request type
+         if request.headers.get('HX-Request'):
+             # Return rendered template for HTMX requests
+             return render_template('resource/_list.html', resources=resources)
+         
+         # Return JSON for API calls
+         return jsonify([r.to_dict() for r in resources])
+     ```
+   - Use partial templates (`_template.html`) for HTMX responses
+   - Include all necessary data in JSON responses
+   - Maintain consistent response structure:
+     ```python
+     # JSON response structure
+     {
+         "data": [...],  # Array of resource objects
+         "meta": {       # Optional metadata
+             "total": 100,
+             "page": 1,
+             "per_page": 20
+         }
+     }
+     ```
+   - Use appropriate HTTP status codes
+   - Include error messages in both formats:
+     ```python
+     if error:
+         if request.headers.get('HX-Request'):
+             return render_template('_error.html', error=error), 400
+         return jsonify({"error": str(error)}), 400
+     ```
+
+5. Error Handling
    - Show errors inline where they occur
    - Use toast notifications for system messages
    - Log all errors to console during development

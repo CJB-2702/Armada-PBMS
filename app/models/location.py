@@ -2,6 +2,7 @@ from app import db
 from datetime import datetime
 import json
 from pathlib import Path
+from app.models.event import Event
 
 class Location(db.Model):
     __tablename__ = 'locations'
@@ -15,7 +16,7 @@ class Location(db.Model):
     city = db.Column(db.String(50))
     street = db.Column(db.String(100))
     building_number = db.Column(db.String(20))
-    room = db.Column(db.String(50))
+    room = db.Column(db.String(20))
     x = db.Column(db.Float)
     y = db.Column(db.Float)
     z = db.Column(db.Float)
@@ -46,22 +47,15 @@ class Location(db.Model):
     def __repr__(self):
         return f'<Location {self.unique_name}>'
 
-    @classmethod
-    def load_default_locations(cls):
-        """Load default locations from JSON file if none exist"""
-        if cls.query.first() is None:
-            current_dir = Path(__file__).parent
-            json_path = current_dir / 'default_data' / 'default_locations.json'
-            
-            try:
-                data = json.loads(json_path.read_text())
-                    
-                for loc_data in data['locations']:
-                    location = cls(**loc_data)
-                    db.session.add(location)
-                
-                db.session.commit()
-                print("Default locations loaded successfully!")
-            except Exception as e:
-                print(f"Error loading default locations: {e}")
-                db.session.rollback() 
+    @staticmethod
+    def create_location_event(location_id, created_by):
+        """Create an event when a new location is created"""
+        event = Event(
+            location_id=location_id,
+            created_by=created_by,
+            event_type='location_created',
+            title='New Location Created',
+            description=f'Location {location_id} was created'
+        )
+        db.session.add(event)
+        db.session.commit() 

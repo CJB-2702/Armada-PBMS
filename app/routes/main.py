@@ -4,9 +4,11 @@ from app.models.user import User
 from app.models.asset import Asset, AssetDetail
 from app.models.location import Location
 from app.models.asset_type import AssetType
+from app.models.event import Event
 from app import db
 from datetime import datetime
-from init_debug_db import init_debug_database
+from sqlalchemy import desc
+
 
 bp = Blueprint('main', __name__)
 
@@ -94,6 +96,10 @@ def create_asset():
         )
         db.session.add(details)
         db.session.commit()
+
+        # Create event for new asset
+        Asset.create_asset_event(asset.asset_id, current_user.user_id)
+
         return redirect(url_for('main.view_assets'))
 
     # Get locations and asset types for the dropdowns
@@ -108,47 +114,73 @@ def view_assets():
 
 @bp.route('/api/assets/search')
 def search_assets():
-    query = Asset.query
-    
-    # Apply filters
-    common_name = request.args.get('common_name')
-    asset_type_id = request.args.get('asset_type_id')
-    status = request.args.get('status')
+    try:
+        query = Asset.query
+        
+        # Apply filters
+        common_name = request.args.get('common_name')
+        asset_type_id = request.args.get('asset_type_id')
+        status = request.args.get('status')
 
-    if common_name:
-        query = query.filter(Asset.common_name.ilike(f'%{common_name}%'))
-    if asset_type_id:
-        query = query.filter(Asset.asset_type_id == asset_type_id)
-    if status:
-        query = query.filter(Asset.status == status)
-    
-    # Get results with details
-    assets = query.all()
-    results = []
-    for asset in assets:
-        asset_dict = asset.to_dict()
-        if asset.details:
-            asset_dict.update({
-                'make': asset.details.make,
-                'model': asset.details.model,
-                'equipment_identifier': asset.details.equipment_identifier,
-                'year_manufactured': asset.details.year_manufactured,
-                'date_delivered': asset.details.date_delivered.isoformat() if asset.details.date_delivered else None,
-                'meter1_reading': asset.details.meter1_reading,
-                'meter1_type': asset.details.meter1_type,
-                'fuel_type': asset.details.fuel_type,
-                'weight': asset.details.weight,
-                'registration_category': asset.details.registration_category
-            })
-        results.append(asset_dict)
+        if common_name:
+            query = query.filter(Asset.common_name.ilike(f'%{common_name}%'))
+        if asset_type_id:
+            query = query.filter(Asset.asset_type_id == asset_type_id)
+        if status:
+            query = query.filter(Asset.status == status)
+        
+        # Get results with details
+        assets = query.all()
+        
+        # If it's an HTMX request, render the cards
+        if request.headers.get('HX-Request'):
+            return render_template('assets/_asset_cards.html', assets=assets)
+        
+        # Otherwise return JSON for API calls
+        results = []
+        for asset in assets:
+            asset_dict = asset.to_dict()
+            if asset.details:
+                asset_dict.update(asset.details.to_dict())
+            results.append(asset_dict)
 
-    return jsonify(results)
+        return jsonify({
+            "data": results,
+            "meta": {
+                "total": len(results),
+                "filters": {
+                    "common_name": common_name,
+                    "asset_type_id": asset_type_id,
+                    "status": status
+                }
+            }
+        })
+    except Exception as e:
+        if request.headers.get('HX-Request'):
+            return render_template('_error.html', error=str(e)), 500
+        return jsonify({"error": str(e)}), 500
 
 @bp.route('/api/asset-types')
 def get_asset_types():
     """Get all asset types for dropdowns"""
-    asset_types = AssetType.query.order_by(AssetType.name).all()
-    return jsonify([type.to_dict() for type in asset_types])
+    try:
+        asset_types = AssetType.query.order_by(AssetType.name).all()
+        
+        # If it's an HTMX request, render the options
+        if request.headers.get('HX-Request'):
+            return render_template('assets/_asset_type_options.html', asset_types=asset_types)
+        
+        # Otherwise return JSON for API calls
+        return jsonify({
+            "data": [type.to_dict() for type in asset_types],
+            "meta": {
+                "total": len(asset_types)
+            }
+        })
+    except Exception as e:
+        if request.headers.get('HX-Request'):
+            return render_template('_error.html', error=str(e)), 500
+        return jsonify({"error": str(e)}), 500
 
 @bp.route('/events/create')
 def create_event():
@@ -174,6 +206,10 @@ def create_location():
         )
         db.session.add(location)
         db.session.commit()
+
+        # Create event for new location
+        Location.create_location_event(location.location_id, current_user.user_id)
+
         return redirect(url_for('main.view_locations'))
     
     return render_template('locations/create.html')
@@ -184,19 +220,101 @@ def view_locations():
 
 @bp.route('/api/locations/search')
 def search_locations():
-    query = Location.query
-    
-    # Apply filters
-    common_name = request.args.get('common_name')
-    unique_name = request.args.get('unique_name')
-    city = request.args.get('city')
+    try:
+        query = Location.query
+        
+        # Apply filters
+        common_name = request.args.get('common_name')
+        unique_name = request.args.get('unique_name')
+        city = request.args.get('city')
 
-    if common_name:
-        query = query.filter(Location.common_name.ilike(f'%{common_name}%'))
-    if unique_name:
-        query = query.filter(Location.unique_name.ilike(f'%{unique_name}%'))
-    if city:
-        query = query.filter(Location.city.ilike(f'%{city}%'))
-    
-    locations = query.all()
-    return jsonify([location.to_dict() for location in locations]) 
+        if common_name:
+            query = query.filter(Location.common_name.ilike(f'%{common_name}%'))
+        if unique_name:
+            query = query.filter(Location.unique_name.ilike(f'%{unique_name}%'))
+        if city:
+            query = query.filter(Location.city.ilike(f'%{city}%'))
+        
+        locations = query.all()
+        
+        # If it's an HTMX request, render the list
+        if request.headers.get('HX-Request'):
+            return render_template('locations/_location_list.html', locations=locations)
+        
+        # Otherwise return JSON for API calls
+        return jsonify({
+            "data": [location.to_dict() for location in locations],
+            "meta": {
+                "total": len(locations),
+                "filters": {
+                    "common_name": common_name,
+                    "unique_name": unique_name,
+                    "city": city
+                }
+            }
+        })
+    except Exception as e:
+        if request.headers.get('HX-Request'):
+            return render_template('_error.html', error=str(e)), 500
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/events/assets/<int:asset_id>')
+def view_asset_events(asset_id):
+    """View events for a specific asset"""
+    asset = Asset.query.get_or_404(asset_id)
+    return render_template('events/list.html', 
+                         title=f'Events for {asset.common_name}',
+                         asset=asset)
+
+@bp.route('/events/locations/<int:location_id>')
+def view_location_events(location_id):
+    """View events for a specific location"""
+    location = Location.query.get_or_404(location_id)
+    return render_template('events/list.html', 
+                         title=f'Events for {location.common_name}',
+                         location=location)
+
+@bp.route('/api/events')
+def get_events():
+    """Get events with infinite scroll support"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        asset_id = request.args.get('asset_id', type=int)
+        location_id = request.args.get('location_id', type=int)
+        
+        query = Event.query
+        
+        if asset_id:
+            query = query.filter(Event.asset_id == asset_id)
+        if location_id:
+            query = query.filter(Event.location_id == location_id)
+            
+        # Order by most recent first
+        query = query.order_by(desc(Event.created_at))
+        
+        # Get paginated results
+        events = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        # If it's an HTMX request, render the event cards
+        if request.headers.get('HX-Request'):
+            return render_template('events/_event_cards.html', 
+                                 events=events.items,
+                                 has_next=events.has_next,
+                                 next_page=page + 1 if events.has_next else None)
+        
+        # Otherwise return JSON for API calls
+        return jsonify({
+            "data": [event.to_dict() for event in events.items],
+            "meta": {
+                "total": events.total,
+                "pages": events.pages,
+                "current_page": page,
+                "per_page": per_page,
+                "has_next": events.has_next
+            }
+        })
+    except Exception as e:
+        if request.headers.get('HX-Request'):
+            return render_template('_error.html', error=str(e)), 500
+        return jsonify({"error": str(e)}), 500 

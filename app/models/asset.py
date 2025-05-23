@@ -1,7 +1,6 @@
 from app import db
 from datetime import datetime
-import json
-from pathlib import Path
+from app.models.event import Event
 
 class Asset(db.Model):
     __tablename__ = 'assets'
@@ -9,62 +8,39 @@ class Asset(db.Model):
     asset_id = db.Column(db.Integer, primary_key=True)
     common_name = db.Column(db.String(100), nullable=False)
     asset_type_id = db.Column(db.Integer, db.ForeignKey('asset_types.type_id'))
-    status = db.Column(db.String(20), default='active')
+    status = db.Column(db.String(20), nullable=False, default='active')
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
     # Relationships
-    details = db.relationship('AssetDetail', backref='asset', uselist=False)
     asset_type = db.relationship('AssetType', backref='assets')
+    details = db.relationship('AssetDetail', backref='asset', uselist=False, cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
             'asset_id': self.asset_id,
             'common_name': self.common_name,
-            'asset_type': self.asset_type.name if self.asset_type else None,
+            'asset_type_id': self.asset_type_id,
             'status': self.status,
-            'details': self.details.to_dict() if self.details else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
     def __repr__(self):
         return f'<Asset {self.common_name}>'
 
-    @classmethod
-    def load_default_assets(cls):
-        """Load default assets from JSON file if none exist"""
-        if cls.query.first() is None:
-            current_dir = Path(__file__).parent
-            json_path = current_dir / 'default_data' / 'default_assets.json'
-            
-            try:
-                data = json.loads(json_path.read_text())
-                    
-                for asset_data in data['assets']:
-                    details = asset_data.pop('details')
-                    asset_type_code = asset_data.pop('asset_type_code')
-                    asset_type = AssetType.query.filter_by(code=asset_type_code).first()
-                    
-                    asset = cls(
-                        common_name=asset_data['common_name'],
-                        asset_type_id=asset_type.type_id if asset_type else None,
-                        status=asset_data['status']
-                    )
-                    db.session.add(asset)
-                    db.session.flush()  # Get the asset_id
-                    
-                    # Convert date string to date object
-                    if 'date_delivered' in details:
-                        details['date_delivered'] = datetime.strptime(details['date_delivered'], '%Y-%m-%d').date()
-                    
-                    details['asset_id'] = asset.asset_id
-                    asset_details = AssetDetail(**details)
-                    db.session.add(asset_details)
-                
-                db.session.commit()
-                print("Default assets loaded successfully!")
-            except Exception as e:
-                print(f"Error loading default assets: {e}")
-                db.session.rollback()
+    @staticmethod
+    def create_asset_event(asset_id, created_by):
+        """Create an event when a new asset is created"""
+        event = Event(
+            asset_id=asset_id,
+            created_by=created_by,
+            event_type='asset_created',
+            title='New Asset Created',
+            description=f'Asset {asset_id} was created'
+        )
+        db.session.add(event)
+        db.session.commit()
 
 class AssetDetail(db.Model):
     __tablename__ = 'asset_details'

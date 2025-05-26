@@ -3,13 +3,15 @@ from datetime import datetime
 import json
 from pathlib import Path
 from app.models.event import Event
+from app.utils.event_logger import log_event
+from sqlalchemy import event
 
 class Location(db.Model):
     __tablename__ = 'locations'
     
     location_id = db.Column(db.Integer, primary_key=True)
-    unique_name = db.Column(db.String(50), unique=True, nullable=False)
-    common_name = db.Column(db.String(100), nullable=False)
+    unique_name = db.Column(db.String(80), unique=True, nullable=False)
+    common_name = db.Column(db.String(120))
     description = db.Column(db.Text)
     country = db.Column(db.String(50))
     state = db.Column(db.String(50))
@@ -45,17 +47,17 @@ class Location(db.Model):
         }
 
     def __repr__(self):
-        return f'<Location {self.unique_name}>'
+        return f'<Location {self.common_name}>'
 
-    @staticmethod
-    def create_location_event(location_id, created_by):
-        """Create an event when a new location is created"""
-        event = Event(
-            location_id=location_id,
-            created_by=created_by,
-            event_type='location_created',
-            title='New Location Created',
-            description=f'Location {location_id} was created'
-        )
-        db.session.add(event)
-        db.session.commit() 
+@event.listens_for(Location, 'after_insert')
+def create_location_event(mapper, connection, target):
+    connection.execute(
+        Event.__table__.insert(),
+        {
+            'event_type': 'location_created',
+            'title': 'New Location Created',
+            'description': f'Location {target.common_name} was added to the system',
+            'created_by': 1,
+            'location_id': target.location_id
+        }
+    ) 

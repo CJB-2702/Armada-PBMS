@@ -1,6 +1,6 @@
 {% for asset in assets %}
 <div class="asset-card">
-    <h3>{{ asset.common_name }}</h3>
+    <h3><a href="{{ url_for('main.view_asset_events', asset_id=asset.asset_id) }}">{{ asset.common_name }}</a></h3>
     <div class="type">{{ asset.asset_type.name if asset.asset_type else 'Unknown Type' }}</div>
     <div class="status {{ asset.status }}">{{ asset.status|title }}</div>
     

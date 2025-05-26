@@ -1,0 +1,49 @@
+{
+  "event_types": [
+    {
+      "type_row_id": 1,
+      "major_type": "status",
+      "minor_type": "change",
+      "description": "General status change",
+      "default_priority": 3,
+      "table_name": "status_events",
+      "notification_template": "Status changed from {previous_value} to {new_value}"
+    },
+    {
+      "type_row_id": 2,
+      "major_type": "status",
+      "minor_type": "availability",
+      "description": "Availability status change",
+      "default_priority": 2,
+      "table_name": "status_events",
+      "notification_template": "Availability changed to {new_value}"
+    },
+    {
+      "type_row_id": 3,
+      "major_type": "maintenance",
+      "minor_type": "scheduled",
+      "description": "Scheduled maintenance",
+      "default_priority": 2,
+      "table_name": "maintenance_events",
+      "notification_template": "Scheduled maintenance: {maintenance_type}"
+    },
+    {
+      "type_row_id": 4,
+      "major_type": "usage",
+      "minor_type": "dispatch",
+      "description": "Asset dispatched to external location",
+      "default_priority": 3,
+      "table_name": "usage_events",
+      "notification_template": "Asset dispatched to {location}"
+    },
+    {
+      "type_row_id": 5,
+      "major_type": "usage",
+      "minor_type": "local",
+      "description": "Asset used within facility",
+      "default_priority": 2,
+      "table_name": "usage_events",
+      "notification_template": "Asset used locally at {location}"
+    }
+  ]
+} 

@@ -8,6 +8,7 @@ from app.models.event import Event
 from app import db
 from datetime import datetime
 from sqlalchemy import desc
+from app.utils.event_logger import log_creation_event
 
 
 bp = Blueprint('main', __name__)
@@ -97,8 +98,8 @@ def create_asset():
         db.session.add(details)
         db.session.commit()
 
-        # Create event for new asset
-        Asset.create_asset_event(asset.asset_id, current_user.user_id)
+        # Log the creation event with all form data
+        log_creation_event('asset', request.form.to_dict(), current_user.user_id)
 
         return redirect(url_for('main.view_assets'))
 
@@ -207,8 +208,8 @@ def create_location():
         db.session.add(location)
         db.session.commit()
 
-        # Create event for new location
-        Location.create_location_event(location.location_id, current_user.user_id)
+        # Log the creation event with all form data
+        log_creation_event('location', request.form.to_dict(), current_user.user_id)
 
         return redirect(url_for('main.view_locations'))
     
@@ -317,4 +318,23 @@ def get_events():
     except Exception as e:
         if request.headers.get('HX-Request'):
             return render_template('_error.html', error=str(e)), 500
-        return jsonify({"error": str(e)}), 500 
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/events')
+def view_all_events():
+    """View all events in the system"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    # Get events with pagination
+    events = Event.query.order_by(Event.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
+    
+    # Check if this is an HTMX request
+    if request.headers.get('HX-Request'):
+        return render_template('events/_event_cards.html', 
+                             events=events.items,
+                             has_next=events.has_next,
+                             next_page=events.next_num if events.has_next else None)
+    
+    return render_template('events/all.html', events=events) 

@@ -1,12 +1,6 @@
 {
     "users": [
         {
-            "user_id": 1,
-            "username": "admin",
-            "display_name": "System Administrator",
-            "role": "admin"
-        },
-        {
             "user_id": 2,
             "username": "tech1",
             "display_name": "Technician One",

@@ -108,6 +108,11 @@
         <div class="content">
             <nav class="sidebar">
                 <a href="{{ url_for('main.index') }}" class="button">Dashboard</a>
+                <nav class="main-nav">
+                    <a href="{{ url_for('main.view_assets') }}" class="nav-item">Assets</a>
+                    <a href="{{ url_for('main.view_locations') }}" class="nav-item">Locations</a>
+                    <a href="{{ url_for('main.view_all_events') }}" class="nav-item">Events</a>
+                </nav>
             </nav>
             <main class="main-content">
                 {% block content %}{% endblock %}

@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 from app.models.event import Event
+from app.utils.event_logger import log_event
 
 class Asset(db.Model):
     __tablename__ = 'assets'
@@ -30,17 +31,10 @@ class Asset(db.Model):
         return f'<Asset {self.common_name}>'
 
     @staticmethod
+    @log_event('asset_created', 'New Asset Created', 'Asset was created')
     def create_asset_event(asset_id, created_by):
         """Create an event when a new asset is created"""
-        event = Event(
-            asset_id=asset_id,
-            created_by=created_by,
-            event_type='asset_created',
-            title='New Asset Created',
-            description=f'Asset {asset_id} was created'
-        )
-        db.session.add(event)
-        db.session.commit()
+        return {'asset_id': asset_id, 'created_by': created_by}
 
 class AssetDetail(db.Model):
     __tablename__ = 'asset_details'

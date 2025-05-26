@@ -4,5 +4,8 @@ from app.models.load_default_model import print_all_debug
 app = create_app()
 
 if __name__ == '__main__':
-    print_all_debug()
+    with app.app_context():
+        print_all_debug()
     app.run(debug=True)
+
+    

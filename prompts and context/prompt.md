@@ -9,16 +9,13 @@
 - Historical data analysis for maintenance patterns
 
 ## Design Philosophy
-see minimalist_styleguide.md
-
+see styleguide.md
 
 ### Backend
 - Flask framework for lightweight, modular backend
 - SQLAlchemy ORM for database interactions with sqlite
 - Flask-Login for user authentication
-- File attachments and photos stored inside of the squlite database
-- Flask-WTF for form handling
-- Flask-Mail for email notifications
+- Hybrid file storage (≤10MB in DB, >10MB in filesystem)
 - Pathlib for file and directory tracking and editing whenever possible
 
 #### Application Structure
@@ -28,6 +25,7 @@ app/
 ├── routes/          # Route handlers, minimal logic
 ├── templates/       # HTML templates
 ├── static/         # Static files (CSS, JS, images)
+├── forms/          # Flask-WTF form definitions
 └── utils/          # Utility functions and helpers
 ```
 
@@ -42,7 +40,6 @@ app/
    - Keep routes thin and focused
    - Handle HTTP requests/responses
    - Delegate business logic to models
-   - Delegate Html formatting to models
    - Return appropriate responses
 
 3. Templates
@@ -57,11 +54,65 @@ app/
    - Use consistent naming
    - Version control assets
 
-5. Utils
+5. Forms
+   - Use Flask-WTF for form definitions
+   - Define validation rules
+   - Handle CSRF protection
+   - Integrate with models
+
+6. Utils
    - Common helper functions
    - Shared utilities
    - Constants and configurations
    - Custom extensions
+
+### Form Handling Strategy
+1. **Flask-WTF for Structure**
+   - Define form classes
+   - Specify validation rules
+   - Handle CSRF protection
+   - Model integration
+
+2. **HTMX for Interactivity**
+   - Form submission
+   - Real-time validation
+   - Dynamic updates
+   - Progressive enhancement
+
+3. **Implementation Pattern**
+```python
+# forms.py
+class AssetForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    type = SelectField('Type', choices=[...])
+    status = SelectField('Status', choices=[...])
+
+# template.html
+<form hx-post="{{ url_for('create_asset') }}"
+      hx-target="#asset-list"
+      hx-swap="afterbegin">
+    {{ form.csrf_token }}
+    {{ form.name.label }}
+    {{ form.name(class="form-control",
+                hx_get=url_for('validate_field', field='name'),
+                hx_trigger="change",
+                hx_target="#name_error") }}
+    <div id="name_error"></div>
+    <!-- Other fields -->
+    <button type="submit">Submit</button>
+</form>
+
+# routes.py
+@app.route('/api/validate/<field>', methods=['GET'])
+def validate_field(field):
+    form = AssetForm()
+    if field in form:
+        form[field].data = request.args.get('value')
+        if form.validate():
+            return '', 200
+        return form[field].errors[0], 400
+    return 'Invalid field', 400
+```
 
 ### Database Schema
 see datamodel.md and event_model.md
@@ -77,22 +128,15 @@ see datamodel.md and event_model.md
 - File attachments for documentation
 - Calendar integration
 
-
 ## Development Priorities
 1. Core functionality reliability
 2. Data model cohesion
 
-
-
 ## Security Considerations
 - SQL injection prevention
 - Password hashing and security
-
-
-## Documentation Requirements
-- update datamodel.md and styleguide.md while working
-
-
+- CSRF protection via Flask-WTF
+- Input validation and sanitization
 
 ## Implementation Roadmap
 
@@ -110,26 +154,26 @@ see datamodel.md and event_model.md
    - Add minimal CSS for buttons and layout
 
 3. **Basic Asset Management**
-   - Asset creation form with native inputs
+   - Asset creation form with Flask-WTF and HTMX
    - Asset list view with `<details>` for details
    - Basic asset search and filtering
    - Asset status updates via HTMX
 
 4. **Event System Foundation**
-   - Event creation with native form elements
+   - Event creation with Flask-WTF forms and HTMX
    - Event feed using HTMX infinite scroll
    - Basic event filtering
    - Event status updates
 
 ### Phase 2: Enhanced Functionality
 1. **Comments and Attachments**
-   - Implement comment system using forms and HTMX
+   - Implement comment system using Flask-WTF and HTMX
    - Add file upload with progress using HTMX
    - Create attachment preview using native `<dialog>`
    - Implement comment threading with `<details>`
 
 2. **Event Type Specialization**
-   - Create specialized event type forms
+   - Create specialized event type forms with Flask-WTF
    - Implement event type validation
    - Add event type-specific views
    - Create event type templates

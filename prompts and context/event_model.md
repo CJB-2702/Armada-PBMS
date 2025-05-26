@@ -129,6 +129,23 @@
   - `restore` - Record restore
 - Common Fields: entity_type, entity_id, change_summary
 
+## Asset Type Integration
+
+### Asset Type References
+- Events can be associated with any asset type:
+  - Vehicles
+  - Locations
+  - Equipment
+  - Dive Equipment
+- Each event type can specify which asset types it applies to
+- Asset type-specific fields are stored in the minor event details table
+
+### Asset Type Validation
+- Events must validate against asset type requirements
+- Asset type-specific forms are available based on event type
+- Asset type determines available event types
+- Asset type influences event display and processing
+
 ## Model Rules
 
 ### Event Rules

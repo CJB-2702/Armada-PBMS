@@ -2,48 +2,43 @@
   "event_types": [
     {
       "type_row_id": 1,
-      "major_type": "status",
-      "minor_type": "change",
-      "description": "General status change",
-      "default_priority": 3,
-      "table_name": "status_events",
-      "notification_template": "Status changed from {previous_value} to {new_value}"
+      "category": "status_change",
+      "description": "Asset status change event",
+      "notification_template": "Asset {asset_name} status changed from {old_status} to {new_status}",
+      "created_by": 0,
+      "updated_by": 0
     },
     {
       "type_row_id": 2,
-      "major_type": "status",
-      "minor_type": "availability",
-      "description": "Availability status change",
-      "default_priority": 2,
-      "table_name": "status_events",
-      "notification_template": "Availability changed to {new_value}"
+      "category": "maintenance",
+      "description": "Maintenance event",
+      "notification_template": "Maintenance scheduled for {asset_name} on {date}",
+      "created_by": 0,
+      "updated_by": 0
     },
     {
       "type_row_id": 3,
-      "major_type": "maintenance",
-      "minor_type": "scheduled",
-      "description": "Scheduled maintenance",
-      "default_priority": 2,
-      "table_name": "maintenance_events",
-      "notification_template": "Scheduled maintenance: {maintenance_type}"
+      "category": "operational",
+      "description": "Operational event",
+      "notification_template": "Operation {operation_type} started for {asset_name}",
+      "created_by": 0,
+      "updated_by": 0
     },
     {
       "type_row_id": 4,
-      "major_type": "usage",
-      "minor_type": "dispatch",
-      "description": "Asset dispatched to external location",
-      "default_priority": 3,
-      "table_name": "usage_events",
-      "notification_template": "Asset dispatched to {location}"
+      "category": "documentation",
+      "description": "Documentation event",
+      "notification_template": "Document {document_type} updated for {asset_name}",
+      "created_by": 0,
+      "updated_by": 0
     },
     {
       "type_row_id": 5,
-      "major_type": "usage",
-      "minor_type": "local",
-      "description": "Asset used within facility",
-      "default_priority": 2,
-      "table_name": "usage_events",
-      "notification_template": "Asset used locally at {location}"
+      "category": "system",
+      "description": "System event",
+      "notification_template": "System event: {event_description}",
+      "created_by": 0,
+      "updated_by": 0
     }
   ]
 } 

@@ -1,5 +1,4 @@
-# Armada PBMS Experimental Data Model
-## (Unified Asset Approach with Specialized Detail Tables)
+# Armada PBMS Data Model
 
 ## Common Fields
 Every table in the system includes these standard fields:
@@ -152,8 +151,6 @@ Note: When `created_by` or `updated_by` is 0, it indicates the change was made b
   - `priority` (Integer) - 1-5 scale
   - `status` (String) - pending, in_progress, completed, cancelled
 
-
-
 ## System Initialization Requirements
 
 1. **System User (user_row_id = 0)**
@@ -226,18 +223,6 @@ Note: When `created_by` or `updated_by` is 0, it indicates the change was made b
    - Maximum file size: 1KB
    - Rotation: Create new file when size limit reached
    - Naming: `system_log_YYYYMMDD_HHMMSS.json`
-   - Fields:
-     ```json
-     {
-       "timestamp": "ISO8601",
-       "level": "ERROR|WARNING|INFO|DEBUG",
-       "message": "string",
-       "context": {},
-       "source": "string",
-       "user_id": "integer",
-       "asset_id": "integer"
-     }
-     ```
    - Storage: `./instance/logs or equivalent
    - Retention: Keep last 10 files
 
@@ -272,7 +257,8 @@ Note: When `created_by` or `updated_by` is 0, it indicates the change was made b
 1. **Asset Types**
    - Vehicle categories (e.g., 'Trucks', 'Cars', 'Specialized Vehicles')
    - Location categories (e.g., 'Buildings', 'Rooms', 'Storage Areas')
-   - Equipment categories (e.g., 'Tools', 'Machinery', 'Test Equipment')
+   - Equipment categorie
+   s (e.g., 'Tools', 'Machinery', 'Test Equipment')
 
 2. **User Roles**
    - admin: Full system access
@@ -354,106 +340,31 @@ Note: When `created_by` or `updated_by` is 0, it indicates the change was made b
    - Validate data before insertion
    - Ensure detail tables are properly linked to assets
 
-## Example Use Cases
+## Implementation Guidelines
 
-1. **Creating a Vehicle**
-```python
-# Create vehicle asset
-vehicle = Asset(
-    common_name="Truck 123",
-    asset_type_row_id=vehicle_type_row_id,
-    status="active"
-)
-db.session.add(vehicle)
-db.session.flush()
+1. **Asset Creation**
+   - Create base asset record first
+   - Add appropriate detail record based on asset type
+   - Link related records and establish hierarchies
+   - Create initial status event
 
-# Add vehicle details
-details = VehicleDetail(
-    asset_row_id=vehicle.asset_row_id,
-    make="Ford",
-    model="F-150",
-    year_manufactured=2020,
-    vin="1HGCM82633A123456",
-    license_plate="ABC123",
-    fuel_type="gasoline",
-    odometer=50000,
-    maintenance_interval=5000
-)
-db.session.add(details)
-```
+2. **Location Management**
+   - Create location asset with appropriate type
+   - Add location details with address information
+   - Establish parent-child relationships
+   - Track location assignments
 
-2. **Creating a Location**
-```python
-# Create location asset
-location = Asset(
-    common_name="Main Garage",
-    asset_type_row_id=location_type_row_id,
-    status="active"
-)
-db.session.add(location)
-db.session.flush()
+3. **Equipment Management**
+   - Create equipment asset with appropriate type
+   - Add equipment details with specifications
+   - Set up calibration schedules
+   - Track maintenance history
 
-# Add location details
-details = LocationDetail(
-    asset_row_id=location.asset_row_id,
-    country="USA",
-    state="CA",
-    city="San Francisco",
-    street="Main St",
-    building_number="123",
-    area=5000,
-    is_outdoor=False,
-    has_power=True,
-    has_water=True,
-    security_level="high"
-)
-db.session.add(details)
-```
-
-3. **Creating Equipment**
-```python
-# Create equipment asset
-equipment = Asset(
-    common_name="Diagnostic Tool",
-    asset_type_row_id=equipment_type_row_id,
-    status="active"
-)
-db.session.add(equipment)
-db.session.flush()
-
-# Add equipment details
-details = EquipmentDetail(
-    asset_row_id=equipment.asset_row_id,
-    manufacturer="Snap-on",
-    model="MODIS Ultra",
-    serial_number="SN123456",
-    last_calibration_date=date(2023, 1, 1),
-    calibration_interval=365,
-    power_requirements="110V AC"
-)
-db.session.add(details)
-```
-
-4. **Querying Assets with Details**
-```python
-# Get all vehicles with their details
-vehicles = db.session.query(Asset, VehicleDetail)\
-    .join(VehicleDetail, Asset.asset_row_id == VehicleDetail.asset_row_id)\
-    .filter(Asset.asset_type_row_id == vehicle_type_row_id)\
-    .all()
-
-# Get all locations with their details
-locations = db.session.query(Asset, LocationDetail)\
-    .join(LocationDetail, Asset.asset_row_id == LocationDetail.asset_row_id)\
-    .filter(Asset.asset_type_row_id == location_type_row_id)\
-    .all()
-
-# Get all equipment with their details
-equipment = db.session.query(Asset, EquipmentDetail)\
-    .join(EquipmentDetail, Asset.asset_row_id == EquipmentDetail.asset_row_id)\
-    .filter(Asset.asset_type_row_id == equipment_type_row_id)\
-    .all()
-```
+4. **Data Queries**
+   - Use appropriate joins for related records
+   - Filter by asset type for specific queries
+   - Include common fields in all queries
+   - Consider performance for large datasets
 
 ### Default Event Types
 1. **Status Change Events**

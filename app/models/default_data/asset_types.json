@@ -1,0 +1,25 @@
+{
+  "asset_types": [
+    {
+      "type_row_id": 1,
+      "category": "Vehicles",
+      "description": "Motorized vehicles for transportation and operations",
+      "created_by": 0,
+      "updated_by": 0
+    },
+    {
+      "type_row_id": 2,
+      "category": "Locations",
+      "description": "Physical spaces and facilities",
+      "created_by": 0,
+      "updated_by": 0
+    },
+    {
+      "type_row_id": 3,
+      "category": "Equipment",
+      "description": "Tools, machinery, and specialized equipment",
+      "created_by": 0,
+      "updated_by": 0
+    }
+  ]
+} 

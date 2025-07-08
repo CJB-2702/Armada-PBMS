@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Asset - {{ asset.common_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .asset-details { margin-top: 20px; }
+        .asset-details dt { font-weight: bold; color: #555; margin-top: 10px; }
+        .asset-details dd { margin-left: 0; margin-bottom: 10px; }
+        .actions { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .btn { display: inline-block; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 5px; font-size: 14px; border: none; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Asset Details</h1>
+        <dl class="asset-details">
+            <dt>UID:</dt>
+            <dd>{{ asset.UID }}</dd>
+            <dt>Common Name:</dt>
+            <dd>{{ asset.common_name }}</dd>
+            <dt>Type:</dt>
+            <dd>{{ asset.asset_type }}</dd>
+            <dt>Description:</dt>
+            <dd>{{ asset.description }}</dd>
+            <dt>Status:</dt>
+            <dd>{{ asset.status }}</dd>
+            <dt>Created By:</dt>
+            <dd>{{ asset.created_by }}</dd>
+            {% if asset.created_at %}
+            <dt>Created At:</dt>
+            <dd>{{ asset.created_at }}</dd>
+            {% endif %}
+        </dl>
+        <div class="actions">
+            <a href="{{ url_for('assets.edit_asset', uid=asset.UID) }}" class="btn btn-primary">Edit</a>
+            <a href="{{ url_for('assets.index') }}" class="btn btn-secondary">Back to Assets</a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Main</a>
+        </div>
+    </div>
+</body>
+</html> 

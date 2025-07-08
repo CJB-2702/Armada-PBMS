@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Event - {{ event.title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .event-info { margin: 20px 0; }
+        .info-row { display: flex; border-bottom: 1px solid #eee; padding: 12px 0; }
+        .info-label { font-weight: bold; width: 150px; color: #555; }
+        .info-value { flex: 1; color: #333; }
+        .btn { display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px; font-size: 14px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .actions { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Event Details: {{ event.title }}</h1>
+        <div class="event-info">
+            <div class="info-row">
+                <div class="info-label">Event ID:</div>
+                <div class="info-value">{{ event.event_row_id if event.event_row_id else event.row_id }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Title:</div>
+                <div class="info-value">{{ event.title }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Description:</div>
+                <div class="info-value">{{ event.description }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Event Type:</div>
+                <div class="info-value">{{ event.event_type }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Status:</div>
+                <div class="info-value">{{ event.status }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Created:</div>
+                <div class="info-value">{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') if event.created_at else 'N/A' }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Last Updated:</div>
+                <div class="info-value">{{ event.updated_at.strftime('%Y-%m-%d %H:%M:%S') if event.updated_at else 'N/A' }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Created By:</div>
+                <div class="info-value">{{ event.created_by if event.created_by else 'System' }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Updated By:</div>
+                <div class="info-value">{{ event.updated_by if event.updated_by else 'System' }}</div>
+            </div>
+        </div>
+        <div class="actions">
+            <a href="{{ url_for('events.edit_event', event_id=event.event_row_id if event.event_row_id else event.row_id) }}" class="btn btn-primary">Edit Event</a>
+            <a href="{{ url_for('events.index') }}" class="btn btn-secondary">Back to Events</a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Main</a>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,64 @@
+{
+    "Required": {
+        "users": [
+            {
+                "username": "SYSTEM",
+                "email": "system@null.com",
+                "is_admin": true,
+                "display_name": "System",
+                "role": "admin",
+                "created_by": 0,
+                "user_id": 0
+            },
+            {
+                "username": "admin",
+                "email": "admin@null.com",
+                "is_admin": true,
+                "display_name": "System Administrator",
+                "role": "admin",
+                "created_by": 0,
+                "user_id": 1
+            }
+        ],
+        "asset_types": [
+            {
+                "name": "System",
+                "description": "System assets",
+                "created_by": 0
+            },
+            {
+                "name": "Locations",
+                "description": "Physical spaces and facilities",
+                "created_by": 0
+            },
+            {
+                "name": "General",
+                "description": "General assets, not specific to any other type",
+                "created_by": 0
+            }
+        ],
+        "event_types": [
+            {
+                "name": "System",
+                "description": "System events",
+                "notification_template": "System event: {event_description}",
+                "created_by": 0
+            },
+            {
+                "name": "Simple",
+                "description": "Basic Events, only a title and description",
+                "notification_template": "{event_description}",
+                "created_by": 0
+            }
+        ],
+        "assets": [
+            {
+                "common_name": "System",
+                "description": "System root asset",
+                "asset_type_row_id": 1,
+                "status": "active",
+                "created_by": 0
+            }
+        ]
+    }
+} 

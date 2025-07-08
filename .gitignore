@@ -46,3 +46,6 @@ Thumbs.db  # Windows
 *.swn
 *.pyc
 __pycache__/
+
+# Explicitly include default_data
+!app/models/default_data/

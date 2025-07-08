@@ -1,0 +1,135 @@
+{
+    "debug": {
+        "users": [
+            {
+                "username": "tech1",
+                "display_name": "Technician One",
+                "role": "technician",
+                "email": "tech1@armada.pbms",
+                "is_admin": false,
+                "created_by": 0
+            },
+            {
+                "username": "supervisor",
+                "display_name": "Maintenance Supervisor",
+                "role": "supervisor",
+                "email": "supervisor@armada.pbms",
+                "is_admin": false,
+                "created_by": 0
+            },
+            {
+                "username": "viewer",
+                "display_name": "Read Only User",
+                "role": "viewer",
+                "email": "viewer@armada.pbms",
+                "is_admin": false,
+                "created_by": 0
+            }
+        ],
+        "asset_types": [
+            {
+                "name": "Vehicles",
+                "description": "Motorized vehicles for transportation and operations",
+                "created_by": 0
+            },
+            {
+                "name": "Equipment",
+                "description": "Tools, machinery, and specialized equipment",
+                "created_by": 0
+            }
+        ],
+        "locations": [
+            {
+                "name": "Headquarters Main Building",
+                "description": "Main office building",
+                "created_by": 0
+            },
+            {
+                "name": "Warehouse A",
+                "description": "Main storage facility",
+                "created_by": 0
+            },
+            {
+                "name": "Main Garage",
+                "description": "Vehicle maintenance facility",
+                "created_by": 0
+            }
+        ],
+        "assets": [
+            {
+                "common_name": "Fleet Truck #1",
+                "description": "Primary service truck",
+                "asset_type_row_id": 3,
+                "status": "active",
+                "created_by": 0
+            },
+            {
+                "common_name": "Fleet Truck #2",
+                "description": "Backup service truck",
+                "asset_type_row_id": 3,
+                "status": "maintenance",
+                "created_by": 0
+            },
+            {
+                "common_name": "Pressure Washer",
+                "description": "High-pressure cleaning equipment",
+                "asset_type_row_id": 4,
+                "status": "active",
+                "created_by": 0
+            },
+            {
+                "common_name": "Generator Set",
+                "description": "Backup power generator",
+                "asset_type_row_id": 4,
+                "status": "inactive",
+                "created_by": 0
+            },
+            {
+                "common_name": "Tool Set #1",
+                "description": "Basic maintenance tool set",
+                "asset_type_row_id": 4,
+                "status": "active",
+                "created_by": 0
+            },
+            {
+                "common_name": "Safety Equipment Kit",
+                "description": "Emergency response equipment",
+                "asset_type_row_id": 4,
+                "status": "active",
+                "created_by": 0
+            }
+        ],
+        "events": [
+            {
+                "title": "Daily Inspection",
+                "description": "Routine daily inspection of Fleet Truck #1",
+                "start_time": "2024-05-27T08:00:00",
+                "end_time": "2024-05-27T08:30:00",
+                "event_type_row_id": 2,
+                "asset_row_id": 2,
+                "status": "completed",
+                "created_by": 1
+            },
+            {
+                "title": "Oil Change",
+                "description": "Scheduled oil change for Fleet Truck #1",
+                "start_time": "2024-05-28T09:00:00",
+                "end_time": "2024-05-28T10:00:00",
+                "event_type_row_id": 2,
+                "asset_row_id": 2,
+                "status": "pending",
+                "created_by": 1
+            },
+            {
+                "title": "Tire Rotation",
+                "description": "Quarterly tire rotation for Fleet Truck #1",
+                "start_time": "2024-06-01T10:00:00",
+                "end_time": "2024-06-01T11:00:00",
+                "event_type_row_id": 2,
+                "asset_row_id": 2,
+                "status": "pending",
+                "created_by": 1
+            }
+        ]
+    }
+}

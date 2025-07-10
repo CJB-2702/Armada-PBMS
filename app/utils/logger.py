@@ -92,7 +92,7 @@ class LoggerFactory:
     
     def __init__(self):
         if not self._loggers:
-            self._loggers['std'] = self._setup_logger()
+            self._loggers['armada_pbms'] = self._setup_logger('armada_pbms')
     
     def _check_db_connection(self):
         """Check if there is an active database connection
@@ -110,6 +110,18 @@ class LoggerFactory:
         except Exception:
             return False
     
+    def _has_handler_of_type(self, logger, handler_type):
+        """Check if logger already has a handler of the specified type
+        
+        Args:
+            logger: Logger instance to check
+            handler_type: Type of handler to look for
+            
+        Returns:
+            bool: True if handler of this type exists, False otherwise
+        """
+        return any(isinstance(handler, handler_type) for handler in logger.handlers)
+    
     def _setup_file_handler(self, logger, name, debug):
         """Setup file handler for logger
         
@@ -118,14 +130,18 @@ class LoggerFactory:
             name: Name of the logger
             debug: Whether debug logging is enabled
         """
+        # Don't add file handler if one already exists
+        if self._has_handler_of_type(logger, RotatingFileHandler):
+            return
+            
         # Create logs directory if it doesn't exist
         log_dir = Path('logs')
         log_dir.mkdir(exist_ok=True)
         
-        # File handler with rotation (1KB max size)
+        # File handler with rotation (1MB max size instead of 1KB)
         file_handler = RotatingFileHandler(
             log_dir / f'{name}.log',
-            maxBytes=1024,  # 1KB
+            maxBytes=1024*1024,  # 1MB
             backupCount=5
         )
         file_handler.setFormatter(JsonFormatter())
@@ -138,9 +154,13 @@ class LoggerFactory:
             logger: Logger instance to add handler to
             debug: Whether debug logging is enabled
         """
+        # Don't add console handler if one already exists
+        if self._has_handler_of_type(logger, logging.StreamHandler):
+            return
+            
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG if debug else logging.INFO)
-        console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        console_handler.setFormatter(logging.Formatter('%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s'))
         logger.addHandler(console_handler)
     
     def _setup_database_handler(self, logger, name, debug):
@@ -151,6 +171,10 @@ class LoggerFactory:
             name: Name of the logger
             debug: Whether debug logging is enabled
         """
+        # Don't add database handler if one already exists
+        if self._has_handler_of_type(logger, DatabaseHandler):
+            return
+            
         if self._check_db_connection():
             db_handler = DatabaseHandler(self._db)
             db_handler.setLevel(logging.DEBUG if debug else logging.INFO)
@@ -173,6 +197,9 @@ class LoggerFactory:
         # Create logger
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG if debug else logging.INFO)
+        
+        # Prevent propagation to avoid duplicate logs
+        logger.propagate = False
         
         # Setup handlers
         self._setup_file_handler(logger, name, debug)
@@ -204,7 +231,7 @@ class LoggerFactory:
             # Add new database handler
             self._setup_database_handler(logger, logger_name, self._debug_override)
     
-    def get_logger(self, name='std', debug=False):
+    def get_logger(self, name='armada_pbms', debug=False):
         """Get a logger instance by name
         
         Args:
@@ -225,5 +252,5 @@ def init_logger(app):
 logger_factory = LoggerFactory()
 
 # Convenience function for getting loggers
-def get_logger(name='std', debug=False):
+def get_logger(name='armada_pbms', debug=False):
     return logger_factory.get_logger(name, debug)

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.models.AssetModels.Locations import MajorLocation
+from app.models.BaseModels.Locations import MajorLocation
 from app.models.BaseModels.Event import Event
 from app.extensions import db
 from app.utils.logger import get_logger

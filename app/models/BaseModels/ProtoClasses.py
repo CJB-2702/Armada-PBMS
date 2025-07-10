@@ -35,7 +35,7 @@ class UserCreated(db.Model):
             if hasattr(self, key):
                 setattr(self, key, value)
         
-        self.updated_at = datetime.now()()
+        self.updated_at = datetime.now()
         self.updated_by = updated_by
         
         # Log the update
@@ -47,15 +47,10 @@ class UserCreated(db.Model):
                 'new_values': kwargs,
                 'user_id': updated_by
             }}
-        ) 
+        )
         
 class Types(UserCreated):
     __abstract__ = True
     value = db.Column(db.String(64), nullable=False, unique=True)
     description = db.Column(db.Text)
     deletable = db.Column(db.Boolean, default=True)
-    
-    def __init__(self, value, description, created_by=None):
-        self.value = value
-        self.description = description
-        self.created_by = created_by

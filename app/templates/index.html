@@ -26,14 +26,30 @@
             border-bottom: 3px solid #007bff;
             padding-bottom: 20px;
         }
+        .section-container {
+            margin-bottom: 40px;
+        }
+        .section-title {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
         .nav-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
         }
         .nav-card {
-            background-color: #f8f9fa;
+            background-color: white;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             padding: 25px;
@@ -41,6 +57,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
             color: #333;
+            display: block;
         }
         .nav-card:hover {
             transform: translateY(-2px);
@@ -70,6 +87,18 @@
             color: white;
             text-decoration: none;
         }
+        .placeholder-card {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            color: #6c757d;
+        }
+        .placeholder-card h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
         .system-info {
             margin-top: 40px;
             padding: 20px;
@@ -94,30 +123,88 @@
             Fleet Management and Maintenance Tracking System
         </p>
         
-        <div class="nav-grid">
-            <a href="{{ url_for('users.index') }}" class="nav-card">
-                <h3>👥 User Management</h3>
-                <p>Manage system users, roles, and permissions. View, edit, and create user accounts.</p>
-                <span class="btn">Access Users Portal</span>
-            </a>
-            
-            <a href="{{ url_for('assets.index') }}" class="nav-card">
-                <h3>🚗 Asset Management</h3>
-                <p>Track vehicles, equipment, and locations. Monitor asset status and maintenance schedules.</p>
-                <span class="btn">Manage Assets</span>
-            </a>
-            
-            <a href="{{ url_for('events.index') }}" class="nav-card">
-                <h3>📋 Event Tracking</h3>
-                <p>Log maintenance events, incidents, and operational activities. Track event history and status.</p>
-                <span class="btn">View Events</span>
-            </a>
-            
-            <a href="{{ url_for('locations.index') }}" class="nav-card">
-                <h3>📍 Location Management</h3>
-                <p>Manage physical locations, facilities, and storage areas. Track asset locations and movements.</p>
-                <span class="btn">Manage Locations</span>
-            </a>
+        <!-- Asset Management Section -->
+        <div class="section-container">
+            <h2 class="section-title">Asset Management</h2>
+            <div class="nav-grid">
+                <a href="{{ url_for('users.index') }}" class="nav-card">
+                    <h3>👥 User Management</h3>
+                    <p>Manage system users, roles, and permissions. View, edit, and create user accounts.</p>
+                    <span class="btn">Access Users Portal</span>
+                </a>
+                
+                <a href="{{ url_for('assets.index') }}" class="nav-card">
+                    <h3>🚗 Asset Management</h3>
+                    <p>Track vehicles, equipment, and locations. Monitor asset status and maintenance schedules.</p>
+                    <span class="btn">Manage Assets</span>
+                </a>
+                
+                <a href="{{ url_for('events.index') }}" class="nav-card">
+                    <h3>📋 Event Tracking</h3>
+                    <p>Log maintenance events, incidents, and operational activities. Track event history and status.</p>
+                    <span class="btn">View Events</span>
+                </a>
+                
+                <a href="{{ url_for('locations.index') }}" class="nav-card">
+                    <h3>📍 Location Management</h3>
+                    <p>Manage physical locations, facilities, and storage areas. Track asset locations and movements.</p>
+                    <span class="btn">Manage Locations</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Maintenance Management Section -->
+        <div class="section-container">
+            <h2 class="section-title">Maintenance Management</h2>
+            <div class="nav-grid">
+                <div class="placeholder-card">
+                    <h3>🔧 Maintenance Scheduling</h3>
+                    <p>Schedule and track preventive maintenance tasks. Set up maintenance intervals and reminders.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+                
+                <div class="placeholder-card">
+                    <h3>🛠️ OpenWork Orders</h3>
+                    <p>Create and manage work orders for maintenance tasks. Track progress and completion status.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+                
+                <div class="placeholder-card">
+                    <h3>📈 Create Maitnence Activities</h3>
+                    <p>Create and manage maintenance Templates and work instructions.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parts and Inventory Management Section -->
+        <div class="section-container">
+            <h2 class="section-title">Parts and Inventory Management</h2>
+            <div class="nav-grid">
+                <div class="placeholder-card">
+                    <h3>📦 Parts Catalog</h3>
+                    <p>Manage parts catalog and specifications. Track part numbers, descriptions, and compatibility.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+                
+                <div class="placeholder-card">
+                    <h3>🏪 Inventory Tracking</h3>
+                    <p>Track inventory levels, stock movements, and reorder points. Manage warehouse locations.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+                
+                <div class="placeholder-card">
+                    <h3>📋 Purchase Orders</h3>
+                    <p>Create and manage purchase orders for parts and supplies. Track order status and delivery.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+                
+                <div class="placeholder-card">
+                    <h3>💰 Cost Management</h3>
+                    <p>Track parts costs, supplier pricing, and inventory valuation. Analyze spending patterns.</p>
+                    <span class="btn">Coming Soon</span>
+                </div>
+            </div>
         </div>
         
         <div class="system-info">

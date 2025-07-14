@@ -1,9 +1,7 @@
 from flask import Flask
-from app.models.BaseModels import initialize_base_models
-from app.models.Utility import initialize_utility_models
-# from app.models.Assets import initialize_assets_models
-# from app.models.Assets.AssetClasses import initialize_asset_classes
+from app.models import initialize_database_controlled
 from app.routes import register_blueprints
+from app.utils.logger import get_logger
 
 
 def create_and_configure_app():
@@ -15,12 +13,16 @@ def create_and_configure_app():
 
 def create_app():
     app = create_and_configure_app()
+    logger = get_logger()
     
-    # Initialize models in explicit order
-    initialize_base_models(app)
-    initialize_utility_models(app)
-    # initialize_assets_models(app)
-    # initialize_asset_classes(app)
+    try:
+        # Initialize database in controlled order
+        logger.info("Starting controlled database initialization...")
+        initialize_database_controlled(app)
+        
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        raise
     
     register_blueprints(app)
     return app 

@@ -4,6 +4,7 @@ from app.utils.logger import get_logger
 from app.extensions import db
 import sys
 from datetime import datetime
+from sqlalchemy import MetaData
 
 migrate = Migrate()
 login_manager = LoginManager()
@@ -28,7 +29,7 @@ def verify_data_inserted(model_class, expected_count, description):
         return False
 
 def create_base_tables(app):
-    """Create BaseModels tables using SQLAlchemy's automatic table creation"""
+    """Create BaseModels tables in controlled order"""
     with app.app_context():
         logger = get_logger()
         logger.info("=== Starting BaseModels table creation ===")
@@ -37,7 +38,7 @@ def create_base_tables(app):
         logger.info("Importing BaseModels...")
         try:
             from app.models.BaseModels.Users import User
-            from app.models.BaseModels.Asset import AssetTypes, Statuses, Asset
+            from app.models.BaseModels.Asset import AssetTypes, Statuses, AbstractAsset
             from app.models.BaseModels.Locations import MajorLocation, MinorLocation
             from app.models.BaseModels.Event import Event, EventTypes
             logger.info("✓ BaseModels imported successfully")
@@ -49,6 +50,7 @@ def create_base_tables(app):
         # Create BaseModels tables using SQLAlchemy's automatic creation
         try:
             logger.info("Creating BaseModels tables using SQLAlchemy...")
+            # Create only the tables for imported models
             db.create_all()
             logger.info("✓ BaseModels tables created successfully")
         except Exception as e:
@@ -127,7 +129,7 @@ def insert_initial_data(app):
         logger.info("--- Inserting System Locations ---")
         for location_data in required_system_locations:
             db.session.execute(db.text("""
-                INSERT OR IGNORE INTO MajorLocations (row_id, UID, asset_type, common_name, description, status, created_by, updated_by, created_at, updated_at)
+                INSERT OR IGNORE INTO major_locations (row_id, UID, asset_type, common_name, description, status, created_by, updated_by, created_at, updated_at)
                 VALUES (:row_id, :UID, :asset_type, :common_name, :description, :status, :created_by, :updated_by, :created_at, :updated_at)
             """), {
                 'row_id': location_data['row_id'],
@@ -272,7 +274,7 @@ def create_tables(app):
         logger.info("Importing all models...")
         try:
             from app.models.BaseModels.Users import User
-            from app.models.BaseModels.Asset import AssetTypes, Statuses, Asset
+            from app.models.BaseModels.Asset import AssetTypes, Statuses, AbstractAsset
             from app.models.BaseModels.Locations import MajorLocation, MinorLocation
             from app.models.BaseModels.Event import Event, EventTypes
             logger.info("✓ All models imported successfully")

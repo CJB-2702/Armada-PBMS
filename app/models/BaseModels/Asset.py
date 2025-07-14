@@ -29,6 +29,12 @@ required_asset_types = [
         "name": "MinorLocation",
         "description": "Minor location assets",
         "created_by": 0
+    },
+    {
+        "row_id": 4,
+        "name": "MiscLocation",
+        "description": "Miscellaneous location assets",
+        "created_by": 0
     }
 ]
 
@@ -68,7 +74,7 @@ class AssetTypes(Types):
         Returns:
             list: List of asset type values that are protected from deletion
         """
-        return ['System', 'General', 'MajorLocation', 'MinorLocation']
+        return ['System', 'General', 'MajorLocation', 'MinorLocation', 'MiscLocation']
 
 class Statuses(Types):
     __tablename__ = 'types_statuses'
@@ -81,7 +87,7 @@ class Statuses(Types):
         """
         return ['Active', 'Available', 'Unavailable', 'Defunct']
 
-class Asset(UserCreated):
+class AbstractAsset(UserCreated):
     __abstract__ = True  # Make this an abstract base class
 
     UID = db.Column(db.String(50), nullable=False, unique=True)

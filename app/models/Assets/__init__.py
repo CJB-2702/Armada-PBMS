@@ -1,5 +1,6 @@
 from app.utils.logger import get_logger
 from app.extensions import db
+from datetime import datetime
 
 
 def create_assets_tables(app):
@@ -11,7 +12,7 @@ def create_assets_tables(app):
         # Import Assets models only
         logger.info("Importing Assets models...")
         try:
-            from app.models.Assets.PhysicalAssets import PhysicalAsset, PhysicalAssetMetadata
+            from app.models.Assets.Assets import Asset
             from app.models.Assets.AssetEvents import AssetEvent
             logger.info("✓ Assets models imported successfully")
         except Exception as e:
@@ -37,8 +38,8 @@ def insert_assets_initial_data(app):
         logger = get_logger()
         logger.info("=== Starting Assets initial data insertion ===")
         
-        # Import additional statuses from PhysicalAssets
-        from app.models.Assets.PhysicalAssets import additional_statuses
+        # Import additional statuses from Assets
+        from app.models.Assets.Assets import additional_statuses
         
         # Insert additional statuses
         logger.info("--- Inserting Additional Asset Statuses ---")
@@ -51,8 +52,8 @@ def insert_assets_initial_data(app):
                 'description': status_data['description'],
                 'created_by': 0,  # SYSTEM user
                 'updated_by': 0,  # SYSTEM user
-                'created_at': db.func.now(),
-                'updated_at': db.func.now()
+                'created_at': datetime.now(),
+                'updated_at': datetime.now()
             })
         logger.info(f"✓ Inserted {len(additional_statuses)} additional asset statuses")
         

@@ -1,5 +1,5 @@
-from app.models.BaseModels.Asset import Asset
-from app.models.BaseModels.Locations import MinorLocation
+from app.models.BaseModels.Asset import AbstractAsset
+from app.models.BaseModels.Locations import MinorLocation, MajorLocation
 from app.extensions import db
 
 
@@ -17,17 +17,15 @@ additional_statuses = [
         "name": "Unavailable-C",
         "description": "Unavailable and not ready to be used, requires containments and is only partially functional"
     },
-
 ]
 
-class PhysicalAsset(Asset):
-    __tablename__ = 'Assets'
+class Asset(AbstractAsset):
+    __tablename__ = 'assets'
 
-    deployable = db.Column(db.Boolean, default=True)
-    home_majorlocation_UID = db.Column(db.String(100), db.ForeignKey('MajorLocation.UID'), nullable=True, default='UNASSIGNED')
+    home_majorlocation_UID = db.Column(db.String(100), db.ForeignKey('major_locations.UID'), nullable=True, default='UNASSIGNED')
     parent_asset_UID = db.Column(db.String(100), db.ForeignKey('assets.UID'))
-    current_majorlocation_UID = db.Column(db.String(100), db.ForeignKey('MajorLocation.UID'), nullable=False)
-    current_minorlocation_UID = db.Column(db.String(100), db.ForeignKey('MinorLocation.UID'))
+    current_majorlocation_UID = db.Column(db.String(100), db.ForeignKey('major_locations.UID'), nullable=False)
+    current_minorlocation_UID = db.Column(db.String(100), db.ForeignKey('minor_locations.UID'))
     hours_operated = db.Column(db.Float)
     meter_1 = db.Column(db.Float) 
     meter_1_type = db.Column(db.String(100),db.ForeignKey('generic_types.value'))
@@ -36,7 +34,7 @@ class PhysicalAsset(Asset):
 
     def __init__(self, 
             UID, asset_type, common_name, description, status,
-            parent_asset_UID=None, deployable=True,
+            parent_asset_UID=None,
             current_majorlocation_UID=None, current_minorlocation_UID=None,
             hours_operated=None,
             meter_1=None, meter_1_type=None,
@@ -54,7 +52,7 @@ class PhysicalAsset(Asset):
         self.meter_2_type = meter_2_type
 
     def __repr__(self):
-        return f"<PhysicalAsset {self.UID}>"
+        return f"<Asset {self.UID}>"
 
     @staticmethod
     def validate_meter_type(meter_type):
@@ -83,7 +81,3 @@ class PhysicalAsset(Asset):
         cls.validate_meter_type(target.meter_2_type)
         cls.validate_location_hierarchy(target.current_majorlocation_UID, target.current_minorlocation_UID)
 
-
-class PhysicalAssetMetadata(PhysicalAsset):
-    current_user_id = db.Column(db.Integer, db.ForeignKey('users.row_id'))
-    last_event_id = db.Column(db.Integer, db.ForeignKey('events.row_id'))

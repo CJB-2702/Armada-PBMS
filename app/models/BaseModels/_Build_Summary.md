@@ -63,7 +63,7 @@ initial_asset_types = [
 ]
 ```
 
-### 3. Major Locations (Table: `MajorLocations`)
+### 3. Major Locations (Table: `major_locations`)
 **Creation Method:** `ensure_required_system_location()` function
 **Expected Count:** 1 system location
 **Dependencies:** Asset Types (uses "MajorLocation" asset type)
@@ -81,7 +81,7 @@ Required_system_location = [
 ]
 ```
 
-### 4. Minor Locations (Table: `MinorLocations`)
+### 4. Minor Locations (Table: `minor_locations`)
 **Creation Method:** No initial data
 **Expected Count:** 0 (no initial minor locations)
 **Dependencies:** Asset Types (uses "MinorLocation" asset type)

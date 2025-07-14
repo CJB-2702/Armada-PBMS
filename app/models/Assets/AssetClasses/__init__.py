@@ -11,7 +11,7 @@ def create_asset_classes_tables(app):
         # Import AssetClasses models only
         logger.info("Importing AssetClasses models...")
         try:
-            from app.models.Assets.AssetClasses.Vehicles import Vehicle
+            from app.models.Assets.AssetClasses.Vehicles import Vehicle, VehicleModel, VehiclePurchaseInfo
             logger.info("✓ AssetClasses models imported successfully")
         except Exception as e:
             logger.error(f"Error importing AssetClasses models: {e}")

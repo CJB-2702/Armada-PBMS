@@ -19,7 +19,7 @@ def get_model_info():
     # Import the models directly
     try:
         from app.models.BaseModels.Users import User
-        from app.models.BaseModels.Asset import AssetTypes, Asset
+        from app.models.BaseModels.Asset import AssetTypes, AbstractAsset
         from app.models.BaseModels.Locations import MajorLocation, MinorLocation
         from app.models.BaseModels.Event import Event, EventTypes
         from app.models.BaseModels.ProtoClasses import UserCreated, Types
@@ -32,7 +32,7 @@ def get_model_info():
     
     # Collect all model classes
     model_classes = [
-        User, AssetTypes, Asset, MajorLocation, MinorLocation, Event, EventTypes,
+        User, AssetTypes, AbstractAsset, MajorLocation, MinorLocation, Event, EventTypes,
         UserCreated, Types
     ]
     

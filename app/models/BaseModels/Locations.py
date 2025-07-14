@@ -1,4 +1,4 @@
-from app.models.BaseModels.Asset import Asset
+from app.models.BaseModels.Asset import AbstractAsset
 from app.models.BaseModels.ProtoClasses import UserCreated
 from app.extensions import db
 from app.utils.logger import get_logger
@@ -23,9 +23,12 @@ required_system_locations = [
         "created_by": 0
     }
 ]
-class MajorLocation(Asset):
-    __tablename__ = 'MajorLocations'
 
+class Location(AbstractAsset):
+    """Abstract base class for all location types"""
+    __abstract__ = True
+    
+    # Common location fields
     Country = db.Column(db.String(100))
     State = db.Column(db.String(100))
     City = db.Column(db.String(100))
@@ -33,8 +36,9 @@ class MajorLocation(Asset):
     ZipCode = db.Column(db.Integer)
     Misc = db.Column(db.String(100))
     
-    def __init__(self, UID, common_name, description, status, created_by=0, Country=None, State=None, City=None, Address=None, ZipCode=None, Misc=None):
-        super().__init__(UID, "MajorLocation", common_name, description, status, created_by)
+    def __init__(self, UID, common_name, description, status, created_by=0, 
+                 Country=None, State=None, City=None, Address=None, ZipCode=None, Misc=None):
+        super().__init__(UID, "Location", common_name, description, status, created_by)
         self.Country = Country
         self.State = State
         self.City = City
@@ -42,17 +46,26 @@ class MajorLocation(Asset):
         self.ZipCode = ZipCode
         self.Misc = Misc
 
+class MajorLocation(Location):
+    __tablename__ = 'major_locations'
+    
+    def __init__(self, UID, common_name, description, status, created_by=0, 
+                 Country=None, State=None, City=None, Address=None, ZipCode=None, Misc=None):
+        super().__init__(UID, common_name, description, status, created_by, 
+                        Country, State, City, Address, ZipCode, Misc)
+        # Override asset_type for major locations
+        self.asset_type = "MajorLocation"
+
     def delete(self):
         if self.UID in ["SYSTEM", "UNASSIGNED"]:
             raise ValueError("Cannot delete system location - it is required for system operations")
         db.session.delete(self)
         db.session.commit()
     
-class MinorLocation(Asset):
-    __tablename__ = 'MinorLocations'
+class MinorLocation(AbstractAsset):
+    __tablename__ = 'minor_locations'
 
-    
-    major_location_uid = db.Column(db.String(50), db.ForeignKey('MajorLocations.UID'), nullable=False)
+    major_location_uid = db.Column(db.String(50), db.ForeignKey('major_locations.UID'), nullable=False)
     Building = db.Column(db.String(100))
     Room = db.Column(db.String(100))
     xyz_orgin_type = db.Column(db.String(100))
@@ -83,7 +96,7 @@ def set_uid_after_insert(mapper, connection, target):
         target.UID = str(target.row_id)
         # Update the database with the new UID
         db.session.execute(
-            db.text("UPDATE MinorLocations SET UID = :uid WHERE row_id = :row_id"),
+            db.text("UPDATE minor_locations SET UID = :uid WHERE row_id = :row_id"),
             {'uid': str(target.row_id), 'row_id': target.row_id}
         )
         db.session.commit()

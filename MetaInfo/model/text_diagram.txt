@@ -10,10 +10,10 @@ ABSTRACT BASE CLASSES:
 📋 types_assets (AssetTypes)
    Parent Classes: Types, UserCreated, Model, Model, object
 
-📋 MajorLocations (MajorLocation)
+📋 major_locations (MajorLocation)
    Parent Classes: Asset, UserCreated, Model, Model, object
 
-📋 MinorLocations (MinorLocation)
+📋 minor_locations (MinorLocation)
    Parent Classes: Asset, UserCreated, Model, Model, object
 
 📋 events (Event)

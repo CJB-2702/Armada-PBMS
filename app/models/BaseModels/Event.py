@@ -39,7 +39,7 @@ class Event(UserCreated):
     description = db.Column(db.Text)
     event_type = db.Column(db.String(64), nullable=False, default='General')
     status = db.Column(db.String(50), nullable=False, default='Completed')
-    location_UID = db.Column(db.String(50), db.ForeignKey('MajorLocations.UID'), default="SYSTEM")
+    location_UID = db.Column(db.String(50), db.ForeignKey('major_locations.UID'), default="SYSTEM")
     
     
     

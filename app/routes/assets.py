@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.models.BaseModels.Asset import Asset, AssetTypes
+from app.models.BaseModels.Asset import AbstractAsset, AssetTypes
 from app.models.BaseModels.Event import Event
 from app.extensions import db
 from app.utils.logger import get_logger
@@ -32,7 +32,7 @@ def log_asset_event(action, asset, extra_info=None):
 @bp.route('/')
 def index():
     try:
-        assets = Asset.query.all()
+        assets = AbstractAsset.query.all()
         return render_template('assets/index.html', assets=assets)
     except Exception as e:
         logger.error(f"Error fetching assets: {str(e)}")
@@ -41,7 +41,7 @@ def index():
 
 @bp.route('/<string:uid>')
 def view_asset(uid):
-    asset = Asset.query.filter_by(UID=uid).first_or_404()
+    asset = AbstractAsset.query.filter_by(UID=uid).first_or_404()
     return render_template('assets/view_asset.html', asset=asset)
 
 @bp.route('/create', methods=['GET', 'POST'])
@@ -57,7 +57,7 @@ def create_asset():
             if not UID or not asset_type or not common_name or not status:
                 flash('All fields are required', 'error')
                 return render_template('assets/create_asset.html', asset_types=asset_types)
-            new_asset = Asset(
+            new_asset = AbstractAsset(
                 UID=UID,
                 asset_type=asset_type,
                 common_name=common_name,
@@ -80,7 +80,7 @@ def create_asset():
 
 @bp.route('/<string:uid>/edit', methods=['GET', 'POST'])
 def edit_asset(uid):
-    asset = Asset.query.filter_by(UID=uid).first_or_404()
+    asset = AbstractAsset.query.filter_by(UID=uid).first_or_404()
     asset_types = AssetTypes.query.all()
     if request.method == 'POST':
         try:
@@ -108,7 +108,7 @@ def edit_asset(uid):
 
 @bp.route('/<string:uid>/delete', methods=['POST'])
 def delete_asset(uid):
-    asset = Asset.query.filter_by(UID=uid).first_or_404()
+    asset = AbstractAsset.query.filter_by(UID=uid).first_or_404()
     try:
         db.session.delete(asset)
         log_asset_event("Deleted", asset)
@@ -219,8 +219,8 @@ def delete_asset_type(type_id):
             return redirect(url_for('assets.asset_types_index'))
         
         # Check if any assets are using this type
-        from app.models.BaseModels.Asset import Asset
-        assets_using_type = Asset.query.filter_by(asset_type=asset_type.value).count()
+        from app.models.BaseModels.Asset import AbstractAsset
+        assets_using_type = AbstractAsset.query.filter_by(asset_type=asset_type.value).count()
         if assets_using_type > 0:
             flash(f'Cannot delete asset type "{asset_type.value}" because {assets_using_type} asset(s) are using it.', 'error')
             return redirect(url_for('assets.asset_types_index'))

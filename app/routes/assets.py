@@ -23,7 +23,7 @@ def log_asset_event(action, asset, extra_info=None):
     event = Event(
         title=title,
         description=description,
-        event_type_id='SYSTEM',
+        event_type='SYSTEM',
         status='completed',
         created_by=1
     )
@@ -129,4 +129,111 @@ def asset_types_index():
         return render_template('asset_types/index.html', asset_types=asset_types)
     except Exception as e:
         logger.error(f"Error rendering asset types index: {str(e)}")
-        return "Error loading asset types", 500 
+        return "Error loading asset types", 500
+
+@bp.route('/asset-types/create', methods=['GET', 'POST'])
+def create_asset_type():
+    """Create a new asset type"""
+    if request.method == 'POST':
+        try:
+            value = request.form.get('value')
+            description = request.form.get('description')
+            
+            if not value:
+                flash('Asset type name is required', 'error')
+                return render_template('asset_types/create.html')
+            
+            # Check if asset type already exists
+            existing_type = AssetTypes.query.filter_by(value=value).first()
+            if existing_type:
+                flash(f'Asset type "{value}" already exists', 'error')
+                return render_template('asset_types/create.html')
+            
+            new_asset_type = AssetTypes(
+                value=value,
+                description=description,
+                created_by=1
+            )
+            db.session.add(new_asset_type)
+            db.session.commit()
+            
+            logger.info(f"New asset type created: {value}")
+            flash('Asset type created successfully', 'success')
+            return redirect(url_for('assets.asset_types_index'))
+            
+        except Exception as e:
+            logger.error(f"Error creating asset type: {str(e)}")
+            flash('Error creating asset type', 'error')
+            return render_template('asset_types/create.html')
+    
+    return render_template('asset_types/create.html')
+
+@bp.route('/asset-types/<int:type_id>/edit', methods=['GET', 'POST'])
+def edit_asset_type(type_id):
+    """Edit an asset type"""
+    asset_type = AssetTypes.query.get_or_404(type_id)
+    
+    if request.method == 'POST':
+        try:
+            value = request.form.get('value')
+            description = request.form.get('description')
+            
+            if not value:
+                flash('Asset type name is required', 'error')
+                return render_template('asset_types/edit.html', asset_type=asset_type)
+            
+            # Check if the new name conflicts with existing types (excluding current)
+            existing_type = AssetTypes.query.filter(
+                AssetTypes.value == value,
+                AssetTypes.row_id != type_id
+            ).first()
+            if existing_type:
+                flash(f'Asset type "{value}" already exists', 'error')
+                return render_template('asset_types/edit.html', asset_type=asset_type)
+            
+            asset_type.value = value
+            asset_type.description = description
+            asset_type.update(updated_by=1)
+            db.session.commit()
+            
+            logger.info(f"Asset type updated: {value}")
+            flash('Asset type updated successfully', 'success')
+            return redirect(url_for('assets.asset_types_index'))
+            
+        except Exception as e:
+            logger.error(f"Error updating asset type {type_id}: {str(e)}")
+            flash('Error updating asset type', 'error')
+            return render_template('asset_types/edit.html', asset_type=asset_type)
+    
+    return render_template('asset_types/edit.html', asset_type=asset_type)
+
+@bp.route('/asset-types/<int:type_id>/delete', methods=['POST'])
+def delete_asset_type(type_id):
+    """Delete an asset type if it's not protected"""
+    asset_type = AssetTypes.query.get_or_404(type_id)
+    
+    try:
+        # Check if the type can be deleted
+        if not asset_type.can_be_deleted():
+            flash(f'Cannot delete protected asset type "{asset_type.value}". This is a system-required type.', 'error')
+            return redirect(url_for('assets.asset_types_index'))
+        
+        # Check if any assets are using this type
+        from app.models.BaseModels.Asset import Asset
+        assets_using_type = Asset.query.filter_by(asset_type=asset_type.value).count()
+        if assets_using_type > 0:
+            flash(f'Cannot delete asset type "{asset_type.value}" because {assets_using_type} asset(s) are using it.', 'error')
+            return redirect(url_for('assets.asset_types_index'))
+        
+        type_name = asset_type.value
+        db.session.delete(asset_type)
+        db.session.commit()
+        
+        logger.info(f"Asset type deleted: {type_name}")
+        flash(f'Asset type "{type_name}" deleted successfully', 'success')
+        return redirect(url_for('assets.asset_types_index'))
+        
+    except Exception as e:
+        logger.error(f"Error deleting asset type {type_id}: {str(e)}")
+        flash('Error deleting asset type', 'error')
+        return redirect(url_for('assets.asset_types_index')) 

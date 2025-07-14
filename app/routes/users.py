@@ -24,7 +24,7 @@ def log_user_event(action, user, extra_info=None):
     event = Event(
         title=title,
         description=description,
-        event_type_id='SYSTEM',
+        event_type='SYSTEM',
         status='completed',
         created_by=1
     )

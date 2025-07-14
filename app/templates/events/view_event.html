@@ -25,7 +25,7 @@
         <div class="event-info">
             <div class="info-row">
                 <div class="info-label">Event ID:</div>
-                <div class="info-value">{{ event.event_row_id if event.event_row_id else event.row_id }}</div>
+                <div class="info-value">{{ event.row_id }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Title:</div>
@@ -42,6 +42,10 @@
             <div class="info-row">
                 <div class="info-label">Status:</div>
                 <div class="info-value">{{ event.status }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Location:</div>
+                <div class="info-value">{{ event.location_UID }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Created:</div>
@@ -61,7 +65,7 @@
             </div>
         </div>
         <div class="actions">
-            <a href="{{ url_for('events.edit_event', event_id=event.event_row_id if event.event_row_id else event.row_id) }}" class="btn btn-primary">Edit Event</a>
+            <a href="{{ url_for('events.edit_event', event_id=event.row_id) }}" class="btn btn-primary">Edit Event</a>
             <a href="{{ url_for('events.index') }}" class="btn btn-secondary">Back to Events</a>
             <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Main</a>
         </div>

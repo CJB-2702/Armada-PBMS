@@ -5,11 +5,15 @@
 The tables are created in this specific order to avoid circular dependencies:
 
 1. **Users** - No dependencies
-2. **Asset Types** - No dependencies  
-3. **Major Locations** - Depends on Asset Types
-4. **Minor Locations** - Depends on Asset Types
-5. **Event Types** - No dependencies
-6. **Events** - Depends on Users, Locations, and Event Types
+2. **ProtoClasses**
+    - **UserCreated** - Depends On Users
+    - **Types** - Depends on UserCreated
+        - **GroupedLists** - Depends on Types
+3. **Asset Types** - Depends on UserCreated -> Users
+4. **Major Locations** - Depends on Asset Types
+5. **Minor Locations** - Depends on Asset Types
+6. **Event Types** - Depends on UserCreated -> Users
+7. **Events** - Depends on Users, Locations, and Event Types
 
 ## Initial Data Summary by Model
 

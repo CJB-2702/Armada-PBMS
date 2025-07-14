@@ -29,7 +29,7 @@ def log_location_event(action, location, extra_info=None):
     event = Event(
         title=title,
         description=description,
-        event_type_id='SYSTEM',
+        event_type='SYSTEM',
         status='completed',
         created_by=1
     )

@@ -1,5 +1,8 @@
 from flask import Flask
-from app.models.BaseModels import initialize_database_and_extensions, migrate, login_manager
+from app.models.BaseModels import initialize_base_models
+from app.models.Utility import initialize_utility_models
+# from app.models.Assets import initialize_assets_models
+# from app.models.Assets.AssetClasses import initialize_asset_classes
 from app.routes import register_blueprints
 
 
@@ -12,6 +15,12 @@ def create_and_configure_app():
 
 def create_app():
     app = create_and_configure_app()
-    initialize_database_and_extensions(app)
+    
+    # Initialize models in explicit order
+    initialize_base_models(app)
+    initialize_utility_models(app)
+    # initialize_assets_models(app)
+    # initialize_asset_classes(app)
+    
     register_blueprints(app)
     return app 

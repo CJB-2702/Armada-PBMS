@@ -1,0 +1,148 @@
+{
+    "debug": {
+        "users": [
+            {
+                "username": "christian",
+                "display_name": "Christian",
+                "role": "admin",
+                "email": "christian@armada.pbms",
+                "is_admin": true,
+                "created_by": 0
+            },
+            {
+                "username": "joey",
+                "display_name": "Joey",
+                "role": "user",
+                "email": "joey@armada.pbms",
+                "is_admin": false,
+                "created_by": 0
+            }
+        ],
+        "asset_types": [
+            {
+                "name": "Vehicles",
+                "description": "Motorized vehicles for transportation and operations",
+                "created_by": 0
+            },
+            {
+                "name": "Equipment",
+                "description": "Tools, machinery, and specialized equipment",
+                "created_by": 0
+            }
+        ],
+        "locations": [
+            {
+                "name": "California HQ",
+                "state": "CA",
+                "city": "San Francisco",
+                "description": "California Headquarters",
+                "created_by": 0
+            },
+            {
+                "name": "Virginia HQ",
+                "state": "VA",
+                "city": "Richmond",
+                "description": "Virginia Headquarters",
+                "created_by": 0
+            }
+        ],
+        "assets": [
+            {
+                "common_name": "Oil Station",
+                "description": "Generic oil station asset",
+                "asset_type": "General",
+                "status": "Active",
+                "major_location_UID": "California HQ",
+                "created_by": 0
+            }
+        ],
+        "vehicles": [
+            {
+                "asset_UID": "V001",
+                "common_name": "V001",
+                "description": "Toyota Corolla",
+                "asset_type": "Vehicle",
+                "status": "Active",
+                "manufacturer": "Toyota",
+                "model": "Corolla",
+                "model_subtype": "LE",
+                "year": 2020,
+                "VIN": "1HGBH41JXMN109186",
+                "color": "Silver",
+                "license_plate": "ABC123",
+                "license_plate_state": "CA",
+                "purchase_date": "2020-01-15",
+                "purchase_price": 25000.00,
+                "created_by": 0
+            },
+            {
+                "asset_UID": "V002",
+                "common_name": "V002",
+                "description": "Ford F350",
+                "asset_type": "Vehicle",
+                "status": "Active",
+                "manufacturer": "Ford",
+                "model": "F350",
+                "model_subtype": "Super Duty",
+                "year": 2019,
+                "VIN": "1FT8W3DT8KED12345",
+                "color": "White",
+                "license_plate": "XYZ789",
+                "license_plate_state": "VA",
+                "purchase_date": "2019-06-20",
+                "purchase_price": 45000.00,
+                "created_by": 0
+            },
+            {
+                "asset_UID": "V003",
+                "common_name": "V003",
+                "description": "Bluebus",
+                "asset_type": "Vehicle",
+                "status": "Active",
+                "manufacturer": "Blue Bird",
+                "model": "Vision",
+                "model_subtype": "School Bus",
+                "year": 2018,
+                "VIN": "1B9ES46Y5WD123456",
+                "color": "Blue",
+                "license_plate": "BUS001",
+                "license_plate_state": "CA",
+                "purchase_date": "2018-08-10",
+                "purchase_price": 85000.00,
+                "created_by": 0
+            }
+        ],
+        "events": [
+            {
+                "title": "Daily Inspection",
+                "description": "Routine daily inspection of Fleet Truck #1",
+                "start_time": "2024-05-27T08:00:00",
+                "end_time": "2024-05-27T08:30:00",
+                "event_type_row_id": 2,
+                "asset_row_id": 2,
+                "status": "completed",
+                "created_by": 1
+            },
+            {
+                "title": "Oil Change",
+                "description": "Scheduled oil change for Fleet Truck #1",
+                "start_time": "2024-05-28T09:00:00",
+                "end_time": "2024-05-28T10:00:00",
+                "event_type_row_id": 2,
+                "asset_row_id": 2,
+                "status": "pending",
+                "created_by": 1
+            },
+            {
+                "title": "Tire Rotation",
+                "description": "Quarterly tire rotation for Fleet Truck #1",
+                "start_time": "2024-06-01T10:00:00",
+                "end_time": "2024-06-01T11:00:00",
+                "event_type_row_id": 2,
+                "asset_row_id": 2,
+                "status": "pending",
+                "created_by": 1
+            }
+        ]
+    }
+}

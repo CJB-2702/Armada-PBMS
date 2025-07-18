@@ -1,0 +1,31 @@
+{
+    "initial_events": [
+        {
+            "row_id": 0,
+            "title": "User Created: SYSTEM (ID: 0)",
+            "description": "User created.\nUsername: SYSTEM\nDisplay Name: System\nEmail: system@null.null\nRole: admin\nIs Admin: True",
+            "event_type": "System",
+            "status": "Completed",
+            "location_UID": "SYSTEM",
+            "created_by": 0
+        },
+        {
+            "row_id": 1,
+            "title": "User Created: admin (ID: 1)",
+            "description": "User created.\nUsername: admin\nDisplay Name: System Administrator\nEmail: admin@null.com\nRole: admin\nIs Admin: True",
+            "event_type": "System",
+            "status": "Completed",
+            "location_UID": "SYSTEM",
+            "created_by": 0
+        },
+        {
+            "row_id": 2,
+            "title": "System Location Created: System Location (ID: 0)",
+            "description": "System location created.\nUID: SYSTEM\nCommon Name: System Location\nDescription: Virtual system location for internal system operations REQUIRED FOR SYSTEM OPERATIONS\nStatus: active",
+            "event_type": "System",
+            "status": "Completed",
+            "location_UID": "SYSTEM",
+            "created_by": 0
+        }
+    ]
+} 

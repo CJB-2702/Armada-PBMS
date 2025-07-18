@@ -1,5 +1,6 @@
 from app.utils.logger import get_logger
 from app.extensions import db
+from datetime import datetime
 
 
 def create_utility_tables(app):
@@ -38,9 +39,45 @@ def insert_utility_initial_data(app):
         logger = get_logger()
         logger.info("=== Starting Utility initial data insertion ===")
         
-        # No initial data required for Utility models at this time
-        logger.info("✓ No initial data required for Utility models")
+        # Import meter types from JSON file
+        import json
+        import os
         
+        meter_types_file = os.path.join(
+            os.path.dirname(__file__), 
+            '..', 'BaseModels', 'initial_data', 'meter_types.json'
+        )
+        
+        try:
+            with open(meter_types_file, 'r') as f:
+                meter_data = json.load(f)
+            
+            # Insert meter types into generic_types table
+            logger.info("--- Inserting Meter Types ---")
+            for meter_type_data in meter_data['meter_types']:
+                db.session.execute(db.text("""
+                    INSERT OR IGNORE INTO generic_types (UID, group, value, description, created_by, updated_by, created_at, updated_at)
+                    VALUES (:UID, :group, :value, :description, :created_by, :updated_by, :created_at, :updated_at)
+                """), {
+                    'UID': f"meter_types_{meter_type_data['name']}",
+                    'group': 'meter_types',
+                    'value': meter_type_data['name'],
+                    'description': meter_type_data['description'],
+                    'created_by': meter_type_data['created_by'],
+                    'updated_by': meter_type_data['created_by'],
+                    'created_at': datetime.now(),
+                    'updated_at': datetime.now()
+                })
+            
+            logger.info(f"✓ Inserted {len(meter_data['meter_types'])} meter types")
+            
+        except FileNotFoundError:
+            logger.warning(f"Meter types file not found: {meter_types_file}")
+        except Exception as e:
+            logger.error(f"Error loading meter types: {e}")
+        
+        # Commit all changes
+        db.session.commit()
         logger.info("=== Utility initial data insertion completed successfully ===")
 
 

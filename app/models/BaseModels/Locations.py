@@ -1,4 +1,4 @@
-from app.models.BaseModels.Asset import AbstractAsset
+from app.models.BaseModels.Asset import AbstractAsset, AbstractModel
 from app.models.BaseModels.ProtoClasses import UserCreated
 from app.extensions import db
 from app.utils.logger import get_logger

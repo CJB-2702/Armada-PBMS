@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify
+from flask_login import login_required, current_user
 from app.utils.logger import get_logger
 
 logger = get_logger()
@@ -9,17 +10,20 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     """Main application index page"""
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        logger.error(f"Error rendering main index: {str(e)}")
-        return "Error loading main page", 500
+    return render_template('index.html')
 
 @bp.route('/dashboard')
+@login_required
 def dashboard():
-    """Main dashboard page"""
-    try:
-        return render_template('dashboard.html')
-    except Exception as e:
-        logger.error(f"Error rendering dashboard: {str(e)}")
-        return "Error loading dashboard", 500 
+    """Main dashboard page - requires authentication"""
+    return render_template('dashboard.html')
+
+@bp.route('/.well-known/appspecific/com.chrome.devtools.json')
+def chrome_devtools():
+    """Handle Chrome DevTools Protocol request"""
+    return jsonify({"error": "DevTools Protocol not supported"}), 404
+
+#TODO remove this route later
+@bp.route('/favicon.ico')
+def favicon():
+    return ""

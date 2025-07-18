@@ -1,0 +1,28 @@
+{
+    "required_statuses": [
+        {
+            "row_id": 0,
+            "name": "active",
+            "description": "Active status for assets and locations",
+            "created_by": 0
+        },
+        {
+            "row_id": 1,
+            "name": "inactive",
+            "description": "Inactive status for assets and locations",
+            "created_by": 0
+        },
+        {
+            "row_id": 2,
+            "name": "maintenance",
+            "description": "Under maintenance",
+            "created_by": 0
+        },
+        {
+            "row_id": 3,
+            "name": "retired",
+            "description": "Retired or decommissioned",
+            "created_by": 0
+        }
+    ]
+} 

@@ -1,0 +1,57 @@
+================================================================================
+ARMADA PBMS - DATABASE MODEL DIAGRAM
+================================================================================
+
+ABSTRACT BASE CLASSES:
+----------------------------------------
+📋 users (User)
+   Parent Classes: Model, Model, object
+
+📋 types_assets (AssetTypes)
+   Parent Classes: Types, UserCreated, Model, Model, object
+
+📋 types_statuses (Statuses)
+   Parent Classes: Types, UserCreated, Model, Model, object
+
+📋 major_locations (MajorLocation)
+   Parent Classes: Location, AbstractAsset, UserCreated, Model, Model, object
+
+📋 minor_locations (MinorLocation)
+   Parent Classes: AbstractAsset, UserCreated, Model, Model, object
+
+📋 events (AssetEvent)
+   Parent Classes: Event, UserCreated, Model, Model, object
+
+📋 types_events (EventTypes)
+   Parent Classes: Types, UserCreated, Model, Model, object
+
+📋 attachments (Attachments)
+   Parent Classes: UserCreated, Model, Model, object
+
+📋 generic_types (GenericTypes)
+   Parent Classes: GroupedLists, Types, UserCreated, Model, Model, object
+
+📋 dropdowns (Dropdowns)
+   Parent Classes: GroupedLists, Types, UserCreated, Model, Model, object
+
+📋 misc_locations (MiscLocations)
+   Parent Classes: Location, AbstractAsset, UserCreated, Model, Model, object
+
+📋 assets (Asset)
+   Parent Classes: AbstractAsset, UserCreated, Model, Model, object
+
+📋 vehicles (Vehicle)
+   Parent Classes: UserCreated, Model, Model, object
+
+📋 vehicle_models (VehicleModel)
+   Parent Classes: AbstractModel, UserCreated, Model, Model, object
+
+📋 vehicle_purchase_info (VehiclePurchaseInfo)
+   Parent Classes: UserCreated, Model, Model, object
+
+CONCRETE TABLES:
+----------------------------------------
+FOREIGN KEY RELATIONSHIPS:
+----------------------------------------
+
+================================================================================

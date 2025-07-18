@@ -56,7 +56,7 @@ class DatabaseInitializer:
         # Phase 1: BaseModels (foundation models)
         self.logger.info("Phase 1: Importing BaseModels...")
         from app.models.BaseModels.Users import User
-        from app.models.BaseModels.Asset import AssetTypes, Statuses, AbstractAsset
+        from app.models.BaseModels.Asset import AssetTypes, Statuses, AbstractAsset, AbstractModel
         from app.models.BaseModels.Locations import MajorLocation, MinorLocation
         from app.models.BaseModels.Event import Event, EventTypes
         
@@ -73,7 +73,9 @@ class DatabaseInitializer:
         
         # Phase 4: AssetClasses models
         self.logger.info("Phase 4: Importing AssetClasses models...")
-        from app.models.Assets.AssetClasses.Vehicles import Vehicle, VehicleModel, VehiclePurchaseInfo
+        # Import AssetClasses models through the proper module
+        from app.models.Assets.AssetClasses.Vehicles import import_vehicles_models
+        import_vehicles_models()
         
         self.logger.info("✓ All models imported successfully")
     

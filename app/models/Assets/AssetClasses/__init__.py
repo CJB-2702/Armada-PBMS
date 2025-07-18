@@ -8,10 +8,12 @@ def create_asset_classes_tables(app):
         logger = get_logger()
         logger.info("=== Starting AssetClasses table creation ===")
         
-        # Import AssetClasses models only
+        # Import and create tables for each enabled asset class
         logger.info("Importing AssetClasses models...")
         try:
-            from app.models.Assets.AssetClasses.Vehicles import Vehicle, VehicleModel, VehiclePurchaseInfo
+            # Import Vehicles models for table creation
+            from app.models.Assets.AssetClasses.Vehicles import import_vehicles_models
+            import_vehicles_models()
             logger.info("✓ AssetClasses models imported successfully")
         except Exception as e:
             logger.error(f"Error importing AssetClasses models: {e}")
@@ -36,8 +38,15 @@ def insert_asset_classes_initial_data(app):
         logger = get_logger()
         logger.info("=== Starting AssetClasses initial data insertion ===")
         
-        # No initial data required for AssetClasses models at this time
-        logger.info("✓ No initial data required for AssetClasses models")
+        # Initialize each enabled asset class
+        try:
+            # Initialize Vehicles if enabled
+            from app.models.Assets.AssetClasses.Vehicles import initialize_vehicles_models
+            initialize_vehicles_models(app)
+            logger.info("✓ AssetClasses initial data insertion completed")
+        except Exception as e:
+            logger.error(f"Error during AssetClasses initial data insertion: {e}")
+            raise
         
         logger.info("=== AssetClasses initial data insertion completed successfully ===")
 

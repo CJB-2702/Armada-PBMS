@@ -3,7 +3,7 @@ import sys
 import time
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).parent.parent
 DB_PATH = BASE_DIR / 'instance' / 'app.db'
 VENV_PYTHON = BASE_DIR / 'venv' / 'bin' / 'python'
 REQUIREMENTS = BASE_DIR / 'requirements.txt'

@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
 from app.models.BaseModels.Locations import MajorLocation
 from app.models.BaseModels.Event import Event
 from app.extensions import db
@@ -31,122 +32,108 @@ def log_location_event(action, location, extra_info=None):
         description=description,
         event_type='SYSTEM',
         status='completed',
-        created_by=1
+        created_by=current_user.row_id if current_user else 1
     )
     db.session.add(event)
 
 @bp.route('/')
+@login_required
 def index():
     """Display all locations"""
-    try:
-        locations = MajorLocation.query.all()
-        return render_template('locations/index.html', locations=locations)
-    except Exception as e:
-        logger.error(f"Error fetching locations: {str(e)}")
-        flash('Error loading locations', 'error')
-        return render_template('locations/index.html', locations=[])
+    locations = MajorLocation.query.all()
+    return render_template('locations/index.html', locations=locations)
 
 @bp.route('/<string:uid>')
+@login_required
 def view_location(uid):
     location = MajorLocation.query.filter_by(UID=uid).first_or_404()
     return render_template('locations/view_location.html', location=location)
 
 @bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create_location():
     if request.method == 'POST':
-        try:
-            UID = request.form.get('UID')
-            common_name = request.form.get('common_name')
-            description = request.form.get('description')
-            status = request.form.get('status', 'active')
-            country = request.form.get('country')
-            state = request.form.get('state')
-            city = request.form.get('city')
-            address = request.form.get('address')
-            zip_code = request.form.get('zip_code')
-            misc = request.form.get('misc')
-            
-            if not UID or not common_name or not description or not status:
-                flash('UID, Common Name, Description, and Status are required', 'error')
-                return render_template('locations/create_location.html')
-            
-            new_location = MajorLocation(
-                UID=UID,
-                common_name=common_name,
-                description=description,
-                status=status,
-                created_by=1,
-                Country=country,
-                State=state,
-                City=city,
-                Address=address,
-                ZipCode=zip_code,
-                Misc=misc
-            )
-            db.session.add(new_location)
-            db.session.commit()
-            log_location_event("Created", new_location)
-            db.session.commit()
-            logger.info(f"New major location created: {common_name}")
-            flash('Location created successfully', 'success')
-            return redirect(url_for('locations.view_location', uid=new_location.UID))
-        except Exception as e:
-            logger.error(f"Error creating location: {str(e)}")
-            flash('Error creating location', 'error')
+        UID = request.form.get('UID')
+        common_name = request.form.get('common_name')
+        description = request.form.get('description')
+        status = request.form.get('status', 'active')
+        country = request.form.get('country')
+        state = request.form.get('state')
+        city = request.form.get('city')
+        address = request.form.get('address')
+        zip_code = request.form.get('zip_code')
+        misc = request.form.get('misc')
+        
+        if not UID or not common_name or not description or not status:
+            flash('UID, Common Name, Description, and Status are required', 'error')
             return render_template('locations/create_location.html')
+        
+        new_location = MajorLocation(
+            UID=UID,
+            common_name=common_name,
+            description=description,
+            status=status,
+            created_by=current_user.row_id if current_user else 1,
+            Country=country,
+            State=state,
+            City=city,
+            Address=address,
+            ZipCode=zip_code,
+            Misc=misc
+        )
+        db.session.add(new_location)
+        db.session.commit()
+        log_location_event("Created", new_location)
+        db.session.commit()
+        flash('Location created successfully', 'success')
+        return redirect(url_for('locations.view_location', uid=new_location.UID))
+    
     return render_template('locations/create_location.html')
 
 @bp.route('/<string:uid>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_location(uid):
     location = MajorLocation.query.filter_by(UID=uid).first_or_404()
+    
     if request.method == 'POST':
-        try:
-            common_name = request.form.get('common_name')
-            description = request.form.get('description')
-            status = request.form.get('status')
-            country = request.form.get('country')
-            state = request.form.get('state')
-            city = request.form.get('city')
-            address = request.form.get('address')
-            zip_code = request.form.get('zip_code')
-            misc = request.form.get('misc')
-            
-            if not common_name or not description or not status:
-                return render_template('locations/edit_location.html', location=location, error='Common Name, Description, and Status are required')
-            
-            location.common_name = common_name
-            location.description = description
-            location.status = status
-            location.Country = country
-            location.State = state
-            location.City = city
-            location.Address = address
-            location.ZipCode = zip_code
-            location.Misc = misc
-            
-            db.session.commit()
-            log_location_event("Edited", location)
-            db.session.commit()
-            logger.info(f"Location {uid} updated")
-            flash('Location updated successfully', 'success')
-            return redirect(url_for('locations.view_location', uid=location.UID))
-        except Exception as e:
-            logger.error(f"Error editing location {uid}: {str(e)}")
-            flash('Error updating location', 'error')
-            return render_template('locations/edit_location.html', location=location, error='Error updating location')
+        common_name = request.form.get('common_name')
+        description = request.form.get('description')
+        status = request.form.get('status')
+        country = request.form.get('country')
+        state = request.form.get('state')
+        city = request.form.get('city')
+        address = request.form.get('address')
+        zip_code = request.form.get('zip_code')
+        misc = request.form.get('misc')
+        
+        if not common_name or not description or not status:
+            flash('Common Name, Description, and Status are required', 'error')
+            return render_template('locations/edit_location.html', location=location)
+        
+        location.common_name = common_name
+        location.description = description
+        location.status = status
+        location.Country = country
+        location.State = state
+        location.City = city
+        location.Address = address
+        location.ZipCode = zip_code
+        location.Misc = misc
+        
+        db.session.commit()
+        log_location_event("Edited", location)
+        db.session.commit()
+        flash('Location updated successfully', 'success')
+        return redirect(url_for('locations.view_location', uid=location.UID))
+    
     return render_template('locations/edit_location.html', location=location)
 
 @bp.route('/<string:uid>/delete', methods=['POST'])
+@login_required
 def delete_location(uid):
     location = MajorLocation.query.filter_by(UID=uid).first_or_404()
-    try:
-        db.session.delete(location)
-        log_location_event("Deleted", location)
-        db.session.commit()
-        logger.info(f"Location {uid} deleted.")
-        flash('Location deleted successfully.', 'success')
-        return redirect(url_for('locations.index'))
-    except Exception as e:
-        logger.error(f"Error deleting location {uid}: {str(e)}")
-        flash('Error deleting location.', 'error')
-        return redirect(url_for('locations.edit_location', uid=uid)) 
+    db.session.delete(location)
+    log_location_event("Deleted", location)
+    db.session.commit()
+    flash('Location deleted successfully.', 'success')
+    return redirect(url_for('locations.index')) 

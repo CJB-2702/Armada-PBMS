@@ -1,0 +1,42 @@
+[
+    {
+        "name": "miles",
+        "description": "Miles",
+        "created_by": 0
+    },
+    {
+        "name": "gallons",
+        "description": "Gallons",
+        "created_by": 0
+    },
+    {
+        "name": "kilometers",
+        "description": "Kilometers",
+        "created_by": 0
+    },
+    {
+        "name": "cycles",
+        "description": "Number of ignition or start cycles",
+        "created_by": 0
+    },
+    {
+        "name": "liters",
+        "description": "Liters",
+        "created_by": 0
+    },
+    {
+        "name": "hours",
+        "description": "Hours",
+        "created_by": 0
+    },
+    {
+        "name": "KWH",
+        "description": "Kilowatt Hours",
+        "created_by": 0
+    },
+    {
+        "name": "kilograms",
+        "description": "Kilograms of gas based fuel",
+        "created_by": 0
+    }
+]

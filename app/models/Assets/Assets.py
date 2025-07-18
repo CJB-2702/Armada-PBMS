@@ -1,4 +1,4 @@
-from app.models.BaseModels.Asset import AbstractAsset
+from app.models.BaseModels.Asset import AbstractAsset, AbstractModel
 from app.models.BaseModels.Locations import MinorLocation, MajorLocation
 from app.extensions import db
 
@@ -71,7 +71,7 @@ class Asset(AbstractAsset):
         """Validate that the minor location belongs to the major location"""
         if minor_location_UID:
             minor_loc = MinorLocation.query.filter_by(UID=minor_location_UID).first()
-            if not minor_loc or minor_loc.major_location_id != major_location_UID:
+            if not minor_loc or minor_loc.major_location_uid != major_location_UID:
                 raise ValueError(f"Minor location {minor_location_UID} must belong to major location {major_location_UID}")
 
     @classmethod

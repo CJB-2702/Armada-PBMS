@@ -87,6 +87,31 @@ class Statuses(Types):
         """
         return ['Active', 'Available', 'Unavailable', 'Defunct']
 
+class AbstractModel(UserCreated):
+    """Abstract base class for model entities that represent specifications or templates"""
+    __abstract__ = True
+
+    UID = db.Column(db.String(50), nullable=False, unique=True)
+    manufacturer = db.Column(db.String(100), nullable=False)
+    model = db.Column(db.String(100), nullable=False)
+    model_subtype = db.Column(db.String(100))
+    year = db.Column(db.Integer)
+    revision = db.Column(db.String(100))
+    description = db.Column(db.Text)
+
+    def __init__(self, UID, manufacturer, model, model_subtype, year, revision, description, created_by=0):
+        self.UID = UID
+        self.manufacturer = manufacturer
+        self.model = model
+        self.model_subtype = model_subtype
+        self.year = year
+        self.revision = revision
+        self.description = description
+        self.created_by = created_by
+        self.updated_by = created_by
+
+
+
 class AbstractAsset(UserCreated):
     __abstract__ = True  # Make this an abstract base class
 
@@ -106,3 +131,23 @@ class AbstractAsset(UserCreated):
         self.created_by = created_by
         self.updated_by = created_by
 
+
+class AbstractPurchaseInfo(UserCreated):
+    __abstract__ = True
+
+    UID = db.Column(db.String(50), nullable=False, unique=True)
+    asset_UID = db.Column(db.String(50), db.ForeignKey('assets.UID'), nullable=False)
+    purchase_date = db.Column(db.Date)
+    purchase_price = db.Column(db.Float)
+    purchase_location_UID = db.Column(db.String(50), db.ForeignKey('misc_locations.UID'))
+    attachments = db.Column(db.String(100))
+
+    def __init__(self, asset_UID, purchase_date=None, purchase_price=None,
+                 purchase_location_UID=None, attachments=None, created_by=0):
+        super().__init__(created_by)
+        self.UID = f"purchase_{asset_UID}_{created_by}"
+        self.asset_UID = asset_UID
+        self.purchase_date = purchase_date
+        self.purchase_price = purchase_price
+        self.purchase_location_UID = purchase_location_UID
+        self.attachments = attachments

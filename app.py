@@ -50,7 +50,12 @@ if __name__ == '__main__':
     print("")
     
     # Build database first
-    build_database(build_phase=build_phase)
+    if args.phase1:
+        build_database(build_phase=build_phase, data_phase='phase1')
+    elif args.phase2:
+        build_database(build_phase=build_phase, data_phase='phase2')
+    else:
+        build_database(build_phase=build_phase)
     
     if args.build_only:
         print("Build completed. Exiting without starting web server.")

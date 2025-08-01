@@ -5,8 +5,8 @@ Tests the asset detail table system functionality
 """
 
 import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 
 from app import create_app, db
 from app.models.core.user import User
@@ -29,6 +29,29 @@ def test_phase2_functionality():
     
     with app.app_context():
         try:
+            # Build tables and initialize data first
+            print("Building tables and initializing data...")
+            from app.models.core.build import build_core_tables, initialize_system_data
+            from app.models.assets.build import build_asset_models, initialize_asset_detail_data
+            
+            if not build_core_tables():
+                print("   ✗ Failed to build core tables!")
+                return False
+            
+            if not initialize_system_data():
+                print("   ✗ Failed to initialize system data!")
+                return False
+            
+            if not build_asset_models():
+                print("   ✗ Failed to build asset models!")
+                return False
+            
+            if not initialize_asset_detail_data():
+                print("   ✗ Failed to initialize asset detail data!")
+                return False
+            
+            print("   ✓ Tables built and data initialized\n")
+            
             # Test 1: Verify core data exists
             print("\n1. Testing Core Data...")
             system_user = User.query.filter_by(username='system').first()

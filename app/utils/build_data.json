@@ -1,0 +1,158 @@
+{
+  "core_users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@assetmanagement.local",
+      "is_active": true,
+      "is_system": false,
+      "is_admin": true,
+      "password": "admin-password-change-me"
+    },
+    {
+      "id": 2,
+      "username": "system",
+      "email": "system@assetmanagement.local",
+      "is_active": true,
+      "is_system": true,
+      "is_admin": false,
+      "password": "system-password-not-for-login"
+    }
+  ],
+  "core_locations": [
+    {
+      "name": "SanDiegoHQ",
+      "description": "Main office location",
+      "address": "San Diego, CA",
+      "is_active": true
+    }
+  ],
+  "core_asset_types": [
+    {
+      "name": "Vehicle",
+      "category": "Transportation",
+      "description": "Motor vehicles for transportation",
+      "is_active": true
+    }
+  ],
+  "core_make_models": [
+    {
+      "make": "Toyota",
+      "model": "Corolla",
+      "year": 2023,
+      "description": "Toyota Corolla 2023 model",
+      "asset_type_name": "Vehicle",
+      "is_active": true
+    }
+  ],
+  "core_events": [
+    {
+      "event_type": "System",
+      "description": "System initialized with core data",
+      "user_username": "system"
+    }
+  ],
+  "detail_table_configurations": {
+    "asset_type_configs": [
+      {
+        "asset_type_name": "Vehicle",
+        "detail_table_type": "purchase_info",
+        "is_asset_detail": true,
+        "is_active": true
+      },
+      {
+        "asset_type_name": "Vehicle",
+        "detail_table_type": "vehicle_registration",
+        "is_asset_detail": true,
+        "is_active": true
+      },
+      {
+        "asset_type_name": "Vehicle",
+        "detail_table_type": "emissions_info",
+        "is_asset_detail": false,
+        "is_active": true
+      },
+      {
+        "asset_type_name": "Vehicle",
+        "detail_table_type": "model_info",
+        "is_asset_detail": false,
+        "is_active": true
+      }
+    ],
+    "model_configs": [
+      {
+        "make": "Toyota",
+        "model": "Corolla",
+        "detail_table_type": "toyota_warranty_receipt",
+        "is_asset_detail": true,
+        "is_active": true
+      }
+    ]
+  },
+  "sample_data": {
+    "purchase_info": {
+      "purchase_date": "2023-01-15",
+      "purchase_price": 25000.00,
+      "purchase_vendor": "Toyota of San Diego",
+      "purchase_order_number": "PO-2023-001",
+      "warranty_start_date": "2023-01-15",
+      "warranty_end_date": "2026-01-15",
+      "purchase_notes": "Purchased for fleet use"
+    },
+    "vehicle_registration": {
+      "license_plate": "ABC123",
+      "registration_number": "REG-2023-001",
+      "registration_expiry": "2024-12-31",
+      "vin_number": "1HGBH41JXMN109186",
+      "state_registered": "CA",
+      "registration_status": "Active",
+      "insurance_provider": "State Farm",
+      "insurance_policy_number": "SF-123456",
+      "insurance_expiry": "2024-06-30"
+    },
+    "toyota_warranty_receipt": {
+      "warranty_receipt_number": "TOY-2023-001",
+      "warranty_type": "Basic",
+      "warranty_mileage_limit": 36000,
+      "warranty_time_limit_months": 36,
+      "dealer_name": "Toyota of San Diego",
+      "dealer_contact": "John Smith",
+      "dealer_phone": "(619) 555-0123",
+      "dealer_email": "service@toyotasandiego.com",
+      "service_history": "Initial inspection completed",
+      "warranty_claims": "None"
+    },
+    "emissions_info": {
+      "emissions_standard": "EPA",
+      "emissions_rating": "ULEV",
+      "fuel_type": "gasoline",
+      "mpg_city": 32.0,
+      "mpg_highway": 41.0,
+      "mpg_combined": 35.0,
+      "co2_emissions": 250.0,
+      "emissions_test_date": "2022-12-01",
+      "emissions_certification": "EPA-2023-001"
+    },
+    "model_info": {
+      "model_year": 2023,
+      "body_style": "sedan",
+      "engine_type": "2.0L 4-Cylinder",
+      "engine_displacement": "2.0L",
+      "transmission_type": "automatic",
+      "drivetrain": "FWD",
+      "seating_capacity": 5,
+      "cargo_capacity": 13.1,
+      "towing_capacity": 1500,
+      "manufacturer_website": "https://www.toyota.com/corolla",
+      "technical_specifications": "2.0L Dynamic Force 4-Cylinder engine with 169 hp"
+    }
+  },
+  "test_assets": [
+    {
+      "name": "VTC-001",
+      "serial_number": "VTC0012023001",
+      "make": "Toyota",
+      "model": "Corolla"
+    }
+  ]
+} 

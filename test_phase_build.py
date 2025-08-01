@@ -4,10 +4,10 @@ Test script to demonstrate the phase build functionality
 """
 
 import sys
-import os
+from pathlib import Path
 
 # Add the current directory to the Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from app.build import build_database
 

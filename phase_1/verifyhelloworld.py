@@ -3,7 +3,7 @@
 Comprehensive verification script for Hello World database test
 """
 
-import os
+from pathlib import Path
 import subprocess
 import sqlite3
 from flask import Flask
@@ -89,10 +89,10 @@ def verify_database_file():
     print("\n=== Verifying Database File ===")
     
     # Check if database file exists
-    db_path = "instance/helloworld.db"
-    if os.path.exists(db_path):
+    db_path = Path("instance/helloworld.db")
+    if db_path.exists():
         print(f"✓ Database file exists: {db_path}")
-        file_size = os.path.getsize(db_path)
+        file_size = db_path.stat().st_size
         print(f"✓ Database file size: {file_size} bytes")
         return db_path
     else:

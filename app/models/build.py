@@ -26,7 +26,8 @@ def build_all_models(build_phase='all'):
             - 'none': Skip model building (data only)
             - 'phase1': Build only Phase 1 models (Core Foundation Tables)
             - 'phase2': Build Phase 1 and Phase 2 models (Core + Asset Detail Tables)
-            - 'all': Build all phases (default)
+            - 'phase3': Build Phase 1, Phase 2, and Phase 3 models (Core + Asset Detail Tables + Automatic Detail Insertion)
+            - 'all': Build all phases (default = phase3)
     """
     if build_phase == 'none':
         print("=== Skipping Model Building ===")
@@ -79,13 +80,20 @@ def build_all_models(build_phase='all'):
             print("✓ All dependencies resolved")
             return True
         
-        # Future phases would go here
-        # Phase 3: Maintenance & Operations
-        # Phase 4: Advanced Features
+        # Phase 3A: Enable automatic detail insertion
+        print("\nPhase 3A: Enabling Automatic Detail Insertion")
         
-        print("\n=== All Models Built Successfully ===")
+        # Enable automatic detail insertion in Asset model
+        Asset.enable_automatic_detail_insertion()
+        
+        print("✓ Automatic detail insertion enabled")
+        print("✓ SQLAlchemy event listeners configured")
+        print("✓ Detail table registry initialized")
+        
+        print("\n=== Phase 3 Models Complete ===")
         print("✓ Core tables created")
         print("✓ Asset detail tables created")
+        print("✓ Automatic detail insertion enabled")
         print("✓ All dependencies resolved")
         print("✓ Ready for data insertion")
         
@@ -105,8 +113,9 @@ def insert_all_data(data_phase='all'):
     Args:
         data_phase (str): Data insertion phase to execute
             - 'phase1': Insert only Phase 1 data (Core System Initialization)
-            - 'phase2': Insert Phase 1 and Phase 2 data (Core + Asset Detail Data)
-            - 'all': Insert all phases data (default)
+            - 'phase2': Insert Phase 1 and Phase 2 data (Core + Asset Detail Data - manual insertion)
+            - 'phase3': Insert Phase 1 and Phase 3 data (Core + Update auto-generated details)
+            - 'all': Insert all phases data (default = phase3)
     """
     print("=== Inserting All Data ===")
     
@@ -122,28 +131,57 @@ def insert_all_data(data_phase='all'):
             print("✓ System data initialized")
             return True
         
-        # Phase 2B: Initialize asset detail data
-        print("\nPhase 2B: Initializing Asset Detail Data")
-        
-        # Import asset data functions only when needed
-        from app.models.assets.build import initialize_asset_detail_data
-        
-        if not initialize_asset_detail_data():
-            print("✗ Asset detail data initialization failed")
-            return False
-        
+        # Phase 2B: Initialize asset detail data (manual insertion)
         if data_phase == 'phase2':
+            print("\nPhase 2B: Initializing Asset Detail Data (Manual Insertion)")
+            
+            # Import asset data functions only when needed
+            from app.models.assets.build import initialize_asset_detail_data
+            
+            if not initialize_asset_detail_data():
+                print("✗ Asset detail data initialization failed")
+                return False
+            
             print("\n=== Phase 2 Data Complete ===")
-            print("✓ Asset detail data initialized")
+            print("✓ Asset detail data initialized (manual insertion)")
             return True
         
-        # Future phases would go here
-        # Phase 3: Maintenance & Operations data
-        # Phase 4: Advanced Features data
+        # Phase 3B: Initialize detail table sets, then Phase 1 data, then update auto-generated details
+        if data_phase in ['phase3', 'all']:
+            print("\nPhase 3B: Phase 3 Data Insertion Process")
+            
+            # Import asset data functions only when needed
+            from app.models.assets.build import initialize_detail_table_sets, update_auto_generated_details
+            
+            # Step 1: Initialize detail table set configurations (includes data insertion)
+            print("\nStep 1: Initializing Detail Table Set Configurations and Data")
+            if not initialize_detail_table_sets():
+                print("✗ Detail table set initialization failed")
+                return False
+            
+            # Step 2: Phase 1 data insertion (without assets - they'll be created after detail configs)
+            print("\nStep 2: Phase 1 Data Insertion (without assets)")
+            if not initialize_system_data(include_assets=False):
+                print("✗ Phase 1 data insertion failed")
+                return False
+            
+            # Step 3: Update auto-generated detail rows with actual data
+            print("\nStep 3: Updating Auto-Generated Detail Rows")
+            if not update_auto_generated_details():
+                print("✗ Auto-generated detail update failed")
+                return False
+            
+            print("\n=== Phase 3 Data Complete ===")
+            print("✓ Detail table set configurations initialized")
+            print("✓ Detail table set data inserted")
+            print("✓ Detail table configurations processed")
+            print("✓ Phase 1 data inserted (with automatic detail creation)")
+            print("✓ Auto-generated detail rows updated")
+            return True
         
         print("\n=== All Data Inserted Successfully ===")
         print("✓ System data initialized")
-        print("✓ Asset detail data initialized")
+        print("✓ Auto-generated detail rows updated")
         print("✓ Ready for use")
         
         return True
@@ -254,10 +292,23 @@ def show_build_summary():
 if __name__ == '__main__':
     # This can be run directly for testing
     from app import create_app
+    import sys
     
     app = create_app()
     with app.app_context():
-        success = build_all_models()
-        if success:
-            verify_all_tables()
-            show_build_summary() 
+        # Check if update mode is requested
+        if len(sys.argv) > 1 and sys.argv[1] == '--update':
+            print("Running in UPDATE mode...")
+            update_success = insert_all_data('phase3')
+            if update_success:
+                print("Asset detail data update completed successfully")
+            else:
+                print("Asset detail data update failed")
+        else:
+            # Normal build and initialize mode
+            success = build_all_models()
+            if success:
+                verify_all_tables()
+                show_build_summary()
+            else:
+                print("Model build failed")

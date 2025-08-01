@@ -5,9 +5,9 @@ Verifies all models and initial data are working correctly
 """
 
 import sys
-import os
+from pathlib import Path
 # Add the parent directory to the Python path so we can import the app module
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app import create_app, db
 from app.models.core.user import User
@@ -23,6 +23,20 @@ def test_phase1_implementation():
     
     with app.app_context():
         print("=== Phase 1 Implementation Test ===\n")
+        
+        # Build tables and initialize data first
+        print("Building tables and initializing data...")
+        from app.models.core.build import build_core_tables, initialize_system_data
+        
+        if not build_core_tables():
+            print("   ✗ Failed to build core tables!")
+            return False
+        
+        if not initialize_system_data():
+            print("   ✗ Failed to initialize system data!")
+            return False
+        
+        print("   ✓ Tables built and data initialized\n")
         
         # Test 1: Verify Admin User
         print("1. Testing Admin User...")

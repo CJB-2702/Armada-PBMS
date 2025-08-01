@@ -57,150 +57,33 @@ def build_core_tables():
         traceback.print_exc()
         return False
 
-def initialize_system_data():
+def initialize_system_data(include_assets=True):
     """Initialize system with required base data (Phase 1B)"""
     print("=== Initializing System Data ===")
     
     try:
-        # Step 1: Create Admin User (if not exists)
-        print("1. Creating Admin User...")
-        admin_user = User.query.filter_by(username='admin').first()
-        if not admin_user:
-            admin_user = User(
-                id=1,
-                username='admin',
-                email='admin@assetmanagement.local',
-                is_active=True,
-                is_system=False,
-                is_admin=True
-            )
-            admin_user.set_password('admin-password-change-me')
-            db.session.add(admin_user)
-            db.session.commit()
-            print("   ✓ Admin User created (ID: 1)")
-        else:
-            print("   ✓ Admin User already exists (ID: 1)")
-        
-        # Step 2: Create System User (if not exists)
-        print("2. Creating System User...")
-        system_user = User.query.filter_by(username='system').first()
-        if not system_user:
-            system_user = User(
-                id=2,
-                username='system',
-                email='system@assetmanagement.local',
-                is_active=True,
-                is_system=True,
-                is_admin=False
-            )
-            system_user.set_password('system-password-not-for-login')
-            db.session.add(system_user)
-            db.session.commit()
-            print("   ✓ System User created (ID: 2)")
-        else:
-            print("   ✓ System User already exists (ID: 2)")
-        
-        # Step 3: Create Major Location (if not exists)
-        print("3. Creating Major Location...")
-        major_location = MajorLocation.query.filter_by(name="SanDiegoHQ").first()
-        if not major_location:
-            major_location = MajorLocation(
-                name="SanDiegoHQ",
-                description="Main office location",
-                address="San Diego, CA",
-                is_active=True,
-                created_by_id=system_user.id,
-                updated_by_id=system_user.id
-            )
-            db.session.add(major_location)
-            db.session.commit()
-            print("   ✓ Major Location 'SanDiegoHQ' created")
-        else:
-            print("   ✓ Major Location 'SanDiegoHQ' already exists")
-        
-        # Step 4: Create Asset Type (if not exists)
-        print("4. Creating Asset Type...")
-        asset_type = AssetType.query.filter_by(name="Vehicle").first()
-        if not asset_type:
-            asset_type = AssetType(
-                name="Vehicle",
-                category="Transportation",
-                description="Motor vehicles for transportation",
-                is_active=True,
-                created_by_id=system_user.id,
-                updated_by_id=system_user.id
-            )
-            db.session.add(asset_type)
-            db.session.commit()
-            print("   ✓ Asset Type 'Vehicle' created")
-        else:
-            print("   ✓ Asset Type 'Vehicle' already exists")
-        
-        # Step 5: Create Make/Model (if not exists)
-        print("5. Creating Make/Model...")
-        make_model = MakeModel.query.filter_by(make="Toyota", model="Corolla").first()
-        if not make_model:
-            make_model = MakeModel(
-                make="Toyota",
-                model="Corolla",
-                year=2023,
-                description="Toyota Corolla 2023 model",
-                asset_type_id=asset_type.id,
-                is_active=True,
-                created_by_id=system_user.id,
-                updated_by_id=system_user.id
-            )
-            db.session.add(make_model)
-            db.session.commit()
-            print("   ✓ Make/Model 'Toyota Corolla' created")
-        else:
-            print("   ✓ Make/Model 'Toyota Corolla' already exists")
-        
-        # Step 6: Create Asset (if not exists)
-        print("6. Creating Asset...")
-        asset = Asset.query.filter_by(serial_number="VTC0012023001").first()
-        if not asset:
-            asset = Asset(
-                name="VTC-001",
-                serial_number="VTC0012023001",
-                status="Active",
-                major_location_id=major_location.id,
-                make_model_id=make_model.id,
-                created_by_id=system_user.id,
-                updated_by_id=system_user.id
-            )
-            db.session.add(asset)
-            db.session.commit()
-            print("   ✓ Asset 'VTC-001' created")
-        else:
-            print("   ✓ Asset 'VTC-001' already exists")
-        
-        # Step 7: Create Event (if not exists)
-        print("7. Creating Event...")
-        event = Event.query.filter_by(event_type="System", description="System initialized with core data").first()
-        if not event:
-            event = Event(
-                event_type="System",
-                description="System initialized with core data",
-                user_id=system_user.id,
-                asset_id=asset.id,
-                major_location_id=major_location.id  # Explicitly set major location
-            )
-            db.session.add(event)
-            db.session.commit()
-            print("   ✓ Event 'System Initialization' created")
-        else:
-            print("   ✓ Event 'System Initialization' already exists")
-        
-        print("\n=== System Data Initialization Complete ===")
-        return True
-        
+        # Load configuration data from centralized location
+        from app.models.core.init_data import CoreDataLoader
+        data_loader = CoreDataLoader()
+        success = data_loader.load_core_data(include_assets=include_assets)
+        return success
     except Exception as e:
-        print(f"\n=== System Initialization FAILED ===")
-        print(f"Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        db.session.rollback()
+        print(f"Error initializing system data: {e}")
+        return False
+
+def update_system_data():
+    """Update system data (if needed for future use)"""
+    print("=== Updating System Data ===")
+    
+    try:
+        # Load configuration data from centralized location
+        from app.models.core.init_data import CoreDataLoader
+        data_loader = CoreDataLoader()
+        # For now, just reload the data (could be extended for updates)
+        success = data_loader.load_core_data()
+        return success
+    except Exception as e:
+        print(f"Error updating system data: {e}")
         return False
 
 def verify_core_tables():
@@ -248,11 +131,27 @@ def show_table_schemas():
 if __name__ == '__main__':
     # This can be run directly for testing
     from app import create_app
+    import sys
     
     app = create_app()
     with app.app_context():
-        success = build_core_tables()
-        if success:
-            initialize_system_data()
-            verify_core_tables()
-            show_table_schemas() 
+        # Check if update mode is requested
+        if len(sys.argv) > 1 and sys.argv[1] == '--update':
+            print("Running in UPDATE mode...")
+            update_success = update_system_data()
+            if update_success:
+                print("System data update completed successfully")
+            else:
+                print("System data update failed")
+        else:
+            # Normal build and initialize mode
+            success = build_core_tables()
+            if success:
+                data_success = initialize_system_data()
+                if data_success:
+                    verify_core_tables()
+                    show_table_schemas()
+                else:
+                    print("System data initialization failed")
+            else:
+                print("Core table build failed")

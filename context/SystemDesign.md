@@ -9,6 +9,28 @@ Create a comprehensive asset management system using Flask, SQLAlchemy, and HTMX
 - **Database**: SQLite (development)
 - **Styling**: Minimal CSS, focus on functionality over aesthetics
 - **Forms**: Standard HTML forms with HTMX attributes. Minimize form validation during initial development.
+- **File Operations**: Use `pathlib.Path` for all file and directory operations instead of `os.path`
+
+## Coding Standards
+
+### File Path Handling
+- **Use `pathlib.Path`**: All file and directory operations should use `pathlib.Path` instead of `os.path`
+- **Benefits**: More readable, object-oriented, cross-platform compatible
+- **Examples**:
+  ```python
+  # ✅ Good - Use pathlib
+  from pathlib import Path
+  config_file = Path(__file__).parent.parent / 'utils' / 'build_data.json'
+  if config_file.exists():
+      data = config_file.read_text()
+  
+  # ❌ Avoid - Don't use os.path
+  import os
+  config_file = os.path.join(os.path.dirname(__file__), '..', 'utils', 'build_data.json')
+  if os.path.exists(config_file):
+      with open(config_file, 'r') as f:
+          data = f.read()
+  ```
 
 ## Tiered Database Building Architecture
 
@@ -19,24 +41,64 @@ The database building process follows a tiered approach for clear separation of 
 app.py                    # Main entry point
 ├── app/build.py         # Main build orchestrator
 ├── app/models/build.py  # Model build coordinator
-├── app/models/core/build.py      # Core models builder
-├── app/models/assets/build.py    # Asset detail models builder
-├── app/models/maintenance/build.py # Maintenance models builder
-└── app/models/operations/build.py # Operations models builder
+├── app/models/core/
+│   ├── build.py         # Core models builder
+│   └── init_data.py     # Core data initialization
+├── app/models/assets/
+│   ├── build.py         # Asset detail models builder
+│   └── init_data.py     # Asset data initialization
+├── app/models/maintenance/
+│   ├── build.py         # Maintenance models builder
+│   └── init_data.py     # Maintenance data initialization
+└── app/models/operations/
+    ├── build.py         # Operations models builder
+    └── init_data.py     # Operations data initialization
 ```
+
+### Module Independence
+Each module should contain its own independent build and data initialization files:
+
+1. **`build.py`**: Handles table creation and model building for that module
+2. **`init_data.py`**: Handles data initialization and configuration loading for that module
+3. **Centralized Data**: All modules read from `app/utils/build_data.json` for consistency
+4. **Module Isolation**: Each module can be built and initialized independently
 
 ### Build Flow
 1. **app.py** calls `app.build.build_database()`
-2. **app/build.py** orchestrates the overall build process
+2. **app/build.py** orchestrates the overall build process with phase-specific options
 3. **app/models/build.py** coordinates all model category builds
 4. **Category builders** (core, assets, maintenance, operations) build their specific models
+
+### Build Phase Options
+The build system supports flexible phase-specific building:
+
+```python
+def build_database(build_phase='all', data_phase='all'):
+    """
+    build_phase options:
+    - 'phase1': Core Foundation Tables only
+    - 'phase2': Phase 1 + Asset Detail Tables
+    - 'phase3': Phase 1 + Phase 2 + Automatic Detail Insertion
+    - 'all': All phases (default = phase3)
+    
+    data_phase options:
+    - 'phase1': Core System Initialization only
+    - 'phase2': Phase 1 + Asset Detail Data (manual insertion)
+    - 'phase3': Phase 1 + Asset Detail Data Update auto-generated detail rows instead of manually inserting 
+    - 'all': highest phase (default = phase3)
+    - 'none': Skip data insertion
+    """
+```
 
 ### Phase Structure
 - **Phase 1A**: Core Foundation Tables (User, Location, Asset Type, Make/Model, Asset, Event)
 - **Phase 1B**: Core System Initialization (Initial Data)
-- **Phase 2**: Asset Detail Tables (Specifications, Configurations, etc.)
-- **Phase 3**: Maintenance System (Events, Templates, Actions, Parts)
-- **Phase 4**: Operations System (Dispatch, Tracking, Reporting)
+- **Phase 2A**: Asset Detail Tables (Specifications, Configurations, etc.)
+- **Phase 2B**: Asset Detail Data (Detail Table Configurations)
+- **Phase 3A**: Automatic Detail Insertion System (Automatic Detail Row Creation)
+- **Phase 3B**: Automatic Detail Data Updates (Update Auto-Generated Detail Rows)
+- **Phase 4**: Maintenance System (Events, Templates, Actions, Parts)
+- **Phase 5**: Operations System (Dispatch, Tracking, Reporting)
 
 ## Data Models & Relationships
 
@@ -51,6 +113,7 @@ The asset management system uses a hierarchical relationship structure to ensure
 - Contains asset-specific data: name, serial number, status, location, meter readings
 - Gets asset type through MakeModel relationship (property)
 - Inherits meter units and specifications from MakeModel
+- **Phase 3 Enhancement**: Automatically creates detail table rows on asset creation
 
 **2. MakeModel Model** 
 - Links to AssetType via `asset_type_id`
@@ -70,7 +133,46 @@ The asset management system uses a hierarchical relationship structure to ensure
 - **Flexibility**: Easy to change asset type for all assets of a make/model
 - **Data Integrity**: Prevents inconsistent asset type assignments
 
+### Automatic Detail Insertion System (Phase 3)
 
+The automatic detail insertion system provides seamless, automatic population of detail tables when assets are created. This system consists of three main components:
+
+#### 1. Conditional Import System
+- **Dynamic Import**: Detail table sets are imported conditionally based on build phase
+- **Phase Control**: Automatic detail insertion can be enabled/disabled per phase
+- **Registry Management**: Centralized registry of available detail table types
+
+#### 2. Asset Creation Hook
+- **SQLAlchemy Event Listener**: `after_insert` event triggers automatic detail creation
+- **Error Handling**: Comprehensive error handling prevents asset creation failures
+- **Transaction Management**: Proper database transaction handling for detail creation
+
+#### 3. Detail Table Registry System
+- **Centralized Registry**: Maps detail table types to their class implementations
+- **Dynamic Class Loading**: Uses `__import__` for flexible detail table loading
+- **Extensible Design**: Easy to add new detail table types without code changes
+
+#### Implementation Details
+```python
+# Class-level state for automatic detail insertion
+_automatic_detail_insertion_enabled = False
+_detail_table_registry = None
+
+# Conditional import in enable_automatic_detail_insertion()
+from app.models.assets.detail_table_sets.asset_type_detail_table_set import AssetTypeDetailTableSet
+from app.models.assets.detail_table_sets.model_detail_table_set import ModelDetailTableSet
+
+# SQLAlchemy event listener
+event.listen(cls, 'after_insert', cls._create_detail_rows_after_insert)
+```
+
+#### Process Flow
+1. **Asset Creation**: New asset is created in database
+2. **Event Trigger**: `after_insert` event fires
+3. **Method Call**: `_create_detail_table_rows()` is called
+4. **Configuration Lookup**: Retrieve asset type and model detail table sets
+5. **Row Creation**: Create detail table rows based on configurations
+6. **Linkage**: Establish proper foreign key relationships
 
 ### Core Entities
 
@@ -164,6 +266,13 @@ When a new asset is created, the system automatically processes detail table ass
 - **Duplicate Prevention**: Check for existing model detail rows before creating new ones
 - **Cascade Management**: When asset is deleted, remove associated asset detail rows
 - **Model Detail Persistence**: Model detail rows persist even when assets are deleted
+
+**Phase 3 Automatic Detail Insertion**:
+- **Conditional Import**: Detail table sets imported only when automatic insertion is enabled
+- **Event-Driven Creation**: SQLAlchemy `after_insert` event triggers automatic detail creation
+- **Registry System**: Centralized registry maps detail table types to their implementations
+- **Error Handling**: Comprehensive error handling prevents asset creation failures
+- **Phase Control**: Automatic insertion can be enabled/disabled based on build phase
 
 #### 3. Maintenance System
 - **Maintenance Event**: Scheduled and reactive maintenance
@@ -606,6 +715,54 @@ asset_management/
 └── README.md
 ```
 
+## Current Implementation Status
+
+### ✅ Completed Phases
+- **Phase 1A**: Core Foundation Tables - Complete
+  - User, Location, Asset Type, Make/Model, Asset, Event models implemented
+  - Database schema created and tested
+  - Build system supports Phase 1 model building
+
+- **Phase 1B**: Core System Initialization - Complete
+  - System user creation and initialization
+  - Admin user creation workflow
+  - Initial data seeding (locations, asset types, make/models, sample assets)
+  - User authentication and role management
+  - User Created Base Class implementation
+
+- **Phase 2A**: Asset Detail Tables - Complete
+  - Detail table infrastructure with virtual template base classes
+  - Detail table set containers (AssetTypeDetailTableSet, ModelDetailTableSet)
+  - Asset detail tables (PurchaseInfo, VehicleRegistration, ToyotaWarrantyReceipt)
+  - Model detail tables (EmissionsInfo, ModelInfo) with duplicate prevention
+  - Dynamic assignment system architecture
+
+- **Phase 2B**: Asset Detail Data - Complete
+  - Detail table configurations for asset types and models
+  - Sample data insertion for testing
+  - Configuration management system
+
+- **Phase 3A**: Automatic Detail Insertion System - Complete
+  - Conditional import system for detail table sets
+  - Asset creation hook with SQLAlchemy event listener
+  - Detail table registry system with dynamic class loading
+  - Comprehensive error handling and transaction management
+  - Automatic detail row creation on asset creation
+
+### 🔄 In Progress
+- **Phase 3B**: Automatic Detail Data Updates - In Progress
+  - Build system enhancement for Phase 3 support
+  - Phase-specific data insertion strategies (update auto-generated rows)
+  - Automatic detail row update functionality
+  - Testing suite for automatic detail insertion
+  - **Key Task**: Implement data update logic for auto-generated detail rows (not manual insertion)
+
+### 📋 Planned Phases
+- **Phase 4**: Maintenance System
+- **Phase 5**: Dispatch System  
+- **Phase 6**: Inventory Management
+- **Phase 7**: Planning System
+
 ## Development Priorities
 
 ### Phase 1A: Core Foundation Tables
@@ -631,25 +788,63 @@ asset_management/
 6. **Virtual Template System**: Establish base classes with proper foreign key relationships and audit trail functionality
 7. **Configuration Management**: Enable admin interface to configure which detail tables apply to which types/models
 
-### Phase 3: Maintenance System
+### Phase 3: Automatic Detail Insertion System
+1. **Conditional Import System**: Implement dynamic import of detail table sets based on build phase
+2. **Asset Creation Hook**: Add SQLAlchemy event listener for automatic detail row creation
+3. **Detail Table Registry**: Implement centralized registry for detail table type management
+4. **Error Handling**: Add comprehensive error handling for automatic detail creation
+5. **Build System Enhancement**: Update build system to support Phase 3 functionality
+6. **Data Insertion Strategy**: Implement phase-specific data insertion with automatic detail updates
+7. **Testing Suite**: Create comprehensive tests for automatic detail insertion functionality
+
+#### Phase 3 Data Insertion Strategy
+**Key Difference from Phase 2**: Phase 3 data insertion is fundamentally different from Phase 2:
+
+- **Phase 2**: Manually inserts detail table configurations and sample data
+- **Phase 3**: Updates automatically generated detail rows that were created during asset creation
+
+**Phase 3 Data Process**:
+1. **Asset Creation**: When assets are created in Phase 3, the automatic detail insertion system creates empty detail table rows
+2. **Row Population**: Phase 3 data insertion then populates these auto-generated rows with actual information
+3. **Update Strategy**: Instead of inserting new rows, the system updates existing auto-generated rows
+
+**Example Flow**:
+```
+Phase 2 (Manual):
+- Create asset → No detail rows created
+- Manually insert detail table configurations
+- Manually insert sample detail data
+
+Phase 3 (Automatic):
+- Create asset → Automatic detail rows created (empty)
+- Update auto-generated detail rows with actual data
+```
+
+**Benefits of Phase 3 Approach**:
+- **Consistency**: All assets automatically get the correct detail table structure
+- **Efficiency**: No manual detail table row creation required
+- **Flexibility**: Easy to update detail row content without structural changes
+- **Automation**: Reduces human error in detail table setup
+
+### Phase 4: Maintenance System
 1. Maintenance event creation
 2. Template management
 3. Work order generation
 4. Part demand tracking
 
-### Phase 4: Dispatch System
+### Phase 5: Dispatch System
 1. Dispatch creation and management
 2. Status tracking
 3. User assignment
 4. Approval workflows
 
-### Phase 5: Inventory Management
+### Phase 6: Inventory Management
 1. Part management
 2. Inventory tracking
 3. Purchase orders
 4. Movement tracking
 
-### Phase 6: Planning System
+### Phase 7: Planning System
 1. Scheduled maintenance
 2. Task templates
 3. Resource planning

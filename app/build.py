@@ -13,22 +13,24 @@ def build_database(build_phase='all', data_phase='all'):
     
     Args:
         build_phase (str): Build phase to execute
-            - 'phase1': Build only Phase 1 models (Core Foundation Tables)
-            - 'phase2': Build Phase 1 and Phase 2 models (Core + Asset Detail Tables)
-            - 'all': Build all phases (default)
+            - 'phase1': Core Foundation Tables only
+            - 'phase2': Phase 1 + Asset Detail Tables
+            - 'phase3': Phase 1 + Phase 2 + Automatic Detail Insertion
+            - 'all': All phases (default = phase3)
         data_phase (str): Data insertion phase to execute
-            - 'phase1': Insert only Phase 1 data (Core System Initialization)
-            - 'phase2': Insert Phase 1 and Phase 2 data (Core + Asset Detail Data)
-            - 'all': Insert all phases data (default)
-            - 'none': Skip data insertion (models only)
+            - 'phase1': Core System Initialization only
+            - 'phase2': Phase 1 + Asset Detail Data (manual insertion)
+            - 'phase3': Phase 1 + Update auto-generated details
+            - 'all': highest phase (default = phase3)
+            - 'none': Skip data insertion
     """
     print("=== Asset Management Database Builder ===")
     print("Phase 1A: Core Foundation Tables (Models)")
     print("Phase 1B: Core System Initialization (Data)")
     print("Phase 2A: Asset Detail Tables (Models)")
     print("Phase 2B: Asset Detail Data (Data)")
-    print("Phase 3: Maintenance & Operations")
-    print("Phase 4: Advanced Features")
+    print("Phase 3A: Automatic Detail Insertion (Models)")
+    print("Phase 3B: Update Auto-Generated Details (Data)")
     print("")
     
     # Determine what to build
@@ -36,8 +38,10 @@ def build_database(build_phase='all', data_phase='all'):
         print("=== Building Phase 1 Models Only ===")
     elif build_phase == 'phase2':
         print("=== Building Phase 1 and Phase 2 Models ===")
+    elif build_phase == 'phase3':
+        print("=== Building Phase 1, Phase 2, and Phase 3 Models ===")
     else:
-        print("=== Building All Phase Models ===")
+        print("=== Building All Phase Models (Phase 3) ===")
     
     # Determine what data to insert
     if data_phase == 'none':
@@ -46,8 +50,10 @@ def build_database(build_phase='all', data_phase='all'):
         print("=== Inserting Phase 1 Data Only ===")
     elif data_phase == 'phase2':
         print("=== Inserting Phase 1 and Phase 2 Data ===")
+    elif data_phase == 'phase3':
+        print("=== Inserting Phase 1 and Phase 3 Data (Update auto-generated details) ===")
     else:
-        print("=== Inserting All Phase Data ===")
+        print("=== Inserting All Phase Data (Phase 3) ===")
     print("")
     
     # Create app context for the build process
@@ -78,6 +84,8 @@ def build_database(build_phase='all', data_phase='all'):
                 print("✓ Phase 1 models built successfully")
             elif build_phase == 'phase2':
                 print("✓ Phase 1 and Phase 2 models built successfully")
+            elif build_phase == 'phase3':
+                print("✓ Phase 1, Phase 2, and Phase 3 models built successfully")
             else:
                 print("✓ All phase models built successfully")
             
@@ -87,6 +95,8 @@ def build_database(build_phase='all', data_phase='all'):
                 print("✓ Phase 1 data inserted successfully")
             elif data_phase == 'phase2':
                 print("✓ Phase 1 and Phase 2 data inserted successfully")
+            elif data_phase == 'phase3':
+                print("✓ Phase 1 and Phase 3 data inserted successfully (auto-generated details updated)")
             else:
                 print("✓ All phase data inserted successfully")
             

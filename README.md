@@ -38,19 +38,19 @@ A comprehensive asset management system built with Flask, SQLAlchemy, and HTMX. 
    pip install -r requirements.txt
    ```
 
-4. **Initialize the database**
+4. **Build the database**
    ```bash
-   flask init-db
+   # Build all phases (default)
+   python app.py --build-only
+   
+   # Or build specific phases
+   python app.py --phase1 --build-only  # Core foundation only
+   python app.py --phase2 --build-only  # Core + asset details
    ```
 
-5. **Create an admin user**
+5. **Run the application**
    ```bash
-   flask create-admin
-   ```
-
-6. **Run the application**
-   ```bash
-   python run.py
+   python app.py
    ```
 
 The application will be available at `http://localhost:5000`
@@ -80,9 +80,16 @@ asset_management/
 └── run.py              # Application entry point
 ```
 
-## Key Models
+## Development Phases
 
-### Core Models
+The system is developed in phases:
+
+- **Phase 1**: Core Foundation (✅ Complete) - Core models, system initialization
+- **Phase 2**: Asset Detail Tables (🔄 In Progress) - Extended asset information
+- **Phase 3**: Maintenance & Operations (📋 Planned) - Maintenance system
+- **Phase 4**: Advanced Features (📋 Planned) - Advanced functionality
+
+## Key Models
 - **User**: User management with role-based access
 - **UserCreatedBase**: Abstract base class for audit trails
 - **SystemUser**: Special user for initial data creation

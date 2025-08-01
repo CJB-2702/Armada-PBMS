@@ -1,286 +1,186 @@
-# Asset Management System - Development Plan
+# Asset Management System Development Plan
 
 ## Overview
-This document outlines the step-by-step development plan for the Asset Management System based on the SystemDesign.md specifications. The plan follows an iterative approach, building core functionality first and then expanding to more complex features.
+This document outlines the development plan for the Asset Management System, organized into phases with clear goals, deliverables, and pull request guidelines.
 
-## Phase 1: Core Database Foundation
-**Objective**: Establish the basic database structure with core tables and initial data
+## Development Phases
 
-### 1.1 Database Setup
-- [ ] Initialize Flask application with SQLAlchemy
-- [ ] Configure SQLite database
-- [ ] Set up database migrations
-- [ ] Create base configuration
+### Phase 1: Core Foundation ✅ COMPLETED
+**Status**: Stable - Ready for Pull Request
 
-### 1.2 Core Models Implementation
-- [ ] Create User model with authentication
-- [ ] Create UserCreatedBase abstract class
-- [ ] Create MajorLocation model
-- [ ] Create AssetType model
-- [ ] Create MakeModel model
-- [ ] Create Asset model
-- [ ] Create Event model for audit trail
+**Goals**:
+- Core database tables and models
+- System initialization and user management
+- Basic build system with phase support
+- Initial data seeding
 
-### 1.3 Initial System Data
-- [ ] Create System User (ID=0) for automated processes
-- [ ] Create Admin User (ID=1) for initial access
-- [ ] Insert Major Location: "SanDiegoHQ"
-- [ ] Insert Asset Type: "Vehicle"
-- [ ] Insert Model: "Toyota Corolla"
-- [ ] Insert Asset: "VTC-001"
-- [ ] Insert Generic Event: "Adding Generic text"
+**Deliverables**:
+- [x] User, Asset, AssetType, MakeModel, MajorLocation, Event models
+- [x] System and admin user creation
+- [x] Phase build system with command line arguments
+- [x] Initial data seeding
+- [x] Build verification and error handling
+- [x] Comprehensive testing
 
-### 1.4 Database Testing
-- [ ] Verify all tables can be created
-- [ ] Test data insertion for all models
-- [ ] Verify foreign key relationships
-- [ ] Test basic queries
+**Pull Request Guidelines**:
+- **When to Create**: After Phase 1A and Phase 1B are both stable and tested
+- **Branch**: `phase1-stable`
+- **Testing**: Must pass `python app.py --phase1 --build-only`
+- **Documentation**: Include Phase 1 documentation and usage guide
+- **Template**: Use `PULL_REQUEST_TEMPLATE.md`
 
-## Phase 2: Asset Detail Tables
-**Objective**: Implement the detail table system for extended asset information
+### Phase 2: Asset Detail Tables 🔄 IN PROGRESS
+**Status**: In Development
 
-### 2.1 Detail Table Infrastructure
-- [ ] Create AssetDetailTableSet model
-- [ ] Create ModelDetailTableSet model
-- [ ] Implement detail table base classes
+**Goals**:
+- Flexible detail table system for extended asset information
+- Purchase information, vehicle registration, and model details
+- Dynamic detail table assignment system
+- Detail table sets and relationships
 
-### 2.2 Specific Detail Tables
-- [ ] Create EmissionsInfo model
-- [ ] Create VehicleRegistration model
-- [ ] Create PurchaseInfo model
-- [ ] Create ModelInfo model
-- [ ] Create ToyotaWarrantyReceipt model
+**Deliverables**:
+- [ ] Detail table virtual templates
+- [ ] Asset detail base classes
+- [ ] Model detail base classes
+- [ ] Purchase information tables
+- [ ] Vehicle registration tables
+- [ ] Model detail tables
+- [ ] Detail table sets
+- [ ] Dynamic assignment system
 
-### 2.3 Detail Table Relationships
-- [ ] Link detail tables to assets
-- [ ] Link detail tables to models
-- [ ] Implement detail table inheritance
-- [ ] Test detail table insertions
+**Pull Request Guidelines**:
+- **When to Create**: After all Phase 2 components are stable and tested
+- **Branch**: `phase2-stable`
+- **Testing**: Must pass `python app.py --phase2 --build-only`
+- **Documentation**: Include Phase 2 documentation and examples
+- **Dependencies**: Phase 1 must be merged first
 
-### 2.4 Data Testing
-- [ ] Insert sample data for each detail table
-- [ ] Verify relationships work correctly
-- [ ] Test querying detail information
+### Phase 3: Maintenance & Operations 📋 PLANNED
+**Status**: Planned
 
-## Phase 3: Web Interface Foundation
-**Objective**: Create basic web interface for the core functionality
+**Goals**:
+- Maintenance event tracking
+- Work order generation
+- Part demand tracking
+- Maintenance scheduling
 
-### 3.1 Flask Routes
-- [ ] Create main application routes
-- [ ] Implement user authentication routes
-- [ ] Create asset management routes
-- [ ] Create location management routes
-- [ ] Create asset type management routes
-- [ ] Create model management routes
+**Deliverables**:
+- [ ] Maintenance event models
+- [ ] Work order system
+- [ ] Part tracking
+- [ ] Maintenance scheduling
+- [ ] Template action sets
 
-### 3.2 HTML Templates
-- [ ] Create base template with HTMX integration
-- [ ] Create dashboard template
-- [ ] Create asset list template
-- [ ] Create asset detail template
-- [ ] Create asset create/edit forms
-- [ ] Create location management templates
-- [ ] Create asset type management templates
-- [ ] Create model management templates
+**Pull Request Guidelines**:
+- **When to Create**: After all Phase 3 components are stable and tested
+- **Branch**: `phase3-stable`
+- **Testing**: Must pass full build test
+- **Documentation**: Include maintenance system documentation
+- **Dependencies**: Phase 1 and Phase 2 must be merged first
 
-### 3.3 HTMX Integration
-- [ ] Implement dynamic asset listing
-- [ ] Create inline editing capabilities
-- [ ] Add search and filtering
-- [ ] Implement form submissions
+### Phase 4: Advanced Features 📋 PLANNED
+**Status**: Planned
 
-### 3.4 Testing
-- [ ] Test all CRUD operations via web interface
-- [ ] Verify HTMX interactions work correctly
-- [ ] Test user authentication flow
+**Goals**:
+- Advanced reporting and analytics
+- Integration features
+- Extended functionality
+- Performance optimizations
 
-## Phase 4: Dispatch System
-**Objective**: Implement the dispatch functionality
+**Deliverables**:
+- [ ] Advanced reporting system
+- [ ] Integration APIs
+- [ ] Performance optimizations
+- [ ] Extended functionality
 
-### 4.1 Dispatch Models
-- [ ] Create Dispatch model
-- [ ] Create DispatchStatus model
-- [ ] Create DispatchChangeHistory model
-- [ ] Link dispatches to assets and users
+**Pull Request Guidelines**:
+- **When to Create**: After all Phase 4 components are stable and tested
+- **Branch**: `phase4-stable`
+- **Testing**: Must pass all tests including performance tests
+- **Documentation**: Include advanced features documentation
+- **Dependencies**: All previous phases must be merged first
 
-### 4.2 Dispatch Data Testing
-- [ ] Insert sample dispatch data
-- [ ] Test dispatch relationships
-- [ ] Verify status tracking works
+## Pull Request Process
 
-### 4.3 Dispatch CRUD Operations
-- [ ] Create dispatch creation functionality
-- [ ] Implement dispatch status updates
-- [ ] Add dispatch assignment capabilities
-- [ ] Create dispatch history tracking
+### When to Create a Pull Request
+1. **Phase Stability**: All components of the phase are working correctly
+2. **Testing Complete**: All tests pass for the phase
+3. **Documentation Updated**: Phase documentation is complete
+4. **Code Review Ready**: Code is clean and follows project guidelines
 
-### 4.4 Dispatch Web Interface
-- [ ] Create dispatch list template
-- [ ] Create dispatch detail template
-- [ ] Create dispatch create/edit forms
-- [ ] Implement dispatch status updates via HTMX
+### Pull Request Requirements
+1. **Use Template**: Always use `PULL_REQUEST_TEMPLATE.md`
+2. **Phase Information**: Clearly indicate which phase and status
+3. **Testing Results**: Include test results and commands used
+4. **Documentation**: Update relevant documentation
+5. **Dependencies**: Note any dependencies on previous phases
 
-## Phase 5: Maintenance System
-**Objective**: Implement maintenance management functionality
+### Testing Checklist for Pull Requests
+- [ ] Phase-specific build test passes
+- [ ] Full build test passes (if applicable)
+- [ ] Web server starts correctly
+- [ ] All unit tests pass
+- [ ] Integration tests pass
+- [ ] Performance tests pass (if applicable)
 
-### 5.1 Maintenance Models
-- [ ] Create MaintenanceEvent model
-- [ ] Create MaintenanceStatus model
-- [ ] Create TemplateActionSet models
-- [ ] Create Action model
-- [ ] Create Parts and PartDemand models
+### Review Process
+1. **Self Review**: Complete the checklist in the PR template
+2. **Code Review**: Request review from team members
+3. **Testing Review**: Verify all tests pass
+4. **Documentation Review**: Ensure documentation is complete
+5. **Merge**: Merge only after all reviews are complete
 
-### 5.2 Maintenance Data Testing
-- [ ] Insert sample maintenance data
-- [ ] Test maintenance relationships
-- [ ] Verify template functionality
+## Development Workflow
 
-### 5.3 Maintenance CRUD Operations
-- [ ] Create maintenance event management
-- [ ] Implement template management
-- [ ] Add part demand tracking
-- [ ] Create maintenance scheduling
+### For Each Phase
+1. **Development**: Work on phase components
+2. **Testing**: Test each component thoroughly
+3. **Integration**: Test phase as a whole
+4. **Documentation**: Update documentation
+5. **Pull Request**: Create PR when stable
+6. **Review**: Complete review process
+7. **Merge**: Merge to main branch
 
-### 5.4 Maintenance Web Interface
-- [ ] Create maintenance list template
-- [ ] Create maintenance detail template
-- [ ] Create maintenance create/edit forms
-- [ ] Implement template management interface
+### Branch Strategy
+- `main`: Production-ready code
+- `phase1-stable`: Phase 1 stable implementation
+- `phase2-stable`: Phase 2 stable implementation
+- `phase3-stable`: Phase 3 stable implementation
+- `phase4-stable`: Phase 4 stable implementation
+- `feature/*`: Individual features within phases
+- `hotfix/*`: Critical bug fixes
 
-## Phase 6: Inventory Management
-**Objective**: Implement inventory and supply chain functionality
+### Commit Guidelines
+- Use descriptive commit messages
+- Reference issue numbers when applicable
+- Group related changes in single commits
+- Use conventional commit format when possible
 
-### 6.1 Inventory Models
-- [ ] Create Inventory model
-- [ ] Create Part and PartAlias models
-- [ ] Create PurchaseOrder models
-- [ ] Create PartDemand models
-- [ ] Create location tracking models
+## Current Status
 
-### 6.2 Inventory Data Testing
-- [ ] Insert sample inventory data
-- [ ] Test inventory relationships
-- [ ] Verify part tracking functionality
+### Phase 1: ✅ COMPLETED
+- **Status**: Stable and ready for pull request
+- **Branch**: `phase1-stable`
+- **Next Step**: Create pull request and merge to main
 
-### 6.3 Inventory CRUD Operations
-- [ ] Create inventory management
-- [ ] Implement purchase order system
-- [ ] Add part demand tracking
-- [ ] Create relocation functionality
+### Phase 2: 🔄 IN PROGRESS
+- **Status**: In development
+- **Current Focus**: Asset detail table infrastructure
+- **Next Step**: Complete detail table system implementation
 
-### 6.4 Inventory Web Interface
-- [ ] Create inventory list template
-- [ ] Create inventory detail template
-- [ ] Create purchase order templates
-- [ ] Implement inventory tracking interface
+### Phase 3: 📋 PLANNED
+- **Status**: Planned
+- **Dependencies**: Phase 1 and Phase 2 completion
+- **Next Step**: Begin after Phase 2 is stable
 
-## Phase 7: Planning System
-**Objective**: Implement maintenance planning and scheduling
+### Phase 4: 📋 PLANNED
+- **Status**: Planned
+- **Dependencies**: All previous phases completion
+- **Next Step**: Begin after Phase 3 is stable
 
-### 7.1 Planning Models
-- [ ] Create scheduled task plan models
-- [ ] Create planned maintenance models
-- [ ] Create planning status models
-
-### 7.2 Planning Data Testing
-- [ ] Insert sample planning data
-- [ ] Test planning relationships
-- [ ] Verify scheduling functionality
-
-### 7.3 Planning CRUD Operations
-- [ ] Create scheduled task management
-- [ ] Implement maintenance planning
-- [ ] Add resource allocation
-- [ ] Create automated scheduling
-
-### 7.4 Planning Web Interface
-- [ ] Create planning dashboard template
-- [ ] Create scheduled task templates
-- [ ] Create maintenance planning forms
-- [ ] Implement planning visualization
-
-## Phase 8: Communication System
-**Objective**: Implement comments and attachments functionality
-
-### 8.1 Communication Models
-- [ ] Create Comment model
-- [ ] Create CommentAttachment model
-- [ ] Create Attachment model
-- [ ] Create CommentHistory model
-
-### 8.2 Communication Data Testing
-- [ ] Insert sample communication data
-- [ ] Test comment relationships
-- [ ] Verify attachment functionality
-
-### 8.3 Communication CRUD Operations
-- [ ] Create comment management
-- [ ] Implement attachment handling
-- [ ] Add comment history tracking
-- [ ] Create notification system
-
-### 8.4 Communication Web Interface
-- [ ] Create comment interface
-- [ ] Create attachment upload forms
-- [ ] Implement real-time updates
-- [ ] Create notification display
-
-## Phase 9: Advanced Features
-**Objective**: Implement advanced functionality and optimizations
-
-### 9.1 Advanced Features
-- [ ] Implement advanced search and filtering
-- [ ] Add reporting and analytics
-- [ ] Create data export functionality
-- [ ] Implement backup and restore
-
-### 9.2 Performance Optimization
-- [ ] Optimize database queries
-- [ ] Implement caching
-- [ ] Add pagination for large datasets
-- [ ] Optimize HTMX interactions
-
-### 9.3 Security Enhancements
-- [ ] Implement role-based access control
-- [ ] Add audit logging
-- [ ] Enhance input validation
-- [ ] Implement CSRF protection
-
-## Phase 10: Testing and Deployment
-**Objective**: Comprehensive testing and production deployment
-
-### 10.1 Testing
-- [ ] Write unit tests for all models
-- [ ] Create integration tests for routes
-- [ ] Perform end-to-end testing
-- [ ] Conduct user acceptance testing
-
-### 10.2 Documentation
-- [ ] Create user documentation
-- [ ] Write API documentation
-- [ ] Create deployment guide
-- [ ] Document system architecture
-
-### 10.3 Deployment
-- [ ] Prepare production environment
-- [ ] Configure production database
-- [ ] Set up monitoring and logging
-- [ ] Deploy application
-
-## Success Criteria
-- All core models can be created and data inserted
-- Web interface allows full CRUD operations
-- HTMX interactions work smoothly
-- System maintains data integrity
-- User authentication and authorization work correctly
-- All relationships between models function properly
-- System can handle realistic data volumes
-- Performance meets acceptable standards
-
-## Risk Mitigation
-- Regular testing at each phase
-- Database backups before major changes
-- Version control for all code changes
-- Documentation of all design decisions
-- Regular code reviews
-- Performance monitoring throughout development 
+## Notes
+- Each phase builds upon the previous phases
+- Pull requests ensure code quality and stability
+- Testing is critical at each phase
+- Documentation must be updated with each phase
+- The phase build system supports incremental development 

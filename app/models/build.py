@@ -17,8 +17,16 @@ from app.models.core.make_model import MakeModel
 from app.models.core.asset import Asset
 from app.models.core.event import Event
 
-def build_all_models(phase_1_only=False, phase_2_only=False):
-    """Build all models in the correct dependency order"""
+def build_all_models(build_phase='all'):
+    """
+    Build all models in the correct dependency order
+    
+    Args:
+        build_phase (str): Build phase to execute
+            - 'phase1': Build only Phase 1 (Core Foundation Tables and System Initialization)
+            - 'phase2': Build Phase 1 and Phase 2 (Core + Asset Detail Tables)
+            - 'all': Build all phases (default)
+    """
     print("=== Building All Model Categories ===")
     
     try:
@@ -42,7 +50,7 @@ def build_all_models(phase_1_only=False, phase_2_only=False):
         # Show all table schemas
         show_table_schemas()
         
-        if phase_1_only:
+        if build_phase == 'phase1':
             print("\n=== Phase 1 Complete ===")
             print("✓ Core tables created")
             print("✓ System data initialized")
@@ -73,12 +81,16 @@ def build_all_models(phase_1_only=False, phase_2_only=False):
         # Show asset detail table schemas
         show_asset_table_schemas()
         
-        if phase_2_only:
+        if build_phase == 'phase2':
             print("\n=== Phase 2 Complete ===")
             print("✓ Asset detail tables created")
             print("✓ Asset detail data initialized")
             print("✓ All dependencies resolved")
             return True
+        
+        # Future phases would go here
+        # Phase 3: Maintenance & Operations
+        # Phase 4: Advanced Features
         
         print("\n=== All Tables Built Successfully ===")
         print("✓ Core tables created")

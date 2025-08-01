@@ -7,8 +7,16 @@ Coordinates the building of all database components in the correct order
 from app.models.build import build_all_models
 from app import create_app
 
-def build_database(phase_1_only=False, phase_2_only=False):
-    """Main database build entry point"""
+def build_database(build_phase='all'):
+    """
+    Main database build entry point
+    
+    Args:
+        build_phase (str): Build phase to execute
+            - 'phase1': Build only Phase 1 (Core Foundation Tables and System Initialization)
+            - 'phase2': Build Phase 1 and Phase 2 (Core + Asset Detail Tables)
+            - 'all': Build all phases (default)
+    """
     print("=== Asset Management Database Builder ===")
     print("Phase 1A: Core Foundation Tables")
     print("Phase 1B: Core System Initialization")
@@ -17,10 +25,10 @@ def build_database(phase_1_only=False, phase_2_only=False):
     print("Phase 4: Advanced Features")
     print("")
     
-    if phase_1_only:
+    if build_phase == 'phase1':
         print("=== Building Phase 1 Only ===")
-    elif phase_2_only:
-        print("=== Building Phase 2 Only ===")
+    elif build_phase == 'phase2':
+        print("=== Building Phase 1 and Phase 2 ===")
     else:
         print("=== Building All Phases ===")
     print("")
@@ -30,12 +38,12 @@ def build_database(phase_1_only=False, phase_2_only=False):
     
     with app.app_context():
         try:
-            success = build_all_models(phase_1_only=phase_1_only, phase_2_only=phase_2_only)
+            success = build_all_models(build_phase=build_phase)
             
             if success:
-                if phase_1_only:
+                if build_phase == 'phase1':
                     print("✓ Phase 1 build completed successfully")
-                elif phase_2_only:
+                elif build_phase == 'phase2':
                     print("✓ Phase 2 build completed successfully")
                 else:
                     print("✓ Database build completed successfully")

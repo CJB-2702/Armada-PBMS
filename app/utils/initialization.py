@@ -82,6 +82,7 @@ def initialize_system_data():
             model='Corolla',
             year=2023,
             description='Toyota Corolla 2023 model',
+            asset_type_id=vehicle_type.id,
             created_by_id=0,
             updated_by_id=0
         )
@@ -98,7 +99,6 @@ def initialize_system_data():
             serial_number='VTC0012023001',
             status='Active',
             major_location_id=san_diego_location.id,
-            asset_type_id=vehicle_type.id,
             make_model_id=toyota_corolla.id,
             created_by_id=0,
             updated_by_id=0

@@ -44,6 +44,8 @@ app.py                    # Main entry point
 
 ## Phase 1A: Core Foundation Tables ✅ COMPLETED
 
+
+
 ### Implemented Models (7 total)
 1. **User Model**  - `app/models/core/user.py`
 2. **UserCreatedBase Abstract Class**  - `app/models/core/user_created_base.py`
@@ -53,12 +55,28 @@ app.py                    # Main entry point
 6. **Asset Model**  - `app/models/core/asset.py`
 7. **Event Model**  - `app/models/core/event.py`
 
+### Relationship Structure
+The core models follow a hierarchical relationship pattern:
+
+**Asset → MakeModel → AssetType**
+
+1. **Asset** links to **MakeModel** via `make_model_id`
+2. **MakeModel** links to **AssetType** via `asset_type_id`  
+3. **Asset** gets its asset type through the MakeModel relationship (via property)
+
+This design ensures:
+- All assets of the same make/model have the same asset type
+- Asset types are consistently applied through the make/model level
+- Reduced data redundancy and simplified relationship management
+- Assets inherit meter units and other specifications from their make/model
+
 ### Current Project Structure
 ```
 asset_management/
 ├── app/
 │   ├── __init__.py 
 │   ├── build_app.py              # Build-specific Flask app
+│   ├── build.py                  # Main build orchestrator
 │   ├── models/
 │   │   ├── __init__.py 
 │   │   ├── build.py             # Model build coordinator
@@ -80,7 +98,8 @@ asset_management/
 │       └── initialization.py 
 ├── requirements.txt 
 ├── app.py                       # Main application entry point
-└── debug_database.py            # Database debugging utility
+├── z_clear_data.py              # Database clearing utility
+└── z_view_database.py           # Database viewing utility
 ```
 
 ### Target Models Implemented
@@ -136,6 +155,9 @@ asset_management/
 - `category` (String, Optional)
 - `is_active` (Boolean, Default True)
 
+**Relationships**:
+- `make_models` (Relationship to MakeModel - assets get asset type through make_model)
+
 #### 5. MakeModel Model 
 **Purpose**: Manufacturer and model information for assets
 
@@ -143,8 +165,18 @@ asset_management/
 - `make` (String, Required)
 - `model` (String, Required)
 - `year` (Integer, Optional)
+- `revision` (String, Optional)
 - `description` (Text, Optional)
 - `is_active` (Boolean, Default True)
+- `asset_type_id` (Integer, Foreign Key to AssetType, Optional)
+- `meter1_unit` (String, Optional)
+- `meter2_unit` (String, Optional)
+- `meter3_unit` (String, Optional)
+- `meter4_unit` (String, Optional)
+
+**Relationships**:
+- `assets` (Relationship to Asset)
+- `asset_type` (Relationship to AssetType)
 
 #### 6. Asset Model 
 **Purpose**: Physical assets with properties and relationships
@@ -154,13 +186,17 @@ asset_management/
 - `serial_number` (String, Unique)
 - `status` (String, Default 'Active')
 - `major_location_id` (Integer, Foreign Key to MajorLocation)
-- `asset_type_id` (Integer, Foreign Key to AssetType)
 - `make_model_id` (Integer, Foreign Key to MakeModel)
+- `meter1` (Float, Optional)
+- `meter2` (Float, Optional)
+- `meter3` (Float, Optional)
+- `meter4` (Float, Optional)
+- `tags` (JSON, Optional)
 
 **Relationships**:
 - `major_location` (Relationship to MajorLocation) 
-- `asset_type` (Relationship to AssetType) 
-- `make_model` (Relationship to MakeModel) 
+- `make_model` (Relationship to MakeModel)
+- `asset_type` (Property that gets asset type through make_model relationship) 
 
 #### 7. Event Model 
 **Purpose**: Audit trail for all significant activities
@@ -403,9 +439,22 @@ if __name__ == '__main__':
 - All user-created records will be properly tracked with audit trail
 - The build system will be extensible for future phases
 
+## Current Implementation Status
+
+### Phase 1A: Core Foundation Tables ✅ COMPLETED
+- All 7 core models implemented and working
+- Hierarchical asset relationship structure implemented (Asset → MakeModel → AssetType)
+- Database tables created and functional
+- Basic model relationships established
+- User Created Base Class providing audit trail functionality
+
+### Phase 1B: Core System Initialization 🔄 IN PROGRESS
+- Tiered build system architecture designed
+
+
 ## Summary
 
-**Phase 1A is COMPLETE** - Core foundation tables are implemented and working.
+**Phase 1A is COMPLETE** - Core foundation tables are implemented and working with the new hierarchical relationship structure.
 
 **Phase 1B is IN PROGRESS** - Focus on implementing the tiered build system and system initialization.
 

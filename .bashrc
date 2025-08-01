@@ -22,4 +22,3 @@ if [[ "$PWD" == *"asset_management"* ]]; then
     activate_venv
 fi
 if [ -d "venv" ]; then source venv/bin/activate; fi
-source ~/asset_management/auto_activate_venv.sh

@@ -9,8 +9,9 @@ class AssetType(UserCreatedBase, db.Model):
     category = db.Column(db.String(100), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     
-    # Relationships (no backrefs)
-    assets = db.relationship('Asset')
+    # Relationships
+    # Note: Assets now get their asset type through make_model relationship
+    # No direct relationship to assets since asset_type_id was removed from Asset
     
     def __repr__(self):
         return f'<AssetType {self.name}>' 

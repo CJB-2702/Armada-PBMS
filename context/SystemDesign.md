@@ -40,6 +40,38 @@ app.py                    # Main entry point
 
 ## Data Models & Relationships
 
+### Asset Relationship Architecture
+
+The asset management system uses a hierarchical relationship structure to ensure data consistency and simplify management:
+
+#### Asset → MakeModel → AssetType Hierarchy
+
+**1. Asset Model**
+- Links directly to MakeModel via `make_model_id`
+- Contains asset-specific data: name, serial number, status, location, meter readings
+- Gets asset type through MakeModel relationship (property)
+- Inherits meter units and specifications from MakeModel
+
+**2. MakeModel Model** 
+- Links to AssetType via `asset_type_id`
+- Contains make/model-specific data: make, model, year, revision, description
+- Defines meter units for all assets of this model
+- All assets of this make/model inherit the same asset type
+
+**3. AssetType Model**
+- Top-level categorization (Vehicle, Equipment, Tool, etc.)
+- No direct relationship to assets
+- Assets access asset type through their make/model
+
+#### Benefits of This Design
+- **Consistency**: All assets of the same make/model have identical asset type classification
+- **Efficiency**: Asset type is managed once per make/model, not per asset
+- **Inheritance**: Assets inherit specifications and units from their make/model
+- **Flexibility**: Easy to change asset type for all assets of a make/model
+- **Data Integrity**: Prevents inconsistent asset type assignments
+
+
+
 ### Core Entities
 
 #### 1. User Management
@@ -50,11 +82,88 @@ app.py                    # Main entry point
 - **Status Sets**: Reusable status configurations
 
 #### 2. Asset Management
-- **Asset**: Physical assets with properties
-- **Asset Type**: Categories of assets
-- **Make and Model**: Manufacturer and model information
+- **Asset**: Physical assets with properties and meter readings
+- **Asset Type**: Categories of assets (Vehicle, Equipment, Tool, etc.)
+- **Make and Model**: Manufacturer and model information with asset type association
 - **Major Location**: Where assets are located
 - **Event**: Activity tracking for assets
+
+**Asset Relationship Hierarchy**:
+- **Asset** → **MakeModel** (direct relationship via `make_model_id`)
+- **MakeModel** → **AssetType** (direct relationship via `asset_type_id`)
+- **Asset** → **AssetType** (indirect relationship through MakeModel property)
+
+This hierarchical design ensures:
+- All assets of the same make/model have consistent asset type classification
+- Asset types are managed at the make/model level for consistency
+- Assets inherit meter units and specifications from their make/model
+- Simplified relationship management with reduced data redundancy
+
+#### 2.1. Detail Table System
+The detail table system provides a flexible, extensible approach to storing detailed specifications and configurations for assets and models. This system uses a virtual template approach to allow dynamic addition of detail information without schema changes.
+
+**Detail Table Architecture**:
+- **Detail Table Sets**: Container models that group related detail tables
+  - **Asset Type Detail Table Set**: Configuration container that defines which detail table types are available for a specific asset type
+    - Links to `AssetType` via foreign key
+    - Stores list of detail table types (purchase_info, vehicle_registration, etc.) that apply to this asset type
+    - Marks each detail table type as asset_detail or model_detail
+  - **Model Detail Table Set**: Configuration container that defines additional detail table types for a specific model beyond what the asset type provides
+    - Links to `MakeModel` via foreign key
+    - Stores list of additional detail table types that apply to this model
+    - Marks each detail table type as asset_detail or model_detail
+
+**Detail Table Types**:
+- **Asset Detail Tables**: Store asset-specific information
+  - Purchase Information: Purchase dates, prices, vendors, warranty info, event_id for comments/attachments
+  - Vehicle Registration: License plates, VIN, registration, insurance
+  - Toyota Warranty Receipt: Toyota-specific warranty and service info
+
+- **Model Detail Tables**: Store model-specific specifications
+  - Emissions Information: Fuel economy, emissions standards, certifications
+  - Model Information: Technical specifications, body styles, capacities
+
+**Virtual Template System**:
+- **DetailTableVirtualTemplate**: Abstract base class for all detail table functionality
+  - Inherits from `UserCreatedBase` for audit trail
+  - Provides common fields: id, created_at, created_by_id, updated_at, updated_by_id
+  - Includes abstract methods for detail table operations
+- **AssetDetailVirtual**: Base class for asset-specific detail tables
+  - Inherits from `DetailTableVirtualTemplate`
+  - Adds relationship to `Asset` via foreign key (not to detail table set)
+  - Implements asset-specific validation logic
+- **ModelDetailVirtual**: Base class for model-specific detail tables
+  - Inherits from `DetailTableVirtualTemplate`
+  - Adds relationship to `MakeModel` via foreign key (not to detail table set)
+  - Implements model-specific validation logic
+  - Prevents duplicate model detail rows
+
+**Dynamic Detail Table Assignment System**:
+- **No direct relationships**: Assets and models do NOT have relationships to detail table sets
+- **Asset Type Detail Table Sets**: Define which detail tables are available for each asset type
+- **Model Detail Table Sets**: Define additional detail tables available for specific models
+- **Dynamic row creation**: On asset creation, system automatically creates detail table rows
+
+**Asset Creation Detail Table Process**:
+When a new asset is created, the system automatically processes detail table assignments through the following steps:
+
+1. **Asset Type Lookup**: Retrieve the AssetTypeDetailTableSet configuration for the asset's type
+2. **Model Lookup**: Retrieve the ModelDetailTableSet configuration for the asset's model  
+3. **Asset Type Processing**: For each detail table type in the asset type configuration:
+   - If asset_detail: Create a new detail table row linked to this specific asset
+   - If model_detail: Check if a detail table row exists for this model, create if missing
+4. **Model Processing**: For each additional detail table type in the model configuration:
+   - If asset_detail: Create a new detail table row linked to this specific asset
+   - If model_detail: Check if a detail table row exists for this model, create if missing
+5. **Row Creation**: Generate appropriate detail table rows with proper foreign key relationships
+6. **Duplicate Prevention**: Ensure model detail rows are only created once per model
+
+**Detail Table Row Creation Logic**:
+- **Asset Detail Tables**: Create rows with foreign key to the specific asset
+- **Model Detail Tables**: Create rows with foreign key to the model (if not already exists)
+- **Duplicate Prevention**: Check for existing model detail rows before creating new ones
+- **Cascade Management**: When asset is deleted, remove associated asset detail rows
+- **Model Detail Persistence**: Model detail rows persist even when assets are deleted
 
 #### 3. Maintenance System
 - **Maintenance Event**: Scheduled and reactive maintenance
@@ -101,8 +210,18 @@ app.py                    # Main entry point
 - **User Created Base Class**: All user-created entities inherit from this base class
 - **System User**: Handles all initial data creation and automated processes
 - **Admin User**: First user created with full system access
+- **Asset Hierarchy**: Asset → MakeModel → AssetType (hierarchical relationship)
 - Assets belong to Major Locations
-- Assets have Make and Model information
+- Assets have Make and Model information with inherited asset type
+- MakeModels define asset types and meter units for all assets of that model
+- **Detail Table Relationships**:
+  - Asset Types have Asset Type Detail Table Sets that define available detail table types
+  - Models have Model Detail Table Sets that provide additional detail table types
+  - Individual assets inherit detail tables from both their asset type and model through dynamic row creation
+  - Detail tables maintain audit trail through User Created Base Class
+  - No direct relationships between assets/models and detail table sets - assignment is configuration-based
+  - Asset detail table rows link directly to specific assets
+  - Model detail table rows link directly to models and are shared across all assets of that model
 - Maintenance Events are linked to Assets
 - Dispatches involve one asset which can be reassigned
 - Users create and manage all entities (except system-created initial data)
@@ -249,21 +368,23 @@ asset_management/
 │   │   │   └── event.py
 │   │   ├── assets/
 │   │   │   ├── __init__.py
-│   │   │   ├── build.py          # Asset detail models builder
-│   │   │   ├── detail_virtual_template.py
-│   │   │   ├── asset_details/
+│   │   │   ├── build.py                          # Asset models builder
+│   │   │   ├── detail_virtual_template.py        # Base virtual template classes
+│   │   │   ├── asset_details/                    # Asset-specific detail tables
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── asset_detail_virtual.py
-│   │   │   │   ├── purchase_info.py
-│   │   │   │   └── vehicle_registration.py
-│   │   │   ├── model_details/
+│   │   │   │   ├── asset_detail_virtual.py       # Asset detail base class
+│   │   │   │   ├── purchase_info.py              # Purchase information
+│   │   │   │   ├── vehicle_registration.py       # Vehicle registration details
+│   │   │   │   └── toyota_warranty_receipt.py    # Toyota-specific warranty info
+│   │   │   ├── model_details/                    # Model-specific detail tables
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── model_detail_virtual.py
-│   │   │   │   └── emissions_info.py
-│   │   │   └── detail_table_sets/
+│   │   │   │   ├── model_detail_virtual.py       # Model detail base class
+│   │   │   │   ├── emissions_info.py             # Emissions specifications
+│   │   │   │   └── model_info.py                 # General model information
+│   │   │   └── detail_table_sets/                # Detail table set containers
 │   │   │       ├── __init__.py
-│   │   │       ├── asset_detail_table_set.py
-│   │   │       └── model_detail_table_set.py
+│   │   │       ├── asset_type_detail_table_set.py   # Asset detail table set
+│   │   │       └── model_detail_table_set.py        # Model detail table set
 │   │   ├── maintenance/
 │   │   │   ├── __init__.py
 │   │   │   ├── build.py          # Maintenance models builder
@@ -502,10 +623,13 @@ asset_management/
 6. Database migrations
 
 ### Phase 2: Asset Detail Tables
-1. Asset detail model implementation
-2. Virtual template system
-3. Asset specifications and configurations
-4. Model-specific details
+1. **Detail Table Infrastructure**: Implement virtual template base classes with UserCreatedBase inheritance
+2. **Detail Table Set Containers**: Create configuration containers for asset type and model detail table assignments
+3. **Asset Detail Tables**: Implement purchase info (with event_id), vehicle registration, and Toyota warranty receipt tables
+4. **Model Detail Tables**: Implement emissions info and model information tables with duplicate prevention
+5. **Dynamic Assignment System**: Implement automatic detail table row creation during asset creation process
+6. **Virtual Template System**: Establish base classes with proper foreign key relationships and audit trail functionality
+7. **Configuration Management**: Enable admin interface to configure which detail tables apply to which types/models
 
 ### Phase 3: Maintenance System
 1. Maintenance event creation

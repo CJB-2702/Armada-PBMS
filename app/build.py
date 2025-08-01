@@ -7,7 +7,7 @@ Coordinates the building of all database components in the correct order
 from app.models.build import build_all_models
 from app import create_app
 
-def build_database():
+def build_database(phase_1_only=False, phase_2_only=False):
     """Main database build entry point"""
     print("=== Asset Management Database Builder ===")
     print("Phase 1A: Core Foundation Tables")
@@ -17,16 +17,29 @@ def build_database():
     print("Phase 4: Advanced Features")
     print("")
     
+    if phase_1_only:
+        print("=== Building Phase 1 Only ===")
+    elif phase_2_only:
+        print("=== Building Phase 2 Only ===")
+    else:
+        print("=== Building All Phases ===")
+    print("")
+    
     # Create app context for the build process
     app = create_app()
     
     with app.app_context():
         try:
-            success = build_all_models()
+            success = build_all_models(phase_1_only=phase_1_only, phase_2_only=phase_2_only)
             
             if success:
-                print("✓ Database build completed successfully")
-                print("✓ All phases completed without errors")
+                if phase_1_only:
+                    print("✓ Phase 1 build completed successfully")
+                elif phase_2_only:
+                    print("✓ Phase 2 build completed successfully")
+                else:
+                    print("✓ Database build completed successfully")
+                    print("✓ All phases completed without errors")
                 print("✓ System ready for use")
             else:
                 print("✗ Database build failed")

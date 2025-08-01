@@ -17,7 +17,7 @@ from app.models.core.make_model import MakeModel
 from app.models.core.asset import Asset
 from app.models.core.event import Event
 
-def build_all_models():
+def build_all_models(phase_1_only=False, phase_2_only=False):
     """Build all models in the correct dependency order"""
     print("=== Building All Model Categories ===")
     
@@ -42,9 +42,49 @@ def build_all_models():
         # Show all table schemas
         show_table_schemas()
         
+        if phase_1_only:
+            print("\n=== Phase 1 Complete ===")
+            print("✓ Core tables created")
+            print("✓ System data initialized")
+            print("✓ All dependencies resolved")
+            return True
+        
+        # Phase 2: Build asset detail tables
+        print("\nPhase 2: Building Asset Detail Tables")
+        
+        # Import asset build functions only when needed
+        from app.models.assets.build import build_asset_models, initialize_asset_detail_data, verify_asset_models, show_asset_table_schemas
+        
+        if not build_asset_models():
+            print("✗ Asset detail table build failed")
+            return False
+        
+        # Phase 2: Initialize asset detail data
+        print("Phase 2: Initializing Asset Detail Data")
+        if not initialize_asset_detail_data():
+            print("✗ Asset detail data initialization failed")
+            return False
+        
+        # Verify asset detail tables
+        if not verify_asset_models():
+            print("✗ Asset detail table verification failed")
+            return False
+        
+        # Show asset detail table schemas
+        show_asset_table_schemas()
+        
+        if phase_2_only:
+            print("\n=== Phase 2 Complete ===")
+            print("✓ Asset detail tables created")
+            print("✓ Asset detail data initialized")
+            print("✓ All dependencies resolved")
+            return True
+        
         print("\n=== All Tables Built Successfully ===")
         print("✓ Core tables created")
         print("✓ System data initialized")
+        print("✓ Asset detail tables created")
+        print("✓ Asset detail data initialized")
         print("✓ All dependencies resolved")
         print("✓ Ready for data insertion")
         

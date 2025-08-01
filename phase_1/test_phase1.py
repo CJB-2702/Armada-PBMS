@@ -4,6 +4,11 @@ Test script for Phase 1 implementation
 Verifies all models and initial data are working correctly
 """
 
+import sys
+import os
+# Add the parent directory to the Python path so we can import the app module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app import create_app, db
 from app.models.core.user import User
 from app.models.core.major_location import MajorLocation
@@ -19,19 +24,8 @@ def test_phase1_implementation():
     with app.app_context():
         print("=== Phase 1 Implementation Test ===\n")
         
-        # Test 1: Verify System User
-        print("1. Testing System User...")
-        system_user = User.query.filter_by(id=0).first()
-        if system_user:
-            print(f"   ✓ System User found: {system_user.username} (ID: {system_user.id})")
-            print(f"   ✓ Is system: {system_user.is_system}")
-            print(f"   ✓ Is admin: {system_user.is_admin}")
-        else:
-            print("   ✗ System User not found!")
-            return False
-        
-        # Test 2: Verify Admin User
-        print("\n2. Testing Admin User...")
+        # Test 1: Verify Admin User
+        print("1. Testing Admin User...")
         admin_user = User.query.filter_by(id=1).first()
         if admin_user:
             print(f"   ✓ Admin User found: {admin_user.username} (ID: {admin_user.id})")
@@ -39,6 +33,17 @@ def test_phase1_implementation():
             print(f"   ✓ Is admin: {admin_user.is_admin}")
         else:
             print("   ✗ Admin User not found!")
+            return False
+        
+        # Test 2: Verify System User
+        print("\n2. Testing System User...")
+        system_user = User.query.filter_by(id=2).first()
+        if system_user:
+            print(f"   ✓ System User found: {system_user.username} (ID: {system_user.id})")
+            print(f"   ✓ Is system: {system_user.is_system}")
+            print(f"   ✓ Is admin: {system_user.is_admin}")
+        else:
+            print("   ✗ System User not found!")
             return False
         
         # Test 3: Verify Major Location
@@ -91,7 +96,7 @@ def test_phase1_implementation():
         
         # Test 7: Verify Event
         print("\n7. Testing Event...")
-        event = Event.query.filter_by(description='Adding Generic text').first()
+        event = Event.query.filter_by(description='System initialized with core data').first()
         if event:
             print(f"   ✓ Event found: {event.event_type}")
             print(f"   ✓ Description: {event.description}")

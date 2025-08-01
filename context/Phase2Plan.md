@@ -1,284 +1,378 @@
-# Phase 2 Implementation Plan: Core System Initialization
+# Phase 2: Asset Detail Tables - Detailed Implementation Plan
 
 ## Overview
-This document provides a detailed implementation plan for Phase 2 of the Asset Management System. Phase 2 focuses on implementing the tiered build system and core system initialization.
+Phase 2 implements the detail table system for extended asset information. This phase creates a flexible, extensible system for storing detailed specifications and configurations for both assets and models. The detail table system uses a virtual template approach to allow dynamic addition of detail information without schema changes.
 
-## Phase Structure
+## Objectives
+- Implement detail table infrastructure with virtual templates
+- Create specific detail table models for common asset information
+- Establish relationships between assets, models, and their detail tables
+- Provide a flexible system for future detail table additions
+- Ensure proper data integrity and relationships
 
-### Phase 1A: Core Foundation Tables ✅ COMPLETED
-**Focus**: Building the core database tables and models
-- User Model
-- UserCreatedBase Abstract Class
-- MajorLocation Model
-- AssetType Model
-- MakeModel Model
-- Asset Model
-- Event Model
+## Architecture Overview
 
-### Phase 2: Core System Initialization 🔄 IN PROGRESS
-**Focus**: System initialization and initial data seeding
-- System User creation
-- Admin User creation
-- Initial data seeding
-- Database migration setup
-- Build system implementation
+### Detail Table System Design
+The detail table system consists of three main components:
 
-## Tiered Build Architecture
+1. **Detail Table Sets**: Container models that group related detail tables
+2. **Virtual Templates**: Base classes that provide common functionality
+3. **Specific Detail Tables**: Concrete implementations for specific data types
 
-### Build System Structure
+### File Structure
 ```
-app.py                    # Main entry point
-├── app/build.py         # Main build orchestrator
-├── app/models/build.py  # Model build coordinator
-├── app/models/core/build.py      # Core models builder
-├── app/models/assets/build.py    # Asset detail models builder (Phase 3)
-├── app/models/maintenance/build.py # Maintenance models builder (Phase 4)
-└── app/models/operations/build.py # Operations models builder (Phase 5)
-```
-
-### Build Flow
-1. **app.py** calls `app.build.build_database()`
-2. **app/build.py** orchestrates the overall build process
-3. **app/models/build.py** coordinates all model category builds
-4. **Category builders** build their specific models in dependency order
-
-## Phase 2: Core System Initialization 🔄 IN PROGRESS
-
-### Implementation Goals
-1. **Tiered Build System**: Implement the new build architecture
-2. **System User Creation**: Create the system user for automated processes
-3. **Admin User Creation**: Set up the admin user workflow
-4. **Initial Data Seeding**: Populate the database with initial data
-5. **Database Migration Setup**: Configure proper migration system
-
-### Required Files to Create/Update
-
-#### 1. Main Build Orchestrator: `app/build.py`
-```python
-# app/build.py - Main build orchestrator
-from app.models.build import build_all_models
-
-def build_database():
-    """Main database build entry point"""
-    print("=== Asset Management Database Builder ===")
-    print("Phase 1A: Core Foundation Tables")
-    print("Phase 2: Core System Initialization")
-    print("Phase 3: Asset Detail Tables") 
-    print("Phase 4: Maintenance & Operations")
-    print("Phase 5: Advanced Features")
-    
-    success = build_all_models()
-    
-    if success:
-        print("✓ Database build completed successfully")
-    else:
-        print("✗ Database build failed")
-        raise Exception("Database build failed")
+app/models/assets/
+├── __init__.py
+├── build.py                          # Asset models builder
+├── detail_virtual_template.py        # Base virtual template classes
+├── asset_details/                    # Asset-specific detail tables
+│   ├── __init__.py
+│   ├── asset_detail_virtual.py       # Asset detail base class
+│   ├── purchase_info.py              # Purchase information
+│   ├── vehicle_registration.py       # Vehicle registration details
+│   └── toyota_warranty_receipt.py    # Toyota-specific warranty info
+├── model_details/                    # Model-specific detail tables
+│   ├── __init__.py
+│   ├── model_detail_virtual.py       # Model detail base class
+│   ├── emissions_info.py             # Emissions specifications
+│   └── model_info.py                 # General model information
+└── detail_table_sets/                # Detail table set containers
+    ├── __init__.py
+    ├── asset_type_detail_table_set.py   # Asset detail table set
+    └── model_detail_table_set.py        # Model detail table set
 ```
 
-#### 2. Model Build Coordinator: `app/models/build.py` (Update existing)
-```python
-# app/models/build.py - Coordinates all model builds
-from app.models.core.build import build_core_models
-from app.models.assets.build import build_asset_models  # Phase 3
-from app.models.maintenance.build import build_maintenance_models  # Phase 4
-from app.models.operations.build import build_operations_models  # Phase 5
+## Implementation Steps
 
-def build_all_models():
-    """Build all models in dependency order"""
-    print("=== Building All Model Categories ===")
-    
-    # Phase 1A: Core Foundation Tables
-    if not build_core_models():
-        return False
-    
-    # Phase 2: System Initialization
-    if not initialize_system_data():
-        return False
-    
-    # Future phases (commented out until implemented)
-    # if not build_asset_models():
-    #     return False
-    
-    # if not build_maintenance_models():
-    #     return False
-    
-    # if not build_operations_models():
-    #     return False
-    
-    return True
+### Step 2.0: Detail Table Infrastructure
 
-def initialize_system_data():
-    """Initialize system with required base data"""
-    print("=== Initializing System Data ===")
-    
-    # Create system user
-    # Create admin user
-    # Create initial data (locations, asset types, etc.)
-    # Set up audit trail
-    
-    return True
-```
+#### 2.0.0 Create Virtual Template Base Classes
+**File**: `app/models/assets/detail_virtual_template.py`
 
-#### 3. Update Main Entry Point: `app.py`
-```python
-# app.py - Main entry point
-from app import create_app
-from app.build import build_database  # New build module
+**Purpose**: Provide base classes for all detail table functionality
 
-app = create_app()
+**Implementation**:
+- Create `DetailTableVirtualTemplate` abstract base class
+- Implement common fields: `id`, `created_at`, `created_by_id`, `updated_at`, `updated_by_id`
+- Add relationship to `User` for audit trail
+- Include abstract methods for detail table operations
 
-if __name__ == '__main__':
-    print("Starting Asset Management System...")
-    
-    # Build database first
-    build_database()
-    
-    print("Access the application at: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
-```
+**Key Features**:
+- Inherits from `UserCreatedBase`
+- Provides common CRUD operations
+- Supports audit trail functionality
+- Enables polymorphic relationships
 
-### Initial System Data to Create
 
-#### System Users 
-1. **System User** (ID=1) 
-   - Username: 'system'
-   - Email: 'system@assetmanagement.local'
-   - Is_system: True
-   - Is_admin: False
-   - Is_active: True
 
-2. **Admin User** (ID=2) 
-   - Username: 'admin'
-   - Email: 'admin@assetmanagement.local'
-   - Is_system: False
-   - Is_admin: True
-   - Is_active: True
+### Step 2.2: Asset Detail Tables
 
-#### Initial Data Records 
-1. **Major Location**: "SanDiegoHQ" 
-   - Name: "SanDiegoHQ"
-   - Description: "Main office location"
-   - Address: "San Diego, CA"
-   - Created by: System User
+#### 2.2.1 Asset Detail Virtual Base Class
+**File**: `app/models/assets/asset_details/asset_detail_virtual.py`
 
-2. **Asset Type**: "Vehicle" 
-   - Name: "Vehicle"
-   - Category: "Transportation"
-   - Description: "Motor vehicles for transportation"
-   - Created by: System User
+**Purpose**: Base class for all asset-specific detail tables
 
-3. **Model**: "Toyota Corolla" 
-   - Make: "Toyota"
-   - Model: "Corolla"
-   - Year: 2023
-   - Description: "Toyota Corolla 2023 model"
-   - Created by: System User
+**Implementation**:
+- Inherit from `DetailTableVirtualTemplate`
+- Add relationship to `Asset` via foreign key (not to detail table set)
+- Implement asset-specific validation logic
+- Provide common asset detail operations
+- Support dynamic creation during asset creation process
 
-4. **Asset**: "VTC-001" 
-   - Name: "VTC-001"
-   - Serial Number: "VTC0012023001"
-   - Status: "Active"
-   - Major Location: SanDiegoHQ
-   - Asset Type: Vehicle
-   - Make Model: Toyota Corolla
-   - Created by: System User
+#### 2.2.2 Purchase Information Detail Table
+**File**: `app/models/assets/asset_details/purchase_info.py`
 
-5. **Event**: "System Initialization" 
-   - Event Type: "System"
-   - Description: "System initialized with core data"
-   - User: System User
-   - Asset: VTC-001
+**Purpose**: Store purchase-related information for assets
 
-## Implementation Steps for Phase 2
+**Fields**:
+- `purchase_date`: Date of purchase
+- `purchase_price`: Purchase price
+- `purchase_vendor`: Vendor/seller information
+- `purchase_order_number`: PO number if applicable
+- `warranty_start_date`: Warranty start date
+- `warranty_end_date`: Warranty end date
+- `purchase_notes`: Additional purchase notes
+- `event_id` : link to an event so comments and attachments can be added
 
-### Step 1: Create Main Build Orchestrator
-- Create `app/build.py` with main build function
-- Update `app.py` to call build function
+**Implementation**:
+- Inherit from `AssetDetailVirtual`
+- Add purchase-specific validation
+- Implement warranty date calculations
+- Support vendor information tracking
+- Create an Event on insert and link to it
 
-### Step 2: Update Model Build Coordinator
-- Update `app/models/build.py` to coordinate all builds
-- Add system initialization function
+#### 2.2.3 Vehicle Registration Detail Table
+**File**: `app/models/assets/asset_details/vehicle_registration.py`
 
-### Step 3: Implement System Initialization
-- Create system user creation logic
-- Create admin user creation logic
-- Implement initial data seeding
-- Set up proper audit trail
+**Purpose**: Store vehicle registration and licensing information
 
-### Step 4: Update Core Build Module
-- Update `app/models/core/build.py` to focus only on table creation
-- Separate table creation from data initialization
+**Fields**:
+- `license_plate`: Vehicle license plate number
+- `registration_number`: Registration number
+- `registration_expiry`: Registration expiry date
+- `vin_number`: Vehicle Identification Number
+- `state_registered`: State of registration
+- `registration_status`: Current registration status
+- `insurance_provider`: Insurance company
+- `insurance_policy_number`: Insurance policy number
+- `insurance_expiry`: Insurance expiry date
 
-### Step 5: Testing and Verification
-- Test the complete build process
-- Verify all initial data is created correctly
-- Test audit trail functionality
-- Verify system user permissions
+**Implementation**:
+- Inherit from `AssetDetailVirtual`
+- Add vehicle-specific validation
+- Implement expiry date tracking
+- Support multiple state registrations
 
-## Success Criteria for Phase 2
-- [ ] Tiered build system implemented and working
-- [ ] System user created automatically during build
-- [ ] Admin user created with proper permissions
-- [ ] All initial data seeded correctly
-- [ ] Audit trail working for all system-created records
-- [ ] Build process can be run multiple times safely
-- [ ] Database migrations configured properly
+#### 2.2.4 Toyota Warranty Receipt Detail Table
+**File**: `app/models/assets/asset_details/toyota_warranty_receipt.py`
 
-## Testing Checklist for Phase 2
-- [ ] Run complete build process from `app.py`
-- [ ] Verify system user exists with correct permissions
-- [ ] Verify admin user exists with correct permissions
-- [ ] Verify all initial data records exist
-- [ ] Verify audit trail shows system user as creator
-- [ ] Test running build process multiple times
-- [ ] Verify database schema is correct
-- [ ] Test basic queries and relationships
+**Purpose**: Store Toyota-specific warranty and service information
 
-## Next Steps After Phase 2
+**Fields**:
+- `warranty_receipt_number`: Toyota warranty receipt number
+- `warranty_type`: Type of warranty (basic, powertrain, etc.)
+- `warranty_mileage_limit`: Mileage limit for warranty
+- `warranty_time_limit`: Time limit for warranty
+- `dealer_name`: Toyota dealer information
+- `dealer_contact`: Dealer contact information
+- `service_history`: Service history notes
+- `warranty_claims`: Warranty claim information
 
-### Phase 3: Asset Detail Tables
-1. **Virtual Template Model** - `app/models/assets/virtual_template.py`
-2. **Asset Details Models** - `app/models/assets/asset_details/`
-   - Purchase Info
-   - Vehicle Registration
-3. **Model Details Models** - `app/models/assets/model_details/`
-   - Emissions Info
-4. **Detail Table Sets** - `app/models/assets/detail_table_sets/`
-   - Asset Detail Table Set
-   - Model Detail Table Set
+**Implementation**:
+- Inherit from `AssetDetailVirtual`
+- Add Toyota-specific validation
+- Implement warranty tracking
+- Support service history
 
-### Phase 4: Web Interface Foundation
-1. Flask routes and blueprints
-2. HTML templates with HTMX
-3. Basic CRUD operations
-4. User authentication interface
+### Step 2.3: Model Detail Tables
 
-### Phase 5: Maintenance System
-1. Maintenance Event Model
-2. Template Action Sets
-3. Work Order Generation
-4. Part Demand Tracking
+#### 2.3.1 Model Detail Virtual Base Class
+**File**: `app/models/assets/model_details/model_detail_virtual.py`
 
-## Notes
-- Phase 1A is complete and provides the foundation for Phase 2
-- The tiered build system will make future phases easier to implement
-- System user will handle all initial data creation and automated processes
-- Admin user will be available for manual operations and user management
-- All user-created records will be properly tracked with audit trail
-- The build system will be extensible for future phases
+**Purpose**: Base class for all model-specific detail tables
 
-## Summary
+**Implementation**:
+- Inherit from `DetailTableVirtualTemplate`
+- Add relationship to `MakeModel` via foreign key (not to detail table set)
+- Implement model-specific validation logic
+- Provide common model detail operations
+- Support dynamic creation during asset creation process
+- Prevent duplicate model detail rows
 
-**Phase 1A is COMPLETE** - Core foundation tables are implemented and working.
+#### 2.3.2 Emissions Information Detail Table
+**File**: `app/models/assets/model_details/emissions_info.py`
 
-**Phase 2 is IN PROGRESS** - Focus on implementing the tiered build system and system initialization.
+**Purpose**: Store emissions specifications for vehicle models
 
-The new tiered approach will provide:
-- Clear separation of concerns
-- Better dependency management
-- Easier testing and debugging
-- Scalable architecture for future phases
-- Consistent build process across all phases
+**Fields**:
+- `emissions_standard`: Emissions standard (EPA, CARB, etc.)
+- `emissions_rating`: Emissions rating/classification
+- `fuel_type`: Fuel type (gasoline, diesel, electric, hybrid)
+- `mpg_city`: City fuel economy
+- `mpg_highway`: Highway fuel economy
+- `mpg_combined`: Combined fuel economy
+- `co2_emissions`: CO2 emissions rating
+- `emissions_test_date`: Date of emissions testing
+- `emissions_certification`: Certification number
 
-Once Phase 2 is complete, the system will be ready for Phase 3: Asset Detail Tables implementation. 
+**Implementation**:
+- Inherit from `ModelDetailVirtual`
+- Add emissions-specific validation
+- Implement fuel economy calculations
+- Support multiple emissions standards
+
+#### 2.3.3 Model Information Detail Table
+**File**: `app/models/assets/model_details/model_info.py`
+
+**Purpose**: Store general model specifications and information
+
+**Fields**:
+- `model_year`: Model year
+- `body_style`: Body style (sedan, SUV, truck, etc.)
+- `engine_type`: Engine type and specifications
+- `transmission_type`: Transmission type
+- `drivetrain`: Drivetrain configuration
+- `seating_capacity`: Number of seats
+- `cargo_capacity`: Cargo capacity
+- `towing_capacity`: Towing capacity
+- `manufacturer_website`: Manufacturer website
+- `technical_specifications`: Technical specifications
+
+**Implementation**:
+- Inherit from `ModelDetailVirtual`
+- Add model-specific validation
+- Support multiple body styles
+- Include comprehensive specifications
+
+### 2.1: Create Detail Sets
+
+#### 2.1.1 Create Asset Type Detail Set
+**File**: `app/models/assets/detail_table_sets/asset_type_detail_table_set.py`
+
+**Purpose**: Configuration container that defines which detail table types are available for a specific asset type
+
+**Implementation**:
+- Create `AssetTypeDetailTableSet` model
+- Link to `AssetType` via foreign key
+- Include configuration fields for detail table type assignments
+- Store list of detail table types (purchase_info, vehicle_registration, etc.) that apply to this asset type
+- Mark each detail table type as asset_detail or model_detail
+
+
+#### 2.1.2 Create Model Specific Detail Set
+**File**: `app/models/assets/detail_table_sets/model_detail_table_set.py`
+
+**Purpose**: Configuration container that defines additional detail table types for a specific model beyond what the asset type provides
+
+**Implementation**:
+- Create `ModelDetailTableSet` model
+- Link to `MakeModel` via foreign key
+- Include configuration fields for additional detail table type assignments
+- Store list of additional detail table types that apply to this model
+- Mark each detail table type as asset_detail or model_detail
+
+### Step 2.4: Detail Table Relationships
+
+#### 2.4.1 Dynamic Detail Table Assignment System
+**Implementation**:
+- **No direct relationships**: Assets and models do NOT have relationships to detail table sets
+- **Asset Type Detail Table Sets**: Define which detail tables are available for each asset type
+- **Model Detail Table Sets**: Define additional detail tables available for specific models
+- **Dynamic row creation**: On asset creation, system automatically creates detail table rows
+
+#### 2.4.2 Asset Creation Detail Table Process
+**Implementation**:
+When a new asset is created, the system automatically processes detail table assignments through the following steps:
+
+1. **Asset Type Lookup**: Retrieve the AssetTypeDetailTableSet configuration for the asset's type
+2. **Model Lookup**: Retrieve the ModelDetailTableSet configuration for the asset's model  
+3. **Asset Type Processing**: For each detail table type in the asset type configuration:
+   - If asset_detail: Create a new detail table row linked to this specific asset
+   - If model_detail: Check if a detail table row exists for this model, create if missing
+4. **Model Processing**: For each additional detail table type in the model configuration:
+   - If asset_detail: Create a new detail table row linked to this specific asset
+   - If model_detail: Check if a detail table row exists for this model, create if missing
+5. **Row Creation**: Generate appropriate detail table rows with proper foreign key relationships
+6. **Duplicate Prevention**: Ensure model detail rows are only created once per model
+
+#### 2.4.3 Detail Table Row Creation Logic
+**Implementation**:
+- **Asset Detail Tables**: Create rows with foreign key to the specific asset
+- **Model Detail Tables**: Create rows with foreign key to the model (if not already exists)
+- **Duplicate Prevention**: Check for existing model detail rows before creating new ones
+- **Cascade Management**: When asset is deleted, remove associated asset detail rows
+- **Model Detail Persistence**: Model detail rows persist even when assets are deleted
+
+#### 2.4.4 Detail Table Set Configuration
+**Implementation**:
+- **Asset Type Detail Table Set**: Contains list of detail table types available for asset type
+- **Model Detail Table Set**: Contains list of additional detail table types for specific model
+- **Detail Table Type Classification**: Each detail table type marked as asset_detail or model_detail
+- **Configuration Management**: Admin interface to configure which detail tables apply to which types/models
+
+### Step 2.5: Build System Integration
+
+#### 2.5.1 Update Asset Models Builder
+**File**: `app/models/assets/build.py`
+
+**Implementation**:
+- Add detail table set creation to build process
+- Implement detail table model registration
+- Add validation for detail table relationships
+- Include detail table statistics in build output
+
+#### 2.5.2 Update Main Build System
+**File**: `app/models/build.py`
+
+**Implementation**:
+- Add asset detail tables to model build coordination
+- Include detail table set creation in build flow
+- Add detail table validation to build process
+- Update build statistics to include detail tables
+
+### Step 2.6: Data Testing and Validation
+
+#### 2.6.1 Insert Sample Data
+**Implementation**:
+- Create sample asset detail table sets
+- Insert test data for each detail table type
+- Verify relationships work correctly
+- Test data integrity constraints
+
+**Sample Data to Insert**:
+- Asset: "VTC-001" with purchase info and vehicle registration
+- Model: "Toyota Corolla" with emissions info and model info
+- Asset: "VTC-002" with Toyota warranty receipt
+- Multiple detail table sets for testing relationships
+
+#### 2.6.2 Verify Relationships
+**Testing**:
+- Test asset-to-detail-table-set relationships
+- Test model-to-detail-table-set relationships
+- Verify cascade delete behavior
+- Test foreign key constraints
+
+#### 2.6.3 Test Querying Detail Information
+**Testing**:
+- Query assets with their detail information
+- Query models with their detail information
+- Test filtering by detail table criteria
+- Verify join operations work correctly
+
+## Success Criteria
+
+### Functional Requirements
+- [ ] All detail table models can be created successfully
+- [ ] Detail table sets properly link to assets and models
+- [ ] Sample data can be inserted for all detail table types
+- [ ] Relationships work correctly for all detail table combinations
+- [ ] Query operations return expected results
+- [ ] Cascade delete operations work properly
+
+### Technical Requirements
+- [ ] All models inherit from appropriate base classes
+- [ ] Foreign key relationships are properly defined
+- [ ] Audit trail functionality works for all detail tables
+- [ ] Build system successfully creates all detail table structures
+- [ ] No database constraint violations occur
+- [ ] All detail table operations maintain data integrity
+
+### Performance Requirements
+- [ ] Detail table queries perform efficiently
+- [ ] Join operations don't cause performance issues
+- [ ] Database indexes are properly created
+- [ ] Memory usage remains reasonable for detail table operations
+
+## Risk Mitigation
+
+### Technical Risks
+- **Complex Relationships**: Implement thorough testing of all relationship combinations
+- **Data Integrity**: Use database constraints and validation to prevent data corruption
+- **Performance Issues**: Monitor query performance and optimize as needed
+- **Schema Complexity**: Maintain clear documentation of detail table structure
+
+### Implementation Risks
+- **Scope Creep**: Focus on core detail table functionality before adding advanced features
+- **Testing Coverage**: Ensure comprehensive testing of all detail table operations
+- **Data Migration**: Plan for future detail table additions without breaking existing data
+
+## Dependencies
+
+### Phase 1 Dependencies
+- Core models must be fully implemented and tested
+- User authentication system must be working
+- Database migration system must be functional
+- Build system must be operational
+
+### External Dependencies
+- SQLAlchemy ORM functionality
+- Flask application framework
+- Database (SQLite for development)
+- Python datetime handling
+
+
+## Conclusion
+
+Phase 2 establishes a robust, flexible detail table system that will support the asset management system's requirements for storing detailed asset and model information. The virtual template approach ensures the system can be extended with new detail table types without requiring schema changes, while maintaining data integrity and proper relationships.
+
+The implementation follows the established patterns from Phase 1 and provides a solid foundation for the more complex systems in subsequent phases.

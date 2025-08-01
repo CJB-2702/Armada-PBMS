@@ -62,31 +62,12 @@ def initialize_system_data():
     print("=== Initializing System Data ===")
     
     try:
-        # Step 1: Create System User (if not exists)
-        print("1. Creating System User...")
-        system_user = User.query.filter_by(username='system').first()
-        if not system_user:
-            system_user = User(
-                id=1,
-                username='system',
-                email='system@assetmanagement.local',
-                is_active=True,
-                is_system=True,
-                is_admin=False
-            )
-            system_user.set_password('system-password-not-for-login')
-            db.session.add(system_user)
-            db.session.commit()
-            print("   ✓ System User created (ID: 1)")
-        else:
-            print("   ✓ System User already exists (ID: 1)")
-        
-        # Step 2: Create Admin User (if not exists)
-        print("2. Creating Admin User...")
+        # Step 1: Create Admin User (if not exists)
+        print("1. Creating Admin User...")
         admin_user = User.query.filter_by(username='admin').first()
         if not admin_user:
             admin_user = User(
-                id=2,
+                id=1,
                 username='admin',
                 email='admin@assetmanagement.local',
                 is_active=True,
@@ -96,9 +77,28 @@ def initialize_system_data():
             admin_user.set_password('admin-password-change-me')
             db.session.add(admin_user)
             db.session.commit()
-            print("   ✓ Admin User created (ID: 2)")
+            print("   ✓ Admin User created (ID: 1)")
         else:
-            print("   ✓ Admin User already exists (ID: 2)")
+            print("   ✓ Admin User already exists (ID: 1)")
+        
+        # Step 2: Create System User (if not exists)
+        print("2. Creating System User...")
+        system_user = User.query.filter_by(username='system').first()
+        if not system_user:
+            system_user = User(
+                id=2,
+                username='system',
+                email='system@assetmanagement.local',
+                is_active=True,
+                is_system=True,
+                is_admin=False
+            )
+            system_user.set_password('system-password-not-for-login')
+            db.session.add(system_user)
+            db.session.commit()
+            print("   ✓ System User created (ID: 2)")
+        else:
+            print("   ✓ System User already exists (ID: 2)")
         
         # Step 3: Create Major Location (if not exists)
         print("3. Creating Major Location...")
@@ -145,6 +145,7 @@ def initialize_system_data():
                 model="Corolla",
                 year=2023,
                 description="Toyota Corolla 2023 model",
+                asset_type_id=asset_type.id,
                 is_active=True,
                 created_by_id=system_user.id,
                 updated_by_id=system_user.id
@@ -164,7 +165,6 @@ def initialize_system_data():
                 serial_number="VTC0012023001",
                 status="Active",
                 major_location_id=major_location.id,
-                asset_type_id=asset_type.id,
                 make_model_id=make_model.id,
                 created_by_id=system_user.id,
                 updated_by_id=system_user.id

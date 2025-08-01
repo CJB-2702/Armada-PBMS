@@ -17,8 +17,5 @@ export FLASK_APP=run.py
 export FLASK_ENV=development
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
-# Auto-activate virtual environment when entering the directory
-if [[ "$PWD" == *"asset_management"* ]]; then
-    activate_venv
-fi
+
 if [ -d "venv" ]; then source venv/bin/activate; fi

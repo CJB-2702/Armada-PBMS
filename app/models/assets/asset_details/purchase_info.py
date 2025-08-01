@@ -8,6 +8,7 @@ from app.models.assets.asset_details.asset_detail_virtual import AssetDetailVirt
 from app.models.core.event import Event
 from app import db
 from datetime import datetime
+from sqlalchemy.ext.declarative import declared_attr
 
 class PurchaseInfo(AssetDetailVirtual):
     """
@@ -26,7 +27,9 @@ class PurchaseInfo(AssetDetailVirtual):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True)
     
     # Relationships
-    event = db.relationship('Event', backref='purchase_info')
+    @declared_attr
+    def event(cls):
+        return db.relationship('Event', backref='purchase_info')
     
     def __repr__(self):
         """String representation of the purchase info"""

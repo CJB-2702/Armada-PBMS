@@ -6,6 +6,7 @@ Base class for all model-specific detail tables
 
 from app.models.assets.detail_virtual_template import DetailTableVirtualTemplate
 from app import db
+from sqlalchemy.ext.declarative import declared_attr
 
 class ModelDetailVirtual(DetailTableVirtualTemplate):
     """
@@ -18,7 +19,11 @@ class ModelDetailVirtual(DetailTableVirtualTemplate):
     make_model_id = db.Column(db.Integer, db.ForeignKey('make_models.id'), nullable=False)
     
     # Relationship to MakeModel
-    make_model = db.relationship('MakeModel', backref='model_details')
+    @declared_attr
+    def make_model(cls):
+        # Use the class name to create a unique backref
+        backref_name = f'{cls.__name__.lower()}_details'
+        return db.relationship('MakeModel', backref=backref_name)
     
     def __repr__(self):
         """String representation of the model detail table"""

@@ -16,7 +16,7 @@ from app.models.assets.model_details.emissions_info import EmissionsInfo
 from app.models.assets.model_details.model_info import ModelInfo
 
 def build_asset_models():
-    """Build all asset detail table models in dependency order (Phase 2)"""
+    """Build all asset detail table models in dependency order (Phase 2A)"""
     print("=== Building Asset Detail Table Models ===")
     
     try:
@@ -62,7 +62,7 @@ def build_asset_models():
         return False
 
 def initialize_asset_detail_data():
-    """Initialize asset detail tables with sample data (Phase 2)"""
+    """Initialize asset detail tables with sample data (Phase 2B)"""
     print("=== Initializing Asset Detail Data ===")
     
     try:

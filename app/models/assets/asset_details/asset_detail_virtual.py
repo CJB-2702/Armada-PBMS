@@ -6,6 +6,7 @@ Base class for all asset-specific detail tables
 
 from app.models.assets.detail_virtual_template import DetailTableVirtualTemplate
 from app import db
+from sqlalchemy.ext.declarative import declared_attr
 
 class AssetDetailVirtual(DetailTableVirtualTemplate):
     """
@@ -18,7 +19,11 @@ class AssetDetailVirtual(DetailTableVirtualTemplate):
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
     
     # Relationship to Asset
-    asset = db.relationship('Asset', backref='asset_details')
+    @declared_attr
+    def asset(cls):
+        # Use the class name to create a unique backref
+        backref_name = f'{cls.__name__.lower()}_details'
+        return db.relationship('Asset', backref=backref_name)
     
     def __repr__(self):
         """String representation of the asset detail table"""

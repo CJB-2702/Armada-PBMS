@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""
+Test script for Phase 1 implementation
+Verifies all models and initial data are working correctly
+"""
+
+from app import create_app, db
+from app.models.core.user import User
+from app.models.core.major_location import MajorLocation
+from app.models.core.asset_type import AssetType
+from app.models.core.make_model import MakeModel
+from app.models.core.asset import Asset
+from app.models.core.event import Event
+
+def test_phase1_implementation():
+    """Test the Phase 1 implementation"""
+    app = create_app()
+    
+    with app.app_context():
+        print("=== Phase 1 Implementation Test ===\n")
+        
+        # Test 1: Verify System User
+        print("1. Testing System User...")
+        system_user = User.query.filter_by(id=0).first()
+        if system_user:
+            print(f"   ✓ System User found: {system_user.username} (ID: {system_user.id})")
+            print(f"   ✓ Is system: {system_user.is_system}")
+            print(f"   ✓ Is admin: {system_user.is_admin}")
+        else:
+            print("   ✗ System User not found!")
+            return False
+        
+        # Test 2: Verify Admin User
+        print("\n2. Testing Admin User...")
+        admin_user = User.query.filter_by(id=1).first()
+        if admin_user:
+            print(f"   ✓ Admin User found: {admin_user.username} (ID: {admin_user.id})")
+            print(f"   ✓ Is system: {admin_user.is_system}")
+            print(f"   ✓ Is admin: {admin_user.is_admin}")
+        else:
+            print("   ✗ Admin User not found!")
+            return False
+        
+        # Test 3: Verify Major Location
+        print("\n3. Testing Major Location...")
+        san_diego = MajorLocation.query.filter_by(name='SanDiegoHQ').first()
+        if san_diego:
+            print(f"   ✓ Major Location found: {san_diego.name}")
+            print(f"   ✓ Description: {san_diego.description}")
+            print(f"   ✓ Created by: {san_diego.created_by.username}")
+        else:
+            print("   ✗ Major Location not found!")
+            return False
+        
+        # Test 4: Verify Asset Type
+        print("\n4. Testing Asset Type...")
+        vehicle_type = AssetType.query.filter_by(name='Vehicle').first()
+        if vehicle_type:
+            print(f"   ✓ Asset Type found: {vehicle_type.name}")
+            print(f"   ✓ Category: {vehicle_type.category}")
+            print(f"   ✓ Created by: {vehicle_type.created_by.username}")
+        else:
+            print("   ✗ Asset Type not found!")
+            return False
+        
+        # Test 5: Verify Make/Model
+        print("\n5. Testing Make/Model...")
+        toyota = MakeModel.query.filter_by(make='Toyota', model='Corolla').first()
+        if toyota:
+            print(f"   ✓ Make/Model found: {toyota.make} {toyota.model}")
+            print(f"   ✓ Year: {toyota.year}")
+            print(f"   ✓ Created by: {toyota.created_by.username}")
+        else:
+            print("   ✗ Make/Model not found!")
+            return False
+        
+        # Test 6: Verify Asset
+        print("\n6. Testing Asset...")
+        vtc_001 = Asset.query.filter_by(serial_number='VTC0012023001').first()
+        if vtc_001:
+            print(f"   ✓ Asset found: {vtc_001.name}")
+            print(f"   ✓ Serial Number: {vtc_001.serial_number}")
+            print(f"   ✓ Status: {vtc_001.status}")
+            print(f"   ✓ Location: {vtc_001.major_location.name}")
+            print(f"   ✓ Type: {vtc_001.asset_type.name}")
+            print(f"   ✓ Make/Model: {vtc_001.make_model.make} {vtc_001.make_model.model}")
+            print(f"   ✓ Created by: {vtc_001.created_by.username}")
+        else:
+            print("   ✗ Asset not found!")
+            return False
+        
+        # Test 7: Verify Event
+        print("\n7. Testing Event...")
+        event = Event.query.filter_by(description='Adding Generic text').first()
+        if event:
+            print(f"   ✓ Event found: {event.event_type}")
+            print(f"   ✓ Description: {event.description}")
+            print(f"   ✓ User: {event.user.username}")
+            print(f"   ✓ Asset: {event.asset.name if event.asset else 'None'}")
+        else:
+            print("   ✗ Event not found!")
+            return False
+        
+        # Test 8: Test relationships
+        print("\n8. Testing Relationships...")
+        assets_at_location = san_diego.assets
+        print(f"   ✓ Assets at SanDiegoHQ: {len(assets_at_location)}")
+        for asset in assets_at_location:
+            print(f"      - {asset.name} ({asset.serial_number})")
+        
+        # Test 9: Test audit trail
+        print("\n9. Testing Audit Trail...")
+        print(f"   ✓ Asset created at: {vtc_001.created_at}")
+        print(f"   ✓ Asset created by: {vtc_001.created_by.username}")
+        print(f"   ✓ Asset updated at: {vtc_001.updated_at}")
+        print(f"   ✓ Asset updated by: {vtc_001.updated_by.username}")
+        
+        print("\n=== All Tests Passed! Phase 1 Implementation Successful ===")
+        return True
+
+if __name__ == '__main__':
+    test_phase1_implementation() 

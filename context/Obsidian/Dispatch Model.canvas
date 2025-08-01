@@ -1,0 +1,24 @@
+{
+	"nodes":[
+		{"id":"a4b798ff3ecc86f5","type":"text","text":"Assets","x":-1140,"y":-593,"width":180,"height":60},
+		{"id":"58c1c0e7e9916869","type":"text","text":"Dispatches","x":-580,"y":-280,"width":280,"height":120},
+		{"id":"bc2779b8a4fffe0c","type":"text","text":"Dispatch Change History","x":-580,"y":-40,"width":280,"height":120},
+		{"id":"e95121464e9af23b","type":"text","text":"Event","x":40,"y":-593,"width":160,"height":133},
+		{"id":"5b8c1d29914a26d9","type":"text","text":"users","x":-580,"y":-593,"width":121,"height":60},
+		{"id":"a42fb17ec1eebc7c","type":"text","text":"Dispatch Status","x":-320,"y":-593,"width":300,"height":73},
+		{"id":"4be1743a6cdc895a","type":"text","text":"Major Locations","x":-900,"y":-593,"width":180,"height":60},
+		{"id":"48e1e438c4a2086b","type":"text","text":"status sets","x":-385,"y":-734,"width":250,"height":60,"color":"5"}
+	],
+	"edges":[
+		{"id":"1d871654ec8ff855","fromNode":"bc2779b8a4fffe0c","fromSide":"top","toNode":"58c1c0e7e9916869","toSide":"bottom","label":"has"},
+		{"id":"e6ed391603420051","fromNode":"58c1c0e7e9916869","fromSide":"top","toNode":"e95121464e9af23b","toSide":"bottom","label":"has\n"},
+		{"id":"393752e88a466601","fromNode":"58c1c0e7e9916869","fromSide":"left","toNode":"bc2779b8a4fffe0c","toSide":"left","label":"inserts a copy on any change"},
+		{"id":"9738d3e6f0ecb193","fromNode":"58c1c0e7e9916869","fromSide":"top","toNode":"5b8c1d29914a26d9","toSide":"bottom","label":"has\nrequested by\nissued by\ncan have approved by"},
+		{"id":"9b747dfe6904e4f3","fromNode":"58c1c0e7e9916869","fromSide":"left","toNode":"a4b798ff3ecc86f5","toSide":"bottom","label":"can have"},
+		{"id":"3f4a5c2ca2eeba36","fromNode":"58c1c0e7e9916869","fromSide":"top","toNode":"a42fb17ec1eebc7c","toSide":"bottom","label":"has"},
+		{"id":"a745f1878930d860","fromNode":"5b8c1d29914a26d9","fromSide":"left","toNode":"58c1c0e7e9916869","toSide":"left","color":"4","label":"create"},
+		{"id":"aacb3dfb99d7e2e3","fromNode":"58c1c0e7e9916869","fromSide":"left","toNode":"4be1743a6cdc895a","toSide":"bottom","label":"has"},
+		{"id":"cec7f97e5a9dbefb","fromNode":"58c1c0e7e9916869","fromSide":"right","toNode":"e95121464e9af23b","toSide":"bottom","color":"6","label":"create on dispatch create"},
+		{"id":"bf6b116a74283ca7","fromNode":"a42fb17ec1eebc7c","fromSide":"top","toNode":"48e1e438c4a2086b","toSide":"bottom","label":"inherits from"}
+	]
+}

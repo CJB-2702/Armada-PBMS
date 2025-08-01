@@ -1,0 +1,185 @@
+{
+  "main": {
+    "id": "6e60533b796cbbc8",
+    "type": "split",
+    "children": [
+      {
+        "id": "032a78055d98aa98",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b793f0cdfc76fbc5",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "Maintance Model.canvas",
+                "viewState": {
+                  "x": 1772.6771656393234,
+                  "y": -665.2571747654258,
+                  "zoom": -1.2000000000000002
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Maintance Model"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2d80d2278dfa8bec",
+    "type": "split",
+    "children": [
+      {
+        "id": "b07ecd18fecc6d2c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "492cb79431903ad4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "9ed49cf612f5e953",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "90ff68dd32105fbb",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "9d3796ebb9050524",
+    "type": "split",
+    "children": [
+      {
+        "id": "8847b3dd16938ff0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f4ddd7f52cc6c9e7",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "location model.canvas",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for location model"
+            }
+          },
+          {
+            "id": "c031343188984bde",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "location model.canvas",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from location model"
+            }
+          },
+          {
+            "id": "62777054a2979641",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "a6dd9d80d18df4a6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "location model.canvas",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of location model"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "b793f0cdfc76fbc5",
+  "lastOpenFiles": [
+    "Dispatch Model.canvas",
+    "Maintance Model.canvas",
+    "Maintnence Planning Model.canvas",
+    "Supply Model.canvas",
+    "location model.canvas",
+    "Asset Management Data model.canvas",
+    "Welcome.md",
+    "Action Model.canvas"
+  ]
+}

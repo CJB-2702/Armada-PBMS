@@ -1,7 +1,8 @@
 from app import db
 from datetime import datetime
+from app.models.core.data_insertion_mixin import DataInsertionMixin
 
-class Event(db.Model):
+class Event(DataInsertionMixin, db.Model):
     __tablename__ = 'events'
     
     id = db.Column(db.Integer, primary_key=True)

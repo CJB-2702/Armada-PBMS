@@ -1,119 +1,147 @@
 #!/usr/bin/env python3
 """
 Main build orchestrator for the Asset Management System
-Coordinates the building of all database components in the correct order
+Handles phased building of models and data insertion
 """
 
-from app.models.build import build_all_models, insert_all_data
-from app import create_app
+from app import create_app, db
+from pathlib import Path
+import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def build_database(build_phase='all', data_phase='all'):
     """
-    Main database build entry point
+    Main build orchestrator for the Asset Management System
     
     Args:
-        build_phase (str): Build phase to execute
-            - 'phase1': Core Foundation Tables only
-            - 'phase2': Phase 1 + Asset Detail Tables
-            - 'phase3': Phase 1 + Phase 2 + Automatic Detail Insertion
-            - 'all': All phases (default = phase3)
-        data_phase (str): Data insertion phase to execute
-            - 'phase1': Core System Initialization only
-            - 'phase2': Phase 1 + Asset Detail Data (manual insertion)
-            - 'phase3': Phase 1 + Update auto-generated details
-            - 'all': highest phase (default = phase3)
-            - 'none': Skip data insertion
+        build_phase (str): 'phase1', 'phase2', 'phase3', 'all', or 'none'
+        data_phase (str): 'phase1', 'phase2', 'phase3', 'all', or 'none'
     """
-    print("=== Asset Management Database Builder ===")
-    print("Phase 1A: Core Foundation Tables (Models)")
-    print("Phase 1B: Core System Initialization (Data)")
-    print("Phase 2A: Asset Detail Tables (Models)")
-    print("Phase 2B: Asset Detail Data (Data)")
-    print("Phase 3A: Automatic Detail Insertion (Models)")
-    print("Phase 3B: Update Auto-Generated Details (Data)")
-    print("")
-    
-    # Determine what to build
-    if build_phase == 'phase1':
-        print("=== Building Phase 1 Models Only ===")
-    elif build_phase == 'phase2':
-        print("=== Building Phase 1 and Phase 2 Models ===")
-    elif build_phase == 'phase3':
-        print("=== Building Phase 1, Phase 2, and Phase 3 Models ===")
-    else:
-        print("=== Building All Phase Models (Phase 3) ===")
-    
-    # Determine what data to insert
-    if data_phase == 'none':
-        print("=== Skipping Data Insertion ===")
-    elif data_phase == 'phase1':
-        print("=== Inserting Phase 1 Data Only ===")
-    elif data_phase == 'phase2':
-        print("=== Inserting Phase 1 and Phase 2 Data ===")
-    elif data_phase == 'phase3':
-        print("=== Inserting Phase 1 and Phase 3 Data (Update auto-generated details) ===")
-    else:
-        print("=== Inserting All Phase Data (Phase 3) ===")
-    print("")
-    
-    # Create app context for the build process
     app = create_app()
     
     with app.app_context():
+        logger.info(f"Starting database build - Build Phase: {build_phase}, Data Phase: {data_phase}")
+        
+        # Build models based on phase
+        if build_phase != 'none':
+            build_models(build_phase)
+        
+        # Insert data based on phase
+        if data_phase != 'none':
+            insert_data(data_phase)
+        
+        logger.info("Database build completed successfully")
+
+def build_models(phase):
+    """
+    Build database models based on the specified phase
+    
+    Args:
+        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+    """
+    logger.info(f"Building models for phase: {phase}")
+    
+    if phase in ['phase1', 'phase2', 'phase3', 'all']:
+        logger.info("Building Phase 1 models (Core Foundation)")
+        from app.models.core.build import build_models as build_core_models
+        build_core_models()
+    
+    if phase in ['phase2', 'phase3', 'all']:
+        logger.info("Building Phase 2 models (Asset Details)")
+        from app.models.assets.build import build_models as build_asset_models
+        build_asset_models()
+    
+    if phase in ['phase3', 'all']:
+        logger.info("Building Phase 3 models (Maintenance & Operations)")
+        # Phase 3 builds on top of Phase 2, so Phase 2 models are already included
+        pass
+    
+    # Create all tables
+    db.create_all()
+    logger.info("All database tables created")
+
+def insert_data(phase):
+    """
+    Insert initial data based on the specified phase
+    
+    Args:
+        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+    """
+    logger.info(f"Inserting data for phase: {phase}")
+    
+    # Load build data
+    build_data = load_build_data()
+    
+    if phase in ['phase1','phase2']:
+        logger.info("Inserting Phase 1 data (Core Foundation)")
+        from app.models.core.build import init_data
+        init_data(build_data)
+    
+    if phase in ['phase2']:
+        logger.info("Inserting Phase 2 data (Asset Details)")
+        from app.models.assets.build import phase_2_init_data
+        phase_2_init_data(build_data)
+    
+    if phase in ['phase3', 'all']:
+        logger.info("Inserting Phase 3 data (Maintenance & Operations)")
         try:
-            # Step 1: Build models
-            print("=== Step 1: Building Models ===")
-            success = build_all_models(build_phase=build_phase)
+            from app.models.core.asset import Asset
+            from app.models.core.build import init_essential_data
+            from app.models.assets.build import phase3_insert_data, phase3_update_data
             
-            if not success:
-                print("✗ Model building failed")
-                raise Exception("Model building failed")
-            
-            # Step 2: Insert data (if requested)
-            if data_phase != 'none':
-                print("\n=== Step 2: Inserting Data ===")
-                success = insert_all_data(data_phase=data_phase)
-                
-                if not success:
-                    print("✗ Data insertion failed")
-                    raise Exception("Data insertion failed")
-            
-            # Success summary
-            print("\n=== Build Summary ===")
-            if build_phase == 'phase1':
-                print("✓ Phase 1 models built successfully")
-            elif build_phase == 'phase2':
-                print("✓ Phase 1 and Phase 2 models built successfully")
-            elif build_phase == 'phase3':
-                print("✓ Phase 1, Phase 2, and Phase 3 models built successfully")
-            else:
-                print("✓ All phase models built successfully")
-            
-            if data_phase == 'none':
-                print("✓ No data inserted (models only)")
-            elif data_phase == 'phase1':
-                print("✓ Phase 1 data inserted successfully")
-            elif data_phase == 'phase2':
-                print("✓ Phase 1 and Phase 2 data inserted successfully")
-            elif data_phase == 'phase3':
-                print("✓ Phase 1 and Phase 3 data inserted successfully (auto-generated details updated)")
-            else:
-                print("✓ All phase data inserted successfully")
-            
-            print("✓ System ready for use")
-            
-        except Exception as e:
-            print(f"✗ Build process failed with error: {str(e)}")
+            # Enable automatic detail insertion for Phase 3
+            Asset.enable_automatic_detail_insertion()
+            init_essential_data(build_data)
+            phase3_insert_data(build_data)
+            phase3_update_data(build_data)
+        except ImportError as e:
+            logger.error(f"Phase 3 failed to insert data: {e}")
             raise
 
-def build_models_only(build_phase='all'):
-    """Build models only, no data insertion"""
-    build_database(build_phase=build_phase, data_phase='none')
 
-def insert_data_only(data_phase='all'):
-    """Insert data only, assuming models already exist"""
-    build_database(build_phase='none', data_phase=data_phase)
+def load_build_data():
+    """
+    Load build data from JSON file
+    
+    Returns:
+        dict: Build data from JSON file
+    """
+    config_file = Path(__file__).parent / 'utils' / 'build_data.json'
+    
+    if not config_file.exists():
+        raise FileNotFoundError(f"Build data file not found: {config_file}")
+    
+    with open(config_file, 'r') as f:
+        return json.load(f)
+
+def build_models_only(phase):
+    """
+    Build only the models without inserting data
+    
+    Args:
+        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+    """
+    build_database(build_phase=phase, data_phase='none')
+
+def insert_data_only(phase):
+    """
+    Insert only data without building models
+    
+    Args:
+        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+    """
+    build_database(build_phase='none', data_phase=phase)
 
 if __name__ == '__main__':
-    # This can be run directly for testing
-    build_database() 
+    import sys
+    
+    if len(sys.argv) > 1:
+        build_phase = sys.argv[1]
+        data_phase = sys.argv[2] if len(sys.argv) > 2 else build_phase
+        build_database(build_phase=build_phase, data_phase=data_phase)
+    else:
+        build_database() 

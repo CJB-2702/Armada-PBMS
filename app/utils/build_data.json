@@ -10,7 +10,7 @@
       "password": "admin-password-change-me"
     },
     {
-      "id": 2,
+      "id": 0,
       "username": "system",
       "email": "system@assetmanagement.local",
       "is_active": true,
@@ -149,10 +149,20 @@
   },
   "test_assets": [
     {
+      "name": "VTC-002",
+      "serial_number": "VTC0022023002",
+      "make": "Toyota",
+      "model": "Corolla",
+      "status": "Active"
+    }
+  ],
+  "core_assets": [
+    {
       "name": "VTC-001",
       "serial_number": "VTC0012023001",
       "make": "Toyota",
-      "model": "Corolla"
+      "model": "Corolla",
+      "status": "Active"
     }
   ]
 } 

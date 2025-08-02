@@ -142,7 +142,7 @@ insert_data_only('all')      # All data
 **Purpose**: Initialize the system with required base data
 
 **Data Created:**
-- System user (ID: 2, username: 'system')
+- System user (ID: 0, username: 'system')
 - Admin user (ID: 1, username: 'admin')
 - Major location: 'SanDiegoHQ'
 - Asset type: 'Vehicle'

@@ -72,7 +72,7 @@ Phase 2B: Asset Detail Data (Data)
 ### 4. Sample Data (Phase 1B + Phase 2B)
 
 #### Core Data
-- System user (ID: 2, username: 'system')
+- System user (ID: 0, username: 'system')
 - Admin user (ID: 1, username: 'admin')
 - Major location: 'SanDiegoHQ'
 - Asset type: 'Vehicle'

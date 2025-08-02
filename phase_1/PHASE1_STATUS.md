@@ -84,7 +84,7 @@ app.py                    # Main entry point ✅
    - Is_admin: True
    - Is_active: True
 
-2. **System User** (ID: 2) ✅
+2. **System User** (ID: 0) ✅
    - Username: 'system'
    - Email: 'system@assetmanagement.local'
    - Is_system: True
@@ -157,7 +157,7 @@ app.py                    # Main entry point ✅
 ### Build Process Testing
 - ✅ Complete build process runs from `app.py`
 - ✅ Admin user exists with correct permissions (ID: 1)
-- ✅ System user exists with correct permissions (ID: 2)
+- ✅ System user exists with correct permissions (ID: 0)
 - ✅ All initial data records exist
 - ✅ Audit trail shows system user as creator
 - ✅ Build process runs multiple times safely
@@ -168,7 +168,7 @@ app.py                    # Main entry point ✅
 ```
 Found 2 users:
   - admin (ID: 1, Admin: True, System: False)
-  - system (ID: 2, Admin: False, System: True)
+  - system (ID: 0, Admin: False, System: True)
 
 Assets: 1
 Locations: 1
@@ -187,7 +187,7 @@ Events: 1
    ✓ Is admin: True
 
 2. Testing System User...
-   ✓ System User found: system (ID: 2)
+   ✓ System User found: system (ID: 0)
    ✓ Is system: True
    ✓ Is admin: False
 
@@ -300,7 +300,7 @@ The Asset Management System now has:
 - ✅ Complete core database foundation
 - ✅ Working build system
 - ✅ Initial data seeded
-- ✅ Admin user (ID: 1) and system user (ID: 2) created
+- ✅ Admin user (ID: 1) and system user (ID: 0) created
 - ✅ Audit trail functionality
 - ✅ Scalable architecture for future phases
 - ✅ Fully passing test suite with no warnings or errors

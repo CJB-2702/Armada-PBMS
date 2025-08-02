@@ -51,7 +51,7 @@ def test_phase1_implementation():
         
         # Test 2: Verify System User
         print("\n2. Testing System User...")
-        system_user = User.query.filter_by(id=2).first()
+        system_user = User.query.filter_by(id=0).first()
         if system_user:
             print(f"   ✓ System User found: {system_user.username} (ID: {system_user.id})")
             print(f"   ✓ Is system: {system_user.is_system}")

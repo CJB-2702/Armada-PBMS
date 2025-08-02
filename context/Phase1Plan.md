@@ -312,18 +312,18 @@ if __name__ == '__main__':
 ### Initial System Data to Create
 
 #### System Users 
-1. **System User** (ID=1) 
-   - Username: 'system'
-   - Email: 'system@assetmanagement.local'
-   - Is_system: True
-   - Is_admin: False
-   - Is_active: True
-
-2. **Admin User** (ID=2) 
+1. **Admin User** (ID=1) 
    - Username: 'admin'
    - Email: 'admin@assetmanagement.local'
    - Is_system: False
    - Is_admin: True
+   - Is_active: True
+
+2. **System User** (ID=0) 
+   - Username: 'system'
+   - Email: 'system@assetmanagement.local'
+   - Is_system: True
+   - Is_admin: False
    - Is_active: True
 
 #### Initial Data Records 

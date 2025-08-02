@@ -1,8 +1,9 @@
 from app import db
 from datetime import datetime
 from sqlalchemy.ext.declarative import declared_attr
+from app.models.core.data_insertion_mixin import DataInsertionMixin
 
-class UserCreatedBase:
+class UserCreatedBase(DataInsertionMixin):
     """Abstract base class for all user-created entities with audit trail"""
     
     @declared_attr

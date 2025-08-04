@@ -26,7 +26,11 @@ class User(UserMixin, DataInsertionMixin, db.Model):
     updated_asset_types = db.relationship('AssetType', foreign_keys='AssetType.updated_by_id')
     created_make_models = db.relationship('MakeModel', foreign_keys='MakeModel.created_by_id')
     updated_make_models = db.relationship('MakeModel', foreign_keys='MakeModel.updated_by_id')
-    events = db.relationship('Event')
+    events = db.relationship('Event', foreign_keys='Event.user_id')
+    created_comments = db.relationship('Comment', foreign_keys='Comment.created_by_id')
+    updated_comments = db.relationship('Comment', foreign_keys='Comment.updated_by_id')
+    created_attachments = db.relationship('Attachment', foreign_keys='Attachment.created_by_id')
+    updated_attachments = db.relationship('Attachment', foreign_keys='Attachment.updated_by_id')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

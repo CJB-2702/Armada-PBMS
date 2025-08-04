@@ -1,8 +1,9 @@
 from app import db
 from datetime import datetime
 from app.models.core.data_insertion_mixin import DataInsertionMixin
+from app.models.core.user_created_base import UserCreatedBase
 
-class Event(DataInsertionMixin, db.Model):
+class Event(UserCreatedBase, DataInsertionMixin, db.Model):
     __tablename__ = 'events'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -14,8 +15,8 @@ class Event(DataInsertionMixin, db.Model):
     major_location_id = db.Column(db.Integer, db.ForeignKey('major_locations.id'), nullable=True)
     
     # Relationships (no backrefs)
-    user = db.relationship('User', overlaps="events")
-    asset = db.relationship('Asset')
+    user = db.relationship('User', foreign_keys=[user_id], overlaps="events")
+    asset = db.relationship('Asset', overlaps="asset_ref,events")
     major_location = db.relationship('MajorLocation')
     
     def __init__(self, **kwargs):

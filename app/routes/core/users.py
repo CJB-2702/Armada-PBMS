@@ -1,0 +1,193 @@
+"""
+User management routes
+CRUD operations for User model
+"""
+
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask_login import login_required, current_user
+from app.models.core.user import User
+from app.models.core.asset import Asset
+from app.models.core.event import Event
+from app import db
+
+bp = Blueprint('users', __name__)
+
+@bp.route('/users')
+@login_required
+def list():
+    """List all users"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    # Basic filtering
+    role = request.args.get('role')
+    active = request.args.get('active')
+    
+    query = User.query
+    
+    if role:
+        if role == 'admin':
+            query = query.filter(User.is_admin == True)
+        elif role == 'system':
+            query = query.filter(User.is_system == True)
+        elif role == 'regular':
+            query = query.filter(User.is_admin == False, User.is_system == False)
+    
+    if active is not None:
+        query = query.filter(User.is_active == (active.lower() == 'true'))
+    
+    # Order by username
+    query = query.order_by(User.username)
+    
+    # Pagination
+    users = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    return render_template('core/users/list.html', users=users)
+
+@bp.route('/users/<int:user_id>')
+@login_required
+def detail(user_id):
+    """View user details"""
+    user = User.query.get_or_404(user_id)
+    
+    # Get user's created assets
+    created_assets = user.created_assets.order_by(Asset.created_at.desc()).limit(10).all()
+    
+    # Get user's events
+    user_events = user.events.order_by(Event.timestamp.desc()).limit(10).all()
+    
+    return render_template('core/users/detail.html', 
+                         user=user,
+                         created_assets=created_assets,
+                         user_events=user_events)
+
+@bp.route('/users/create', methods=['GET', 'POST'])
+@login_required
+def create():
+    """Create new user"""
+    if request.method == 'POST':
+        # Validate form data
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        is_admin = request.form.get('is_admin') == 'on'
+        is_active = request.form.get('is_active') == 'on'
+        
+        # Validate password
+        if not password or len(password) < 8:
+            flash('Password must be at least 8 characters long', 'error')
+            return render_template('core/users/create.html')
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('core/users/create.html')
+        
+        # Check if username or email already exists
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists', 'error')
+            return render_template('core/users/create.html')
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already exists', 'error')
+            return render_template('core/users/create.html')
+        
+        # Create new user
+        user = User(
+            username=username,
+            email=email,
+            is_admin=is_admin,
+            is_active=is_active
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('User created successfully', 'success')
+        return redirect(url_for('users.detail', user_id=user.id))
+    
+    return render_template('core/users/create.html')
+
+@bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit(user_id):
+    """Edit user"""
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent editing system user
+    if user.is_system:
+        flash('System user cannot be edited', 'error')
+        return redirect(url_for('users.detail', user_id=user.id))
+    
+    if request.method == 'POST':
+        # Validate form data
+        username = request.form.get('username')
+        email = request.form.get('email')
+        is_admin = request.form.get('is_admin') == 'on'
+        is_active = request.form.get('is_active') == 'on'
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate password if provided
+        if password:
+            if len(password) < 8:
+                flash('Password must be at least 8 characters long', 'error')
+                return render_template('core/users/edit.html', user=user)
+            
+            if password != confirm_password:
+                flash('Passwords do not match', 'error')
+                return render_template('core/users/edit.html', user=user)
+        
+        # Check if username or email already exists (excluding current user)
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user and existing_user.id != user.id:
+            flash('Username already exists', 'error')
+            return render_template('core/users/edit.html', user=user)
+        
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user and existing_user.id != user.id:
+            flash('Email already exists', 'error')
+            return render_template('core/users/edit.html', user=user)
+        
+        # Update user
+        user.username = username
+        user.email = email
+        user.is_admin = is_admin
+        user.is_active = is_active
+        
+        if password:
+            user.set_password(password)
+        
+        db.session.commit()
+        
+        flash('User updated successfully', 'success')
+        return redirect(url_for('users.detail', user_id=user.id))
+    
+    return render_template('core/users/edit.html', user=user)
+
+@bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+def delete(user_id):
+    """Delete user"""
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deleting system user or self
+    if user.is_system:
+        flash('System user cannot be deleted', 'error')
+        return redirect(url_for('users.detail', user_id=user.id))
+    
+    if user.id == current_user.id:
+        flash('Cannot delete your own account', 'error')
+        return redirect(url_for('users.detail', user_id=user.id))
+    
+    # Check if user has created any entities
+    if Asset.query.filter_by(created_by_id=user.id).count() > 0:
+        flash('Cannot delete user with created assets', 'error')
+        return redirect(url_for('users.detail', user_id=user.id))
+    
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash('User deleted successfully', 'success')
+    return redirect(url_for('users.list')) 

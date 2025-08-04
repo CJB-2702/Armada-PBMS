@@ -8,6 +8,7 @@ class Asset(UserCreatedBase, db.Model):
     _automatic_detail_insertion_enabled = False
     _detail_table_registry = None
     _detail_creation_in_progress = False
+    _event_creation_in_progress = False
     
     name = db.Column(db.String(100), nullable=False)
     serial_number = db.Column(db.String(100), unique=True, nullable=False)
@@ -23,6 +24,7 @@ class Asset(UserCreatedBase, db.Model):
     # Relationships
     major_location = db.relationship('MajorLocation', overlaps="assets")
     make_model = db.relationship('MakeModel', overlaps="assets")
+    events = db.relationship('Event', backref='asset_ref', lazy='dynamic')
     
     @property
     def asset_type(self):
@@ -63,7 +65,7 @@ class Asset(UserCreatedBase, db.Model):
 
     @classmethod
     def _create_detail_rows_after_insert(cls, mapper, connection, target):
-        """Event listener for automatic detail row creation"""
+        """Event listener for automatic detail row creation and event creation"""
         print(f"DEBUG: Event listener triggered for asset {target.id}")
         if not cls._automatic_detail_insertion_enabled:
             print(f"DEBUG: Automatic detail insertion not enabled")
@@ -80,6 +82,9 @@ class Asset(UserCreatedBase, db.Model):
                 if asset:
                     print(f"DEBUG: Found asset, creating detail rows")
                     asset._create_detail_table_rows()
+                    
+                    # Create event for asset creation
+                    asset._create_asset_creation_event()
                 else:
                     print(f"DEBUG: Asset not found after re-query")
         except Exception as e:
@@ -104,6 +109,10 @@ class Asset(UserCreatedBase, db.Model):
                 if latest_asset:
                     print(f"DEBUG: Found latest asset {latest_asset.id} in post-commit, creating detail rows")
                     latest_asset._create_detail_table_rows()
+                    
+                    # Create event for asset creation
+                    latest_asset._create_asset_creation_event()
+                    
                     # Commit the session to save the detail rows
                     db.session.commit()
                     print(f"DEBUG: Committed detail rows to database")
@@ -145,6 +154,52 @@ class Asset(UserCreatedBase, db.Model):
         except Exception as e:
             print(f"Error creating detail table rows for asset {self.id}: {e}")
             # Don't raise the exception to prevent asset creation from failing
+    
+    def _create_asset_creation_event(self):
+        """Create an event when an asset is created"""
+        # Check if event creation is already in progress to prevent duplicates
+        if Asset._event_creation_in_progress:
+            print(f"DEBUG: Event creation already in progress for asset {self.id}, skipping")
+            return
+        
+        try:
+            Asset._event_creation_in_progress = True
+            from app.models.core.event import Event
+            
+            # Check if event already exists for this asset
+            existing_event = Event.query.filter_by(
+                event_type='Asset Created',
+                asset_id=self.id
+            ).first()
+            
+            if existing_event:
+                print(f"DEBUG: Asset creation event already exists for asset {self.id}, skipping")
+                return
+            
+            # Create event description
+            description = f"Asset '{self.name}' ({self.serial_number}) was created"
+            if self.major_location:
+                description += f" at location '{self.major_location.name}'"
+            
+            # Create the event
+            event = Event(
+                event_type='Asset Created',
+                description=description,
+                user_id=self.created_by_id,  # User who created the asset
+                asset_id=self.id,  # The asset that was created
+                major_location_id=self.major_location_id  # Location of the asset
+            )
+            
+            db.session.add(event)
+            db.session.commit()
+            
+            print(f"DEBUG: Created asset creation event for asset {self.id}")
+            
+        except Exception as e:
+            print(f"Warning: Failed to create asset creation event for asset {self.id}: {e}")
+            # Don't raise the exception to prevent asset creation from failing
+        finally:
+            Asset._event_creation_in_progress = False
     
     def __repr__(self):
         return f'<Asset {self.name} ({self.serial_number})>' 

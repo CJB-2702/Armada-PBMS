@@ -1,0 +1,25 @@
+{
+	"nodes":[
+		{"id":"user","type":"text","text":"**User**\n- id (PK)\n- username\n- email\n- password_hash\n- is_active\n- is_admin\n- is_system\n- created_at\n- updated_at","x":-400,"y":-200,"width":200,"height":200,"color":"1"},
+		{"id":"asset","type":"text","text":"**Asset**\n- id (PK)\n- name\n- serial_number\n- status\n- major_location_id (FK)\n- make_model_id (FK)\n- meter1\n- meter2\n- meter3\n- meter4\n- tags (JSON)\n- created_at\n- updated_at","x":200,"y":-200,"width":200,"height":200,"color":"2"},
+		{"id":"asset_type","type":"text","text":"**AssetType**\n- id (PK)\n- name\n- description\n- category\n- is_active\n- created_at\n- updated_at","x":-400,"y":200,"width":200,"height":150,"color":"3"},
+		{"id":"make_model","type":"text","text":"**MakeModel**\n- id (PK)\n- make\n- model\n- year\n- revision\n- description\n- is_active\n- asset_type_id (FK)\n- meter1_unit\n- meter2_unit\n- meter3_unit\n- meter4_unit\n- created_at\n- updated_at","x":200,"y":200,"width":200,"height":200,"color":"4"},
+		{"id":"major_location","type":"text","text":"**MajorLocation**\n- id (PK)\n- name\n- description\n- address\n- is_active\n- created_at\n- updated_at","x":-400,"y":0,"width":200,"height":150,"color":"5"},
+		{"id":"event","type":"text","text":"**Event**\n- id (PK)\n- event_type\n- description\n- timestamp\n- user_id (FK)\n- asset_id (FK)\n- major_location_id (FK)\n- created_at\n- updated_at","x":600,"y":-200,"width":200,"height":180,"color":"6"},
+		{"id":"comment","type":"text","text":"**Comment**\n- id (PK)\n- content\n- event_id (FK)\n- is_private\n- is_edited\n- edited_at\n- edited_by_id (FK)\n- created_at\n- updated_at","x":600,"y":0,"width":200,"height":180,"color":"7"},
+		{"id":"attachment","type":"text","text":"**Attachment**\n- id (PK)\n- filename\n- file_size\n- mime_type\n- description\n- tags (JSON)\n- storage_type\n- file_path\n- file_data\n- created_at\n- updated_at","x":600,"y":200,"width":200,"height":200,"color":"8"},
+		{"id":"comment_attachment","type":"text","text":"**CommentAttachment**\n- id (PK)\n- comment_id (FK)\n- attachment_id (FK)\n- display_order\n- caption\n- created_at\n- updated_at","x":800,"y":100,"width":200,"height":150,"color":"9"}
+	],
+	"edges":[
+		{"id":"asset_location","fromNode":"asset","fromSide":"left","toNode":"major_location","toSide":"right","label":"major_location_id"},
+		{"id":"asset_make_model","fromNode":"asset","fromSide":"bottom","toNode":"make_model","toSide":"top","label":"make_model_id"},
+		{"id":"make_model_asset_type","fromNode":"make_model","fromSide":"left","toNode":"asset_type","toSide":"right","label":"asset_type_id"},
+		{"id":"event_user","fromNode":"event","fromSide":"left","toNode":"user","toSide":"right","label":"user_id"},
+		{"id":"event_asset","fromNode":"event","fromSide":"bottom","toNode":"asset","toSide":"top","label":"asset_id"},
+		{"id":"event_location","fromNode":"event","fromSide":"left","toNode":"major_location","toSide":"right","label":"major_location_id"},
+		{"id":"comment_event","fromNode":"comment","fromSide":"left","toNode":"event","toSide":"right","label":"event_id"},
+		{"id":"comment_edited_by","fromNode":"comment","fromSide":"left","toNode":"user","toSide":"right","label":"edited_by_id"},
+		{"id":"comment_attachment_comment","fromNode":"comment_attachment","fromSide":"left","toNode":"comment","toSide":"right","label":"comment_id"},
+		{"id":"comment_attachment_attachment","fromNode":"comment_attachment","fromSide":"bottom","toNode":"attachment","toSide":"top","label":"attachment_id"}
+	]
+} 

@@ -25,6 +25,12 @@
       "description": "Main office location",
       "address": "San Diego, CA",
       "is_active": true
+    },
+    {
+      "name": "LosAngelesOffice",
+      "description": "Los Angeles branch office",
+      "address": "Los Angeles, CA",
+      "is_active": true
     }
   ],
   "core_asset_types": [
@@ -162,7 +168,16 @@
       "serial_number": "VTC0012023001",
       "make": "Toyota",
       "model": "Corolla",
-      "status": "Active"
+      "status": "Active",
+      "major_location_name": "SanDiegoHQ"
+    },
+    {
+      "name": "VTC-002",
+      "serial_number": "VTC0022023002",
+      "make": "Toyota",
+      "model": "Corolla",
+      "status": "Active",
+      "major_location_name": "LosAngelesOffice"
     }
   ]
 } 

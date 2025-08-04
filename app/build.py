@@ -13,6 +13,36 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def check_system_initialization():
+    """
+    Check if the system has been properly initialized
+    
+    Returns:
+        bool: True if system is properly initialized, False otherwise
+    """
+    from app.models.core.event import Event
+    from app.models.core.user import User
+    
+    try:
+        # Check if system initialization event exists
+        system_event = Event.query.filter_by(
+            event_type='System',
+            description='System initialized with core data'
+        ).first()
+        
+        # Check if system user exists
+        system_user = User.query.filter_by(username='system').first()
+        
+        # Check if essential data exists
+        from app.models.core.asset_type import AssetType
+        asset_types = AssetType.query.first()
+        
+        return system_event is not None and system_user is not None and asset_types is not None
+        
+    except Exception as e:
+        logger.error(f"Error checking system initialization: {e}")
+        return False
+
 def build_database(build_phase='all', data_phase='all'):
     """
     Main build orchestrator for the Asset Management System
@@ -30,9 +60,38 @@ def build_database(build_phase='all', data_phase='all'):
         if build_phase != 'none':
             build_models(build_phase)
         
+        # Check if system is properly initialized (after models are built)
+        system_initialized = check_system_initialization()
+        
         # Insert data based on phase
         if data_phase != 'none':
-            insert_data(data_phase)
+            try:
+                insert_data(data_phase)
+                
+                # If this is the first time or system failed to init properly, force create system event
+                if not system_initialized:
+                    logger.info("System not properly initialized, forcing system initialization event creation")
+                    from app.models.core.build import create_system_initialization_event
+                    from app.models.core.user import User
+                    
+                    system_user = User.query.filter_by(username='system').first()
+                    system_user_id = system_user.id if system_user else None
+                    
+                    create_system_initialization_event(system_user_id, force_create=True)
+                    
+            except Exception as e:
+                logger.error(f"Error during data insertion: {e}")
+                logger.info("System initialization failed, creating system failure event")
+                
+                # Force create system failure event to indicate system failure
+                from app.models.core.build import create_system_failure_event
+                from app.models.core.user import User
+                
+                system_user = User.query.filter_by(username='system').first()
+                system_user_id = system_user.id if system_user else None
+                
+                create_system_failure_event(system_user_id, str(e))
+                raise
         
         logger.info("Database build completed successfully")
 
@@ -69,24 +128,24 @@ def insert_data(phase):
     Insert initial data based on the specified phase
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', or 'all'
     """
     logger.info(f"Inserting data for phase: {phase}")
     
     # Load build data
     build_data = load_build_data()
     
-    if phase in ['phase1','phase2']:
+    if phase in ['phase1','phase2', 'phase3', 'phase4', 'all']:
         logger.info("Inserting Phase 1 data (Core Foundation)")
         from app.models.core.build import init_data
         init_data(build_data)
     
-    if phase in ['phase2']:
+    if phase in ['phase2', 'phase3', 'phase4', 'all']:
         logger.info("Inserting Phase 2 data (Asset Details)")
         from app.models.assets.build import phase_2_init_data
         phase_2_init_data(build_data)
     
-    if phase in ['phase3', 'all']:
+    if phase in ['phase3', 'phase4', 'all']:
         logger.info("Inserting Phase 3 data (Maintenance & Operations)")
         try:
             from app.models.core.asset import Asset
@@ -101,6 +160,10 @@ def insert_data(phase):
         except ImportError as e:
             logger.error(f"Phase 3 failed to insert data: {e}")
             raise
+    
+    if phase in ['phase4', 'all']:
+        logger.info("Setting up Phase 4 data (User Interface)")
+        create_default_admin_user()
 
 
 def load_build_data():
@@ -127,12 +190,42 @@ def build_models_only(phase):
     """
     build_database(build_phase=phase, data_phase='none')
 
+def create_default_admin_user():
+    """
+    Create a default admin user for Phase 4 authentication
+    """
+    from app.models.core.user import User
+    
+    # Check if admin user already exists
+    admin_user = User.query.filter_by(username='admin').first()
+    if admin_user:
+        logger.info("Admin user already exists")
+        return
+    
+    # Create default admin user
+    admin_user = User(
+        username='admin',
+        email='admin@assetmanagement.local',
+        is_active=True,
+        is_admin=True,
+        is_system=False
+    )
+    admin_user.set_password('admin-password-change-me')
+    
+    db.session.add(admin_user)
+    db.session.commit()
+    
+    logger.info("Default admin user created successfully")
+    logger.info("Username: admin")
+    logger.info("Password: admin-password-change-me")
+    logger.warning("IMPORTANT: Change the default password in production!")
+
 def insert_data_only(phase):
     """
     Insert only data without building models
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', or 'all'
     """
     build_database(build_phase='none', data_phase=phase)
 

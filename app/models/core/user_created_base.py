@@ -19,8 +19,8 @@ class UserCreatedBase(DataInsertionMixin):
     # Relationships
     @declared_attr
     def created_by(cls):
-        return db.relationship('User', foreign_keys=[cls.created_by_id], overlaps="created_assets,created_locations,created_asset_types,created_make_models")
+        return db.relationship('User', foreign_keys=[cls.created_by_id], overlaps="created_assets,created_locations,created_asset_types,created_make_models,events,created_comments,created_attachments")
     
     @declared_attr
     def updated_by(cls):
-        return db.relationship('User', foreign_keys=[cls.updated_by_id], overlaps="updated_assets,updated_locations,updated_asset_types,updated_make_models") 
+        return db.relationship('User', foreign_keys=[cls.updated_by_id], overlaps="updated_assets,updated_locations,updated_asset_types,updated_make_models,events,updated_comments,updated_attachments") 

@@ -22,6 +22,8 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
     
     # Import and register blueprints
     from app.models import core, assets
@@ -34,5 +36,16 @@ def create_app():
     from app.models.core.make_model import MakeModel
     from app.models.core.asset import Asset
     from app.models.core.event import Event
+    
+    # Register blueprints
+    from app.auth import auth
+    from app.routes import main
+    from app.routes import init_app as init_routes
+    
+    app.register_blueprint(auth)
+    app.register_blueprint(main)
+    
+    # Initialize tiered routes system (without re-registering main)
+    init_routes(app)
     
     return app 

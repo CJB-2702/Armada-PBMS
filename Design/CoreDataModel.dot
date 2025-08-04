@@ -1,0 +1,37 @@
+digraph CoreDataModel {
+    rankdir=TB;
+    node [shape=record, fontname="Arial", fontsize=10];
+    edge [fontname="Arial", fontsize=8];
+    
+    User [label="{User|+ id (PK)\l+ username\l+ email\l+ password_hash\l+ is_active\l+ is_admin\l+ is_system\l+ created_at\l+ updated_at\l}"];
+    
+    Asset [label="{Asset|+ id (PK)\l+ name\l+ serial_number\l+ status\l+ major_location_id (FK)\l+ make_model_id (FK)\l+ meter1\l+ meter2\l+ meter3\l+ meter4\l+ tags (JSON)\l+ created_at\l+ updated_at\l}"];
+    
+    AssetType [label="{AssetType|+ id (PK)\l+ name\l+ description\l+ category\l+ is_active\l+ created_at\l+ updated_at\l}"];
+    
+    MakeModel [label="{MakeModel|+ id (PK)\l+ make\l+ model\l+ year\l+ revision\l+ description\l+ is_active\l+ asset_type_id (FK)\l+ meter1_unit\l+ meter2_unit\l+ meter3_unit\l+ meter4_unit\l+ created_at\l+ updated_at\l}"];
+    
+    MajorLocation [label="{MajorLocation|+ id (PK)\l+ name\l+ description\l+ address\l+ is_active\l+ created_at\l+ updated_at\l}"];
+    
+    Event [label="{Event|+ id (PK)\l+ event_type\l+ description\l+ timestamp\l+ user_id (FK)\l+ asset_id (FK)\l+ major_location_id (FK)\l+ created_at\l+ updated_at\l}"];
+    
+    Comment [label="{Comment|+ id (PK)\l+ content\l+ event_id (FK)\l+ is_private\l+ is_edited\l+ edited_at\l+ edited_by_id (FK)\l+ created_at\l+ updated_at\l}"];
+    
+    Attachment [label="{Attachment|+ id (PK)\l+ filename\l+ file_size\l+ mime_type\l+ description\l+ tags (JSON)\l+ storage_type\l+ file_path\l+ file_data\l+ created_at\l+ updated_at\l}"];
+    
+    CommentAttachment [label="{CommentAttachment|+ id (PK)\l+ comment_id (FK)\l+ attachment_id (FK)\l+ display_order\l+ caption\l+ created_at\l+ updated_at\l}"];
+    
+    Asset -> MajorLocation [label="major_location_id"];
+    Asset -> MakeModel [label="make_model_id"];
+    MakeModel -> AssetType [label="asset_type_id"];
+    
+    Event -> User [label="user_id"];
+    Event -> Asset [label="asset_id"];
+    Event -> MajorLocation [label="major_location_id"];
+    
+    Comment -> Event [label="event_id"];
+    Comment -> User [label="edited_by_id"];
+    
+    CommentAttachment -> Comment [label="comment_id"];
+    CommentAttachment -> Attachment [label="attachment_id"];
+} 

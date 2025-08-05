@@ -8,6 +8,8 @@ from flask_login import login_required, current_user
 from app.models.core.user import User
 from app.models.core.asset import Asset
 from app.models.core.event import Event
+from app.models.core.major_location import MajorLocation
+from app.models.core.asset_type import AssetType
 from app import db
 
 bp = Blueprint('users', __name__)
@@ -50,16 +52,12 @@ def detail(user_id):
     """View user details"""
     user = User.query.get_or_404(user_id)
     
-    # Get user's created assets
-    created_assets = user.created_assets.order_by(Asset.created_at.desc()).limit(10).all()
-    
-    # Get user's events
-    user_events = user.events.order_by(Event.timestamp.desc()).limit(10).all()
-    
     return render_template('core/users/detail.html', 
                          user=user,
-                         created_assets=created_assets,
-                         user_events=user_events)
+                         Asset=Asset,
+                         Event=Event,
+                         MajorLocation=MajorLocation,
+                         AssetType=AssetType)
 
 @bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
@@ -133,22 +131,42 @@ def edit(user_id):
         if password:
             if len(password) < 8:
                 flash('Password must be at least 8 characters long', 'error')
-                return render_template('core/users/edit.html', user=user)
+                return render_template('core/users/edit.html', 
+                                     user=user,
+                                     Asset=Asset,
+                                     Event=Event,
+                                     MajorLocation=MajorLocation,
+                                     AssetType=AssetType)
             
             if password != confirm_password:
                 flash('Passwords do not match', 'error')
-                return render_template('core/users/edit.html', user=user)
+                return render_template('core/users/edit.html', 
+                                     user=user,
+                                     Asset=Asset,
+                                     Event=Event,
+                                     MajorLocation=MajorLocation,
+                                     AssetType=AssetType)
         
         # Check if username or email already exists (excluding current user)
         existing_user = User.query.filter_by(username=username).first()
         if existing_user and existing_user.id != user.id:
             flash('Username already exists', 'error')
-            return render_template('core/users/edit.html', user=user)
+            return render_template('core/users/edit.html', 
+                                 user=user,
+                                 Asset=Asset,
+                                 Event=Event,
+                                 MajorLocation=MajorLocation,
+                                 AssetType=AssetType)
         
         existing_user = User.query.filter_by(email=email).first()
         if existing_user and existing_user.id != user.id:
             flash('Email already exists', 'error')
-            return render_template('core/users/edit.html', user=user)
+            return render_template('core/users/edit.html', 
+                                 user=user,
+                                 Asset=Asset,
+                                 Event=Event,
+                                 MajorLocation=MajorLocation,
+                                 AssetType=AssetType)
         
         # Update user
         user.username = username
@@ -164,7 +182,12 @@ def edit(user_id):
         flash('User updated successfully', 'success')
         return redirect(url_for('users.detail', user_id=user.id))
     
-    return render_template('core/users/edit.html', user=user)
+    return render_template('core/users/edit.html', 
+                         user=user,
+                         Asset=Asset,
+                         Event=Event,
+                         MajorLocation=MajorLocation,
+                         AssetType=AssetType)
 
 @bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required

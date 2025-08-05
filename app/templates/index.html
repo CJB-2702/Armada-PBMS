@@ -2,6 +2,10 @@
 
 {% block title %}Asset Management System - Home{% endblock %}
 
+{% block head %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
@@ -147,31 +151,17 @@
 
     <!-- Recent Events -->
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Recent Events</h5>
-                    <a href="{{ url_for('events.list') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if recent_events %}
-                <div class="list-group list-group-flush">
-                    {% for event in recent_events %}
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">{{ event.event_type }}</h6>
-                                <small class="text-muted">{{ event.description }}</small>
-                            </div>
-                            <small class="text-muted">{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                        </div>
+        <div id="recent-events-container"
+             hx-get="{{ url_for('events.events_card', condensed_view=True, row_count=5) }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                    {% endfor %}
+                    <p class="mt-2 text-muted">Loading recent events...</p>
                 </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No events found</p>
-                {% endif %}
             </div>
         </div>
     </div>

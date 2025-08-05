@@ -92,19 +92,19 @@
                         <h6 class="alert-heading">User Statistics</h6>
                         <div class="row text-center">
                             <div class="col-3">
-                                <strong>{{ len(user.created_assets) }}</strong><br>
+                                <strong>{{ Asset.query.filter_by(created_by_id=user.id).count() }}</strong><br>
                                 <small>Created Assets</small>
                             </div>
                             <div class="col-3">
-                                <strong>{{ len(user.events) }}</strong><br>
+                                <strong>{{ Event.query.filter_by(user_id=user.id).count() }}</strong><br>
                                 <small>Total Events</small>
                             </div>
                             <div class="col-3">
-                                <strong>{{ len(user.created_locations) }}</strong><br>
+                                <strong>{{ MajorLocation.query.filter_by(created_by_id=user.id).count() }}</strong><br>
                                 <small>Created Locations</small>
                             </div>
                             <div class="col-3">
-                                <strong>{{ len(user.created_asset_types) }}</strong><br>
+                                <strong>{{ AssetType.query.filter_by(created_by_id=user.id).count() }}</strong><br>
                                 <small>Created Asset Types</small>
                             </div>
                         </div>

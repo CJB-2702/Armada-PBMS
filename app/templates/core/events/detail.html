@@ -2,6 +2,10 @@
 
 {% block title %}{{ event.event_type }} - {{ event.description }}{% endblock %}
 
+{% block head %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <!-- Header -->
@@ -121,10 +125,28 @@
                                         <img src="{{ url_for('attachments.view', attachment_id=attachment.id) }}" 
                                              class="card-img-top" alt="{{ attachment.filename }}"
                                              style="height: 150px; object-fit: cover;">
+                                    {% elif attachment.is_viewable_as_text() %}
+                                        <div class="card-img-top bg-light" style="height: 150px; overflow: hidden;">
+                                            <div class="p-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <i class="bi {{ attachment.get_file_icon() }} text-muted"></i>
+                                                    <small class="text-muted">{{ attachment.get_file_size_display() }}</small>
+                                                </div>
+                                                <div class="text-preview" 
+                                                     hx-get="{{ url_for('attachments.preview', attachment_id=attachment.id) }}"
+                                                     hx-trigger="load"
+                                                     hx-swap="innerHTML"
+                                                     style="font-size: 0.8rem; line-height: 1.3; max-height: 100px; overflow: hidden;">
+                                                    <div class="text-center text-muted">
+                                                        <i class="bi bi-hourglass-split"></i> Loading preview...
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     {% else %}
                                         <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
                                              style="height: 150px;">
-                                            <i class="bi bi-file-earmark-text fs-1 text-muted"></i>
+                                            <i class="bi {{ attachment.get_file_icon() }} fs-1 text-muted"></i>
                                         </div>
                                     {% endif %}
                                     <div class="card-body">
@@ -140,7 +162,7 @@
                                                class="btn btn-outline-primary">
                                                 <i class="bi bi-download"></i> Download
                                             </a>
-                                            {% if attachment.is_image() %}
+                                            {% if attachment.is_image() or attachment.is_viewable_as_text() %}
                                             <a href="{{ url_for('attachments.view', attachment_id=attachment.id) }}" 
                                                class="btn btn-outline-secondary" target="_blank">
                                                 <i class="bi bi-eye"></i> View
@@ -205,10 +227,28 @@
                                                             <img src="{{ url_for('attachments.view', attachment_id=ca.attachment.id) }}" 
                                                                  class="card-img-top" alt="{{ ca.attachment.filename }}"
                                                                  style="height: 100px; object-fit: cover;">
+                                                        {% elif ca.attachment.is_viewable_as_text() %}
+                                                            <div class="card-img-top bg-light" style="height: 100px; overflow: hidden;">
+                                                                <div class="p-2">
+                                                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                                                        <i class="bi {{ ca.attachment.get_file_icon() }} text-muted"></i>
+                                                                        <small class="text-muted">{{ ca.attachment.get_file_size_display() }}</small>
+                                                                    </div>
+                                                                    <div class="text-preview" 
+                                                                         hx-get="{{ url_for('attachments.preview', attachment_id=ca.attachment.id) }}"
+                                                                         hx-trigger="load"
+                                                                         hx-swap="innerHTML"
+                                                                         style="font-size: 0.7rem; line-height: 1.2; max-height: 70px; overflow: hidden;">
+                                                                        <div class="text-center text-muted">
+                                                                            <i class="bi bi-hourglass-split"></i> Loading preview...
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         {% else %}
                                                             <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
                                                                  style="height: 100px;">
-                                                                <i class="bi bi-file-earmark-text fs-3 text-muted"></i>
+                                                                <i class="bi {{ ca.attachment.get_file_icon() }} fs-3 text-muted"></i>
                                                             </div>
                                                         {% endif %}
                                                         <div class="card-body p-2">
@@ -224,7 +264,7 @@
                                                                    class="btn btn-outline-primary btn-sm">
                                                                     <i class="bi bi-download"></i>
                                                                 </a>
-                                                                {% if ca.attachment.is_image() %}
+                                                                {% if ca.attachment.is_image() or ca.attachment.is_viewable_as_text() %}
                                                                 <a href="{{ url_for('attachments.view', attachment_id=ca.attachment.id) }}" 
                                                                    class="btn btn-outline-secondary btn-sm" target="_blank">
                                                                     <i class="bi bi-eye"></i>
@@ -561,6 +601,33 @@
 .attachment-mini-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.text-preview-content pre {
+    background: transparent;
+    border: none;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #6c757d;
+    max-height: 70px;
+    overflow: hidden;
+}
+
+/* For main attachment cards */
+.attachment-card .text-preview-content pre {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    max-height: 100px;
+}
+
+.text-preview-content .btn-sm {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
 }
 
 .comment-content {

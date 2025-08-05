@@ -1,4 +1,4 @@
-from flask import Blueprint, request, send_file, flash, redirect, url_for, jsonify
+from flask import Blueprint, request, send_file, flash, redirect, url_for, jsonify, render_template
 from flask_login import login_required, current_user
 from app import db
 from app.models.core.attachment import Attachment
@@ -37,7 +37,7 @@ def download(attachment_id):
 @bp.route('/attachments/<int:attachment_id>/view')
 @login_required
 def view(attachment_id):
-    """View an attachment in browser (for images, PDFs, etc.)"""
+    """View an attachment in browser (for images, PDFs, text files, etc.)"""
     attachment = Attachment.query.get_or_404(attachment_id)
     
     # Get file data
@@ -50,9 +50,16 @@ def view(attachment_id):
     file_stream = io.BytesIO(file_data)
     file_stream.seek(0)
     
+    # For text files, ensure proper content type for browser display
+    if attachment.is_viewable_as_text():
+        # Set text/plain for better browser handling of text files
+        mimetype = 'text/plain'
+    else:
+        mimetype = attachment.mime_type
+    
     return send_file(
         file_stream,
-        mimetype=attachment.mime_type
+        mimetype=mimetype
     )
 
 @bp.route('/attachments/<int:attachment_id>/delete', methods=['POST'])
@@ -106,6 +113,40 @@ def info(attachment_id):
         'storage_type': attachment.storage_type,
         'is_image': attachment.is_image(),
         'is_document': attachment.is_document(),
+        'is_viewable_as_text': attachment.is_viewable_as_text(),
+        'file_icon': attachment.get_file_icon(),
         'created_at': attachment.created_at.isoformat(),
         'created_by': attachment.created_by.username if attachment.created_by else 'System'
-    }) 
+    })
+
+@bp.route('/attachments/<int:attachment_id>/preview')
+@login_required
+def preview(attachment_id):
+    """Get text preview of attachment (first 10 lines or full content for small files)"""
+    attachment = Attachment.query.get_or_404(attachment_id)
+    
+    if not attachment.is_viewable_as_text():
+        return render_template('attachments/preview.html', preview=None, attachment_id=attachment_id)
+    
+    # Get file data
+    file_data = attachment.get_file_data()
+    if not file_data:
+        return render_template('attachments/preview.html', preview=None, attachment_id=attachment_id)
+    
+    try:
+        # Decode text content
+        content = file_data.decode('utf-8')
+        lines = content.split('\n')
+        
+        # Always return first 10 lines
+        preview_lines = lines[:10]
+        preview_content = '\n'.join(preview_lines)
+        return render_template('attachments/preview.html', 
+                             preview=preview_content,
+                             is_full=False,
+                             line_count=len(lines),
+                             preview_lines=len(preview_lines),
+                             attachment_id=attachment_id)
+            
+    except UnicodeDecodeError:
+        return render_template('attachments/preview.html', preview=None, attachment_id=attachment_id) 

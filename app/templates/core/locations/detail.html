@@ -2,6 +2,10 @@
 
 {% block title %}{{ location.name }} - Asset Management System{% endblock %}
 
+{% block head %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
@@ -163,31 +167,17 @@
     </div>
     
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Recent Events</h5>
-            </div>
-            <div class="card-body">
-                {% if events %}
-                <div class="list-group list-group-flush">
-                    {% for event in events %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ event.event_type }}</h6>
-                            <small class="text-muted">{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                        </div>
-                        <p class="mb-1">{{ event.description }}</p>
-                        {% if event.asset %}
-                        <small class="text-muted">
-                            Asset: <a href="{{ url_for('core_assets.detail', asset_id=event.asset.id) }}">{{ event.asset.name }}</a>
-                        </small>
-                        {% endif %}
+        <div id="location-events-container"
+             hx-get="{{ url_for('events.events_card', condensed_view=True, row_count=5, major_location_id=location.id) }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                    {% endfor %}
+                    <p class="mt-2 text-muted">Loading location events...</p>
                 </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No recent events at this location.</p>
-                {% endif %}
             </div>
         </div>
     </div>

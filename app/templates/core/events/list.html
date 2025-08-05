@@ -41,7 +41,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="asset_id" class="form-label">Asset</label>
                             <select class="form-select" id="asset_id" name="asset_id">
                                 <option value="">All Assets</option>
@@ -53,7 +53,28 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label for="make_model_id" class="form-label">Make/Model</label>
+                            <select class="form-select" id="make_model_id" name="make_model_id">
+                                <option value="">All Make/Models</option>
+                                {% for make_model in make_models %}
+                                <option value="{{ make_model.id }}" 
+                                        {% if request.args.get('make_model_id', '')|int == make_model.id %}selected{% endif %}>
+                                    {{ make_model.make }} {{ make_model.model }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="row_count" class="form-label">Per Page</label>
+                            <select class="form-select" id="row_count" name="row_count">
+                                <option value="10" {% if request.args.get('row_count', '20')|int == 10 %}selected{% endif %}>10</option>
+                                <option value="20" {% if request.args.get('row_count', '20')|int == 20 %}selected{% endif %}>20</option>
+                                <option value="50" {% if request.args.get('row_count', '20')|int == 50 %}selected{% endif %}>50</option>
+                                <option value="100" {% if request.args.get('row_count', '20')|int == 100 %}selected{% endif %}>100</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">Apply Filters</button>
@@ -67,7 +88,7 @@
 </div>
 
 <!-- Events Table -->
-<div class="row">
+<div class="row" id="events-table-container">
     <div class="col-md-12">
         <div class="card">
             <div class="card-header">

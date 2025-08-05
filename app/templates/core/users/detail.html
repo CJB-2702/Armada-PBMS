@@ -109,12 +109,12 @@
                 <div class="row text-center">
                     <div class="col-6">
                         <div class="border-end">
-                            <h3 class="text-primary">{{ len(user.created_assets) }}</h3>
+                            <h3 class="text-primary">{{ Asset.query.filter_by(created_by_id=user.id).count() }}</h3>
                             <small class="text-muted">Created Assets</small>
                         </div>
                     </div>
                     <div class="col-6">
-                        <h3 class="text-success">{{ len(user.events) }}</h3>
+                        <h3 class="text-success">{{ Event.query.filter_by(user_id=user.id).count() }}</h3>
                         <small class="text-muted">Total Events</small>
                     </div>
                 </div>
@@ -122,12 +122,12 @@
                 <div class="row text-center">
                     <div class="col-6">
                         <div class="border-end">
-                            <h3 class="text-info">{{ len(user.created_locations) }}</h3>
+                            <h3 class="text-info">{{ MajorLocation.query.filter_by(created_by_id=user.id).count() }}</h3>
                             <small class="text-muted">Created Locations</small>
                         </div>
                     </div>
                     <div class="col-6">
-                        <h3 class="text-warning">{{ len(user.created_asset_types) }}</h3>
+                        <h3 class="text-warning">{{ AssetType.query.filter_by(created_by_id=user.id).count() }}</h3>
                         <small class="text-muted">Created Asset Types</small>
                     </div>
                 </div>
@@ -136,70 +136,23 @@
     </div>
 </div>
 
-<!-- Recent Activity -->
+<!-- Recent Events -->
 <div class="row">
-    <div class="col-md-6">
-        <div class="card">
+    <div class="col-md-12">
+        <div class="card" id="recent-events-container"
+             hx-get="{{ url_for('events.events_card', condensed_view=True, row_count=10, user_id=user.id) }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
             <div class="card-header">
                 <h5 class="mb-0">Recent Events</h5>
             </div>
             <div class="card-body">
-                {% if user_events %}
-                <div class="list-group list-group-flush">
-                    {% for event in user_events %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ event.event_type }}</h6>
-                            <small class="text-muted">{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                        </div>
-                        <p class="mb-1">{{ event.description }}</p>
-                        {% if event.asset %}
-                        <small class="text-muted">
-                            Asset: <a href="{{ url_for('core_assets.detail', asset_id=event.asset.id) }}">{{ event.asset.name }}</a>
-                        </small>
-                        {% endif %}
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading events...</span>
                     </div>
-                    {% endfor %}
+                    <p class="text-muted mt-2">Loading events...</p>
                 </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No recent events found.</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Created Assets</h5>
-            </div>
-            <div class="card-body">
-                {% if created_assets %}
-                <div class="list-group list-group-flush">
-                    {% for asset in created_assets %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ asset.name }}</h6>
-                            <small class="text-muted">{{ asset.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
-                        </div>
-                        <p class="mb-1">{{ asset.serial_number }}</p>
-                        <small class="text-muted">
-                            Status: 
-                            {% if asset.status %}
-                                <span class="badge bg-success">{{ asset.status }}</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Unknown</span>
-                            {% endif %}
-                            {% if asset.major_location %}
-                                | Location: {{ asset.major_location.name }}
-                            {% endif %}
-                        </small>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No assets created by this user.</p>
-                {% endif %}
             </div>
         </div>
     </div>

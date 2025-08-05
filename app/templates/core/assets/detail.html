@@ -2,6 +2,10 @@
 
 {% block title %}{{ asset.name }} - Asset Details{% endblock %}
 
+{% block head %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
@@ -281,7 +285,7 @@
         {% endif %}
 
         <!-- Related Assets -->
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Related Assets</h5>
             </div>
@@ -302,6 +306,21 @@
                     {% endfor %}
                 </ul>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Asset Events -->
+        <div class="card">
+            <div id="asset-events-container"
+                 hx-get="{{ url_for('events.events_card', condensed_view=True, row_count=5, asset_id=asset.id) }}"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading asset events...</p>
+                </div>
             </div>
         </div>
     </div>

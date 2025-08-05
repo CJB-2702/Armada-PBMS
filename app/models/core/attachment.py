@@ -28,10 +28,14 @@ class Attachment(UserCreatedBase, db.Model):
     # Allowed file extensions
     ALLOWED_EXTENSIONS = {
         'images': {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'},
-        'documents': {'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf'},
+        'documents': {'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',  '.rtf'},
         'archives': {'.zip', '.rar', '.7z', '.tar', '.gz'},
-        'data': {'.csv', '.json', '.xml', '.sql'}
+        'data': {'.csv', '.json', '.xml', '.sql',  'html', '.txt' ,'.log', '.data'},
+        'code': {'.cpp','.py','.java','.js','.html','.css','.php','.sql','.json','.xml','.csv','.txt','.log','.data'}
     }
+    #  implement later. don't forget.
+    # 'audio': {'.mp3','mp4','.wav','.ogg'},
+    # 'video': {'.mp4','.avi','.mov','.wmv','.flv','.mpeg','.mpg','.m4v','.webm','.mkv'},
     
     @classmethod
     def get_allowed_extensions(cls):
@@ -134,6 +138,48 @@ class Attachment(UserCreatedBase, db.Model):
     def is_document(self):
         """Check if file is a document"""
         return self.get_file_extension() in self.ALLOWED_EXTENSIONS['documents']
+    
+    def is_viewable_as_text(self):
+        """Check if file can be viewed as text in browser"""
+        text_extensions = self.ALLOWED_EXTENSIONS['data'] | self.ALLOWED_EXTENSIONS['code']
+        return self.get_file_extension() in text_extensions
+    
+    def get_file_icon(self):
+        """Get appropriate Bootstrap icon for file type"""
+        ext = self.get_file_extension()
+        
+        if self.is_image():
+            return 'bi-image'
+        elif ext in {'.pdf'}:
+            return 'bi-file-earmark-pdf'
+        elif ext in {'.doc', '.docx'}:
+            return 'bi-file-earmark-word'
+        elif ext in {'.xls', '.xlsx'}:
+            return 'bi-file-earmark-excel'
+        elif ext in {'.ppt', '.pptx'}:
+            return 'bi-file-earmark-ppt'
+        elif ext in {'.zip', '.rar', '.7z', '.tar', '.gz'}:
+            return 'bi-file-earmark-zip'
+        elif ext in {'.py'}:
+            return 'bi-filetype-py'
+        elif ext in {'.js'}:
+            return 'bi-filetype-js'
+        elif ext in {'.html', '.htm'}:
+            return 'bi-filetype-html'
+        elif ext in {'.css'}:
+            return 'bi-filetype-css'
+        elif ext in {'.json'}:
+            return 'bi-filetype-json'
+        elif ext in {'.xml'}:
+            return 'bi-filetype-xml'
+        elif ext in {'.csv'}:
+            return 'bi-filetype-csv'
+        elif ext in {'.sql'}:
+            return 'bi-filetype-sql'
+        elif ext in {'.txt', '.log', '.data'}:
+            return 'bi-file-earmark-text'
+        else:
+            return 'bi-file-earmark'
     
     def get_file_size_display(self):
         """Get human-readable file size"""

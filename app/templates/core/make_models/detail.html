@@ -150,9 +150,10 @@
     </div>
 </div>
 
-<!-- Assets -->
+<!-- Assets and Events -->
 <div class="row mb-4">
-    <div class="col-md-12">
+    <!-- Assets -->
+    <div class="col-md-8">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Assets ({{ assets|length }})</h5>
@@ -213,6 +214,23 @@
                     <p class="text-muted">No assets found for this make/model.</p>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Make/Model Events -->
+    <div class="col-md-4">
+        <div id="make-model-events-container"
+             hx-get="{{ url_for('events.events_card', condensed_view=True, row_count=5, make_model_id=make_model.id) }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading make/model events...</p>
+                </div>
             </div>
         </div>
     </div>

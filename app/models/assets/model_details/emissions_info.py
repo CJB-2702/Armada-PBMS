@@ -4,7 +4,7 @@ Emissions Information Detail Table
 Store emissions specifications for vehicle models
 """
 
-from app.models.assets.model_details.model_detail_virtual import ModelDetailVirtual
+from app.models.assets.model_detail_virtual import ModelDetailVirtual
 from app import db
 
 class EmissionsInfo(ModelDetailVirtual):
@@ -23,6 +23,10 @@ class EmissionsInfo(ModelDetailVirtual):
     co2_emissions = db.Column(db.Float, nullable=True)  # grams per mile
     emissions_test_date = db.Column(db.Date, nullable=True)
     emissions_certification = db.Column(db.String(100), nullable=True)
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the emissions info record"""
+        super().__init__(*args, **kwargs)
     
     def __repr__(self):
         """String representation of the emissions info"""

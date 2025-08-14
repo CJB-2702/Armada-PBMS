@@ -4,7 +4,7 @@ Purchase Information Detail Table
 Store purchase-related information for assets
 """
 
-from app.models.assets.asset_details.asset_detail_virtual import AssetDetailVirtual
+from app.models.assets.asset_detail_virtual import AssetDetailVirtual
 from app.models.core.event import Event
 from app import db
 from datetime import datetime

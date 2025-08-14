@@ -4,7 +4,7 @@ Vehicle Registration Detail Table
 Store vehicle registration and licensing information
 """
 
-from app.models.assets.asset_details.asset_detail_virtual import AssetDetailVirtual
+from app.models.assets.asset_detail_virtual import AssetDetailVirtual
 from app import db
 from datetime import datetime
 

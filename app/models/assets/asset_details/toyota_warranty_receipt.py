@@ -4,7 +4,7 @@ Toyota Warranty Receipt Detail Table
 Store Toyota-specific warranty and service information
 """
 
-from app.models.assets.asset_details.asset_detail_virtual import AssetDetailVirtual
+from app.models.assets.asset_detail_virtual import AssetDetailVirtual
 from app import db
 
 class ToyotaWarrantyReceipt(AssetDetailVirtual):

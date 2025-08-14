@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 2 introduces a sophisticated Asset Detail System that provides flexible, extensible detail management for assets and models. This system uses a virtual template approach with automatic detail insertion capabilities, allowing dynamic addition of detail information without schema changes.
+Phase 2 introduces a sophisticated Asset Detail System that provides flexible, extensible detail management for assets and models. This system uses a virtual template approach with automatic detail insertion capabilities, allowing dynamic addition of detail information without schema changes. The system includes automatic master table management through the `all_details` tables, providing a unified view of all detail records.
 
 ## Core Architecture
 
@@ -34,6 +34,20 @@ Asset → MakeModel → AssetType
 ### 2. Detail Table System Architecture
 
 The detail table system provides a flexible, extensible approach to storing detailed specifications and configurations:
+
+#### Master Detail Tables (Unified Registry)
+
+**AllAssetDetail**
+- Master table that acts as a registry for all asset detail records
+- Provides a single point of querying all details for an asset
+- Contains: `table_name`, `row_id`, `asset_id`, audit fields
+- Automatically populated when asset detail records are created
+
+**AllModelDetail**
+- Master table that acts as a registry for all model detail records
+- Provides a single point of querying all details for a model
+- Contains: `table_name`, `row_id`, `make_model_id`, audit fields
+- Automatically populated when model detail records are created
 
 #### Detail Table Sets (Configuration Containers)
 
@@ -92,33 +106,185 @@ class DetailTableVirtualTemplate(UserCreatedBase, db.Model):
 
 #### AssetDetailVirtual (Asset Detail Base Class)
 ```python
-class AssetDetailVirtual(DetailTableVirtualTemplate):
+class AssetDetailVirtual(UserCreatedBase, db.Model):
     __abstract__ = True
     
     # Adds relationship to Asset via foreign key
-    asset_id = db.Column(db.Integer, db.ForeignKey('asset.id'), nullable=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
     asset = db.relationship('Asset', backref=db.backref('detail_rows', lazy='dynamic'))
     
-    # Implements asset-specific validation logic
-    def validate_asset_relationship(self):
-        """Validate asset relationship"""
-        pass
+    # Automatic master table management
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not hasattr(self.__class__, '_master_table_events_registered'):
+            self._register_master_table_events()
+            self.__class__._master_table_events_registered = True
+    
+    def _register_master_table_events(self):
+        """Register SQLAlchemy events for automatic master table management"""
+        @event.listens_for(self.__class__, 'after_insert')
+        def after_insert(mapper, connection, target):
+            target.insert_into_master_table()
+        
+        @event.listens_for(self.__class__, 'after_delete')
+        def after_delete(mapper, connection, target):
+            target.remove_from_master_table()
+    
+    def insert_into_master_table(self):
+        """Insert this detail record into the appropriate master table"""
+        from app.models.assets.all_details import AllAssetDetail
+        
+        master_record = AllAssetDetail(
+            table_name=self.__tablename__,
+            row_id=self.id,
+            asset_id=self.asset_id,
+            created_by_id=self.created_by_id,
+            updated_by_id=self.updated_by_id
+        )
+        db.session.add(master_record)
+        return master_record.id
 ```
 
 #### ModelDetailVirtual (Model Detail Base Class)
 ```python
-class ModelDetailVirtual(DetailTableVirtualTemplate):
+class ModelDetailVirtual(UserCreatedBase, db.Model):
     __abstract__ = True
     
     # Adds relationship to MakeModel via foreign key
-    make_model_id = db.Column(db.Integer, db.ForeignKey('make_model.id'), nullable=False)
+    make_model_id = db.Column(db.Integer, db.ForeignKey('make_models.id'), nullable=False)
     make_model = db.relationship('MakeModel', backref=db.backref('detail_rows', lazy='dynamic'))
     
-    # Prevents duplicate model detail rows
-    __table_args__ = (
-        db.UniqueConstraint('make_model_id', name='unique_model_detail_per_model'),
-    )
+    # Automatic master table management
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not hasattr(self.__class__, '_master_table_events_registered'):
+            self._register_master_table_events()
+            self.__class__._master_table_events_registered = True
+    
+    def _register_master_table_events(self):
+        """Register SQLAlchemy events for automatic master table management"""
+        @event.listens_for(self.__class__, 'after_insert')
+        def after_insert(mapper, connection, target):
+            target.insert_into_master_table()
+        
+        @event.listens_for(self.__class__, 'after_delete')
+        def after_delete(mapper, connection, target):
+            target.remove_from_master_table()
+    
+    def insert_into_master_table(self):
+        """Insert this detail record into the appropriate master table"""
+        from app.models.assets.all_details import AllModelDetail
+        
+        master_record = AllModelDetail(
+            table_name=self.__tablename__,
+            row_id=self.id,
+            make_model_id=self.make_model_id,
+            created_by_id=self.created_by_id,
+            updated_by_id=self.updated_by_id
+        )
+        db.session.add(master_record)
+        return master_record.id
 ```
+
+## Automatic Master Table Management System
+
+### 1. Overview
+
+The system automatically manages master table entries (`AllAssetDetail` and `AllModelDetail`) through SQLAlchemy event listeners. When detail records are created or deleted, corresponding entries are automatically added to or removed from the master tables, ensuring data consistency and providing a unified view of all detail records.
+
+### 2. Event-Driven Architecture
+
+**SQLAlchemy Event Listeners**
+- `after_insert`: Automatically creates master table entries when detail records are inserted
+- Event registration happens once per detail table class to avoid duplicate listeners
+
+**Custom Delete Method**
+- `delete()`: Custom method that captures ID before deletion and cleans up master table
+- Ensures reliable data capture and cleanup without complex event handling
+
+**Master Table Entry Structure**
+```python
+# AllAssetDetail entry
+{
+    'table_name': 'purchase_info',
+    'row_id': 1,  # ID from the detail table
+    'asset_id': 1,
+    'created_by_id': 1,
+    'updated_by_id': 1
+}
+
+# AllModelDetail entry
+{
+    'table_name': 'emissions_info',
+    'row_id': 1,  # ID from the detail table
+    'make_model_id': 1,
+    'created_by_id': 1,
+    'updated_by_id': 1
+}
+```
+
+### 3. Implementation Details
+
+**File Structure**
+```
+app/models/assets/
+├── all_details.py                    # Master table models
+├── asset_detail_virtual.py           # Asset detail base class
+├── model_detail_virtual.py           # Model detail base class
+├── asset_details/
+│   ├── purchase_info.py
+│   ├── vehicle_registration.py
+│   └── toyota_warranty_receipt.py
+├── model_details/
+│   ├── emissions_info.py
+│   └── model_info.py
+└── detail_table_sets/
+    ├── asset_type_detail_table_set.py
+    └── model_detail_table_set.py
+```
+
+**Custom Delete Method Implementation**
+```python
+def delete(self):
+    """
+    Custom delete method that ensures master table cleanup
+    Captures the ID before deletion and cleans up master table
+    """
+    # Capture the ID before deletion
+    detail_id = self.id
+    table_name = self.__tablename__
+    
+    # Use SQLAlchemy's session delete method
+    db.session.delete(self)
+    
+    # Clean up the master table entry
+    self.remove_from_master_table(detail_id)
+```
+
+**Key Methods**
+- `insert_into_master_table()`: Creates master table entry using connection-level operations
+- `remove_from_master_table(detail_id)`: Removes master table entry by ID using connection-level operations
+- `delete()`: Custom delete method that captures ID and ensures master table cleanup
+- `_register_master_table_events()`: Registers SQLAlchemy event listeners for insert operations
+
+### 4. Benefits
+
+**Data Consistency**
+- Automatic synchronization between detail tables and master tables
+- No orphaned master table entries
+- Consistent audit trail maintenance
+
+**Unified Querying**
+- Single point of access to all detail records
+- Efficient queries across multiple detail table types
+- Simplified reporting and analytics
+
+**Maintenance**
+- No manual intervention required
+- Automatic cleanup on deletion
+- Transaction-safe operations
+- Connection-level operations prevent SQLAlchemy warnings
+- Simple and reliable custom delete method ensures data availability
 
 ## Automatic Detail Insertion System
 
@@ -227,6 +393,67 @@ def _process_detail_table_config(cls, config, asset):
             cls._create_model_detail_row(detail_info, asset)
 ```
 
+## Build System Integration
+
+### 1. Centralized Registry System
+
+The build system uses a centralized registry for managing detail table types:
+
+```python
+# app/models/assets/build.py
+DETAIL_TABLE_REGISTRY = {
+    'purchase_info': {
+        'is_asset_detail': True,
+        'module_path': 'app.models.assets.asset_details.purchase_info',
+        'class_name': 'PurchaseInfo'
+    },
+    'vehicle_registration': {
+        'is_asset_detail': True,
+        'module_path': 'app.models.assets.asset_details.vehicle_registration',
+        'class_name': 'VehicleRegistration'
+    },
+    'toyota_warranty_receipt': {
+        'is_asset_detail': True,
+        'module_path': 'app.models.assets.asset_details.toyota_warranty_receipt',
+        'class_name': 'ToyotaWarrantyReceipt'
+    },
+    'emissions_info': {
+        'is_asset_detail': False,
+        'module_path': 'app.models.assets.model_details.emissions_info',
+        'class_name': 'EmissionsInfo'
+    },
+    'model_info': {
+        'is_asset_detail': False,
+        'module_path': 'app.models.assets.model_details.model_info',
+        'class_name': 'ModelInfo'
+    }
+}
+```
+
+### 2. Utility Functions
+
+**get_detail_table_class()**
+- Dynamically imports and returns detail table classes
+- Handles module path resolution
+- Provides error handling for invalid table types
+
+**is_asset_detail()**
+- Determines if a detail table type is asset-specific or model-specific
+- Used for proper data assignment during build process
+
+**convert_date_strings()**
+- Converts date strings in build data to Python date objects
+- Handles various date formats consistently
+- Prevents SQLAlchemy date type errors
+
+### 3. Phase 2 Data Initialization
+
+The build system automatically:
+- Creates detail table configurations
+- Inserts sample data for testing
+- Leverages automatic master table insertion
+- Handles both asset and model detail types
+
 ## Data Model Relationships
 
 ### 1. Core Relationships
@@ -246,6 +473,8 @@ AssetType (1) ←→ (1) AssetTypeDetailTableSet
 MakeModel (1) ←→ (1) ModelDetailTableSet
 Asset (1) ←→ (N) AssetDetailVirtual (via asset_id)
 MakeModel (1) ←→ (N) ModelDetailVirtual (via make_model_id)
+Asset (1) ←→ (N) AllAssetDetail (via asset_id)
+MakeModel (1) ←→ (N) AllModelDetail (via make_model_id)
 ```
 
 ### 3. Audit Trail Relationships
@@ -262,18 +491,27 @@ User (1) ←→ (N) UserCreatedBase (via updated_by_id)
 - Detail table set models and relationships
 - Virtual template system implementation
 - Configuration management interfaces
+- Master table models (AllAssetDetail, AllModelDetail)
 
-### Phase 2B: Automatic Detail Insertion
+### Phase 2B: Automatic Master Table Management
+- SQLAlchemy event listener implementation
+- Automatic master table insertion/removal
+- Event registration system
+- Transaction safety and error handling
+
+### Phase 2C: Automatic Detail Insertion
 - Conditional import system
 - Detail table registry implementation
 - SQLAlchemy event listeners
 - Automatic row creation logic
+- Integration with master table management
 
-### Phase 2C: Detail Data Management
+### Phase 2D: Detail Data Management
 - Data update workflows
 - Configuration management tools
 - Bulk operations interface
 - Validation and error handling
+- Build system integration
 
 ## Key Design Principles
 
@@ -378,6 +616,15 @@ User (1) ←→ (N) UserCreatedBase (via updated_by_id)
 
 ## Conclusion
 
-The Phase 2 Asset Detail System provides a robust, flexible foundation for managing detailed asset and model information. The virtual template approach with automatic detail insertion creates a powerful system that can evolve with changing business requirements while maintaining data integrity and performance.
+The Phase 2 Asset Detail System provides a robust, flexible foundation for managing detailed asset and model information. The virtual template approach with automatic detail insertion and master table management creates a powerful system that can evolve with changing business requirements while maintaining data integrity and performance.
 
-The hierarchical relationship structure ensures consistency, while the extensible design allows for future enhancements without major architectural changes. The comprehensive testing and validation strategies ensure reliable operation in production environments. 
+The hierarchical relationship structure ensures consistency, while the extensible design allows for future enhancements without major architectural changes. The automatic master table management system provides unified access to all detail records, enabling efficient querying and reporting across multiple detail table types.
+
+Key achievements include:
+- **Automatic Master Table Management**: Seamless synchronization between detail tables and master tables
+- **Event-Driven Architecture**: SQLAlchemy event listeners ensure data consistency
+- **Centralized Registry System**: Unified management of all detail table types
+- **Build System Integration**: Automated data initialization and configuration
+- **Transaction Safety**: Robust error handling and rollback mechanisms
+
+The comprehensive testing and validation strategies ensure reliable operation in production environments, while the modular design supports future enhancements and integrations. 

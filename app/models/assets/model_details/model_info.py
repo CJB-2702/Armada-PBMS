@@ -4,7 +4,7 @@ Model Information Detail Table
 Store general model specifications and information
 """
 
-from app.models.assets.model_details.model_detail_virtual import ModelDetailVirtual
+from app.models.assets.model_detail_virtual import ModelDetailVirtual
 from app import db
 
 class ModelInfo(ModelDetailVirtual):

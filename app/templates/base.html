@@ -60,11 +60,11 @@
                             Asset Details
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Asset List</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('core_assets.list') }}">Asset List</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Purchase Info</a></li>
-                            <li><a class="dropdown-item" href="#">Vehicle Registration</a></li>
-                            <li><a class="dropdown-item" href="#">Toyota Warranty</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('assets.detail_tables.list', detail_type='purchase_info') }}">Purchase Info</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('assets.detail_tables.list', detail_type='vehicle_registration') }}">Vehicle Registration</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('assets.detail_tables.list', detail_type='toyota_warranty_receipt') }}">Toyota Warranty</a></li>
                         </ul>
                     </li>
                     
@@ -74,10 +74,10 @@
                             Model Details
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Make/Models</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('make_models.list') }}">Make/Models</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Emissions Info</a></li>
-                            <li><a class="dropdown-item" href="#">Model Info</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('assets.model_details.list', detail_type='emissions_info') }}">Emissions Info</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('assets.model_details.list', detail_type='model_info') }}">Model Info</a></li>
                         </ul>
                     </li>
                 </ul>

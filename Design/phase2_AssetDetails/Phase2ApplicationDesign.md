@@ -3,7 +3,7 @@
 ## Overview
 
 This document outlines the application-layer implementation for Phase 2 of the Asset Detail System, focusing on user interface design, CRUD operations, and interactive functionality across three sub-phases.
-
+L
 ## Phase 2A: Basic Implementation - CRUD Pages and Card Templates
 
 ### 2A.1 Detail Table CRUD Pages
@@ -74,6 +74,7 @@ templates/
 ├── components/
 │   ├── detail_tables/
 │   │   └── cards/
+│   │       ├── row.html
 │   │       ├── small_card.html
 │   │       └── large_card.html
 ```

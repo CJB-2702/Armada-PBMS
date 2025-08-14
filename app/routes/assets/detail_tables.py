@@ -3,15 +3,220 @@ Asset detail table routes
 Routes for managing asset-specific detail tables
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, jsonify
 from flask_login import login_required, current_user
 from app.models.core.asset import Asset
 from app.models.assets.asset_details.purchase_info import PurchaseInfo
 from app.models.assets.asset_details.vehicle_registration import VehicleRegistration
 from app.models.assets.asset_details.toyota_warranty_receipt import ToyotaWarrantyReceipt
 from app import db
+from pathlib import Path
 
 bp = Blueprint('detail_tables', __name__)
+
+# Detail table configuration
+DETAIL_TABLES = {
+    'purchase_info': {
+        'model': PurchaseInfo,
+        'name': 'Purchase Information',
+        'icon': 'bi-cart',
+        'fields': ['purchase_date', 'purchase_price', 'vendor', 'warranty_expiry', 'event_id']
+    },
+    'vehicle_registration': {
+        'model': VehicleRegistration,
+        'name': 'Vehicle Registration',
+        'icon': 'bi-car-front',
+        'fields': ['license_plate', 'vin', 'registration_expiry', 'insurance_expiry', 'insurance_provider']
+    },
+    'toyota_warranty_receipt': {
+        'model': ToyotaWarrantyReceipt,
+        'name': 'Toyota Warranty Receipt',
+        'icon': 'bi-shield-check',
+        'fields': ['warranty_number', 'service_date', 'service_type', 'dealer_name', 'mileage_at_service']
+    }
+}
+
+def get_detail_table_config(detail_type):
+    """Get configuration for a detail table type"""
+    return DETAIL_TABLES.get(detail_type)
+
+# Generic CRUD routes for all detail table types
+
+@bp.route('/<detail_type>/')
+@login_required
+def list(detail_type):
+    """List all records for a detail table type"""
+    config = get_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    
+    # Get filter parameters
+    asset_id_filter = request.args.get('asset_id', type=int)
+    model_id_filter = request.args.get('model_id', type=int)
+    
+    # Build query with filters
+    query = model.query
+    
+    if asset_id_filter:
+        query = query.filter(model.asset_id == asset_id_filter)
+    
+    if model_id_filter:
+        # Join with Asset to filter by make_model_id
+        query = query.join(model.asset).filter(Asset.make_model_id == model_id_filter)
+    
+    # Get all records with asset and model information
+    records = query.all()
+    
+    # Get unique asset IDs and model IDs for filter dropdowns
+    all_assets = Asset.query.all()
+    asset_options = [(asset.id, f"{asset.name} ({asset.serial_number})") for asset in all_assets]
+    
+    # Get unique make_models for filter dropdown
+    from app.models.core.make_model import MakeModel
+    all_models = MakeModel.query.all()
+    model_options = [(model.id, f"{model.make} {model.model} {model.year or ''}") for model in all_models]
+    
+    return render_template('assets/detail_tables/list.html',
+                         detail_type=detail_type,
+                         config=config,
+                         records=records,
+                         asset_options=asset_options,
+                         model_options=model_options,
+                         current_asset_filter=asset_id_filter,
+                         current_model_filter=model_id_filter)
+
+@bp.route('/<detail_type>/create', methods=['GET', 'POST'])
+@login_required
+def create(detail_type):
+    """Create new record for a detail table type"""
+    config = get_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    
+    # Get all assets for selection
+    all_assets = Asset.query.all()
+    asset_options = [(asset.id, f"{asset.name} ({asset.serial_number})") for asset in all_assets]
+    
+    if request.method == 'POST':
+        # Create new record
+        record_data = {}
+        for field in config['fields']:
+            value = request.form.get(field)
+            if value:
+                record_data[field] = value
+        
+        # Add required fields
+        record_data['created_by_id'] = current_user.id
+        record_data['updated_by_id'] = current_user.id
+        
+        # Add asset_id if it's an asset detail table
+        if hasattr(model, 'asset_id'):
+            asset_id = request.form.get('asset_id', type=int)
+            if asset_id:
+                record_data['asset_id'] = asset_id
+            else:
+                flash('Asset selection is required', 'error')
+                return render_template('assets/detail_tables/create.html',
+                                     detail_type=detail_type,
+                                     config=config,
+                                     asset_options=asset_options)
+        
+        record = model(**record_data)
+        db.session.add(record)
+        db.session.commit()
+        
+        flash(f'{config["name"]} created successfully', 'success')
+        return redirect(url_for('assets.detail_tables.list', detail_type=detail_type))
+    
+    return render_template('assets/detail_tables/create.html',
+                         detail_type=detail_type,
+                         config=config,
+                         asset_options=asset_options)
+
+@bp.route('/<detail_type>/<int:id>/')
+@login_required
+def detail(detail_type, id):
+    """View details of a specific record"""
+    config = get_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    record = model.query.get_or_404(id)
+    
+    return render_template('assets/detail_tables/detail.html',
+                         detail_type=detail_type,
+                         config=config,
+                         record=record)
+
+@bp.route('/<detail_type>/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit(detail_type, id):
+    """Edit a specific record"""
+    config = get_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    record = model.query.get_or_404(id)
+    
+    # Get all assets for selection
+    all_assets = Asset.query.all()
+    asset_options = [(asset.id, f"{asset.name} ({asset.serial_number})") for asset in all_assets]
+    
+    if request.method == 'POST':
+        # Update record
+        for field in config['fields']:
+            if field in request.form:
+                setattr(record, field, request.form.get(field))
+        
+        # Update asset_id if it's an asset detail table
+        if hasattr(model, 'asset_id'):
+            asset_id = request.form.get('asset_id', type=int)
+            if asset_id:
+                record.asset_id = asset_id
+            else:
+                flash('Asset selection is required', 'error')
+                return render_template('assets/detail_tables/edit.html',
+                                     detail_type=detail_type,
+                                     config=config,
+                                     record=record,
+                                     asset_options=asset_options)
+        
+        record.updated_by_id = current_user.id
+        db.session.commit()
+        
+        flash(f'{config["name"]} updated successfully', 'success')
+        return redirect(url_for('assets.detail_tables.detail', detail_type=detail_type, id=id))
+    
+    return render_template('assets/detail_tables/edit.html',
+                         detail_type=detail_type,
+                         config=config,
+                         record=record,
+                         asset_options=asset_options)
+
+@bp.route('/<detail_type>/<int:id>/delete', methods=['POST'])
+@login_required
+def delete(detail_type, id):
+    """Delete a specific record"""
+    config = get_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    record = model.query.get_or_404(id)
+    
+    db.session.delete(record)
+    db.session.commit()
+    
+    flash(f'{config["name"]} deleted successfully', 'success')
+    return redirect(url_for('assets.detail_tables.list', detail_type=detail_type))
+
+# Asset-specific routes (for backward compatibility)
 
 @bp.route('/assets/<int:asset_id>/purchase-info')
 @login_required

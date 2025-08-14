@@ -91,7 +91,11 @@ class ModelDetailTableSet(UserCreatedBase, db.Model):
             
             # Create the detail table row
             if config.is_asset_detail:
-                # Create asset-specific detail row
+                # Create asset-specific detail row - check for duplicates first
+                existing_row = detail_table_class.query.filter_by(asset_id=asset_id).first()
+                if existing_row:
+                    print(f"DEBUG: Asset detail row already exists for asset {asset_id}, skipping")
+                    return  # Already exists, don't create duplicate
                 detail_row = detail_table_class(asset_id=asset_id)
             else:
                 # Create model-specific detail row (check if it already exists)

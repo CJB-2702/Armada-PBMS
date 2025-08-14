@@ -3,14 +3,149 @@ Model detail table routes
 Routes for managing model-specific detail tables
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, jsonify
 from flask_login import login_required, current_user
 from app.models.core.make_model import MakeModel
 from app.models.assets.model_details.emissions_info import EmissionsInfo
 from app.models.assets.model_details.model_info import ModelInfo
 from app import db
+from pathlib import Path
 
 bp = Blueprint('model_details', __name__)
+
+# Model detail table configuration
+MODEL_DETAIL_TABLES = {
+    'emissions_info': {
+        'model': EmissionsInfo,
+        'name': 'Emissions Information',
+        'icon': 'bi-cloud',
+        'fields': ['fuel_economy_city', 'fuel_economy_highway', 'emissions_standard', 'certification_date', 'co2_emissions']
+    },
+    'model_info': {
+        'model': ModelInfo,
+        'name': 'Model Information',
+        'icon': 'bi-info-circle',
+        'fields': ['body_style', 'engine_size', 'transmission_type', 'seating_capacity', 'cargo_capacity']
+    }
+}
+
+def get_model_detail_table_config(detail_type):
+    """Get configuration for a model detail table type"""
+    return MODEL_DETAIL_TABLES.get(detail_type)
+
+# Generic CRUD routes for all model detail table types
+
+@bp.route('/<detail_type>/')
+@login_required
+def list(detail_type):
+    """List all records for a model detail table type"""
+    config = get_model_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    records = model.query.all()
+    
+    return render_template('assets/model_details/list.html',
+                         detail_type=detail_type,
+                         config=config,
+                         records=records)
+
+@bp.route('/<detail_type>/create', methods=['GET', 'POST'])
+@login_required
+def create(detail_type):
+    """Create new record for a model detail table type"""
+    config = get_model_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    
+    if request.method == 'POST':
+        # Create new record
+        record_data = {}
+        for field in config['fields']:
+            value = request.form.get(field)
+            if value:
+                record_data[field] = value
+        
+        # Add required fields
+        record_data['created_by_id'] = current_user.id
+        record_data['updated_by_id'] = current_user.id
+        
+        record = model(**record_data)
+        db.session.add(record)
+        db.session.commit()
+        
+        flash(f'{config["name"]} created successfully', 'success')
+        return redirect(url_for('assets.model_details.list', detail_type=detail_type))
+    
+    return render_template('assets/model_details/create.html',
+                         detail_type=detail_type,
+                         config=config)
+
+@bp.route('/<detail_type>/<int:id>/')
+@login_required
+def detail(detail_type, id):
+    """View details of a specific model detail record"""
+    config = get_model_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    record = model.query.get_or_404(id)
+    
+    return render_template('assets/model_details/detail.html',
+                         detail_type=detail_type,
+                         config=config,
+                         record=record)
+
+@bp.route('/<detail_type>/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit(detail_type, id):
+    """Edit a specific model detail record"""
+    config = get_model_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    record = model.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        # Update record
+        for field in config['fields']:
+            if field in request.form:
+                setattr(record, field, request.form.get(field))
+        
+        record.updated_by_id = current_user.id
+        db.session.commit()
+        
+        flash(f'{config["name"]} updated successfully', 'success')
+        return redirect(url_for('assets.model_details.detail', detail_type=detail_type, id=id))
+    
+    return render_template('assets/model_details/edit.html',
+                         detail_type=detail_type,
+                         config=config,
+                         record=record)
+
+@bp.route('/<detail_type>/<int:id>/delete', methods=['POST'])
+@login_required
+def delete(detail_type, id):
+    """Delete a specific model detail record"""
+    config = get_model_detail_table_config(detail_type)
+    if not config:
+        abort(404)
+    
+    model = config['model']
+    record = model.query.get_or_404(id)
+    
+    db.session.delete(record)
+    db.session.commit()
+    
+    flash(f'{config["name"]} deleted successfully', 'success')
+    return redirect(url_for('assets.model_details.list', detail_type=detail_type))
+
+# Make/Model-specific routes (for backward compatibility)
 
 @bp.route('/make-models/<int:make_model_id>/emissions-info')
 @login_required

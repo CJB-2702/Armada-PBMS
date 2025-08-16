@@ -26,7 +26,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Asset Management</a>
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">MIN FMS</a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -34,10 +34,6 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
-                    </li>
-                    
                     <!-- Core Management -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -54,31 +50,26 @@
                         </ul>
                     </li>
                     
-                    <!-- Asset Details -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Asset Details
+                    <!-- Asset Management -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#assetManagementModal">
+                            Asset Management
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('core_assets.list') }}">Asset List</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('assets.detail_tables.list', detail_type='purchase_info') }}">Purchase Info</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('assets.detail_tables.list', detail_type='vehicle_registration') }}">Vehicle Registration</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('assets.detail_tables.list', detail_type='toyota_warranty_receipt') }}">Toyota Warranty</a></li>
-                        </ul>
                     </li>
                     
-                    <!-- Model Details -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Model Details
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('make_models.list') }}">Make/Models</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('assets.model_details.list', detail_type='emissions_info') }}">Emissions Info</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('assets.model_details.list', detail_type='model_info') }}">Model Info</a></li>
-                        </ul>
+                    <!-- Dispatching -->
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#" title="Coming Soon">Dispatching</a>
+                    </li>
+                    
+                    <!-- Maintenance -->
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#" title="Coming Soon">Maintenance</a>
+                    </li>
+                    
+                    <!-- Supply -->
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#" title="Coming Soon">Supply</a>
                     </li>
                 </ul>
                 
@@ -144,5 +135,183 @@
     <script src="{{ url_for('static', filename='js/base.js') }}"></script>
     
     {% block extra_js %}{% endblock %}
+    
+    <!-- Asset Management Modal -->
+    <div class="modal fade" id="assetManagementModal" tabindex="-1" aria-labelledby="assetManagementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assetManagementModalLabel">
+                        <i class="bi bi-truck"></i> Asset Management
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- System Dashboard -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="bi bi-speedometer2 text-info" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6 class="card-title">System Dashboard</h6>
+                                    <p class="card-text small text-muted">System overview and analytics</p>
+                                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-info btn-sm w-100">
+                                        <i class="bi bi-arrow-right"></i> Open Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Asset Dashboard -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="bi bi-truck text-primary" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6 class="card-title">Asset Dashboard</h6>
+                                    <p class="card-text small text-muted">Asset overview and statistics</p>
+                                    <a href="{{ url_for('main.asset_management') }}" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-arrow-right"></i> Open Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Asset List -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="bi bi-list-ul text-success" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6 class="card-title">Asset List</h6>
+                                    <p class="card-text small text-muted">View all assets</p>
+                                    <a href="{{ url_for('core_assets.list') }}" class="btn btn-success btn-sm w-100">
+                                        <i class="bi bi-arrow-right"></i> View Assets
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="bi bi-lightning text-warning" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6 class="card-title">Quick Actions</h6>
+                                    <p class="card-text small text-muted">Add new assets and records</p>
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('core_assets.create') }}" class="btn btn-outline-warning btn-sm">
+                                            <i class="bi bi-plus-circle"></i> Add Asset
+                                        </a>
+                                        <a href="{{ url_for('locations.create') }}" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-geo-alt"></i> Add Location
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Asset Details Section -->
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="bi bi-folder"></i> Asset Details
+                            </h6>
+                        </div>
+                        
+                        <!-- Purchase Info -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-receipt text-info" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="card-title small">Purchase Info</h6>
+                                    <a href="{{ url_for('assets.detail_tables.list', detail_type='purchase_info') }}" class="btn btn-outline-info btn-sm w-100">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vehicle Registration -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-card-text text-warning" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="card-title small">Vehicle Registration</h6>
+                                    <a href="{{ url_for('assets.detail_tables.list', detail_type='vehicle_registration') }}" class="btn btn-outline-warning btn-sm w-100">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Toyota Warranty -->
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-shield-check text-success" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="card-title small">Toyota Warranty</h6>
+                                    <a href="{{ url_for('assets.detail_tables.list', detail_type='toyota_warranty_receipt') }}" class="btn btn-outline-success btn-sm w-100">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Model Details Section -->
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="bi bi-gear"></i> Model Details
+                            </h6>
+                        </div>
+                        
+                        <!-- Emissions Info -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-cloud text-danger" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="card-title small">Emissions Info</h6>
+                                    <a href="{{ url_for('assets.model_details.list', detail_type='emissions_info') }}" class="btn btn-outline-danger btn-sm w-100">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Model Info -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-info-circle text-primary" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="card-title small">Model Info</h6>
+                                    <a href="{{ url_for('assets.model_details.list', detail_type='model_info') }}" class="btn btn-outline-primary btn-sm w-100">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

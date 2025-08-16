@@ -1,6 +1,6 @@
 """
 Main routes for the Asset Management System
-Dashboard and main navigation routes
+New landing page with functional group navigation
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
@@ -13,8 +13,7 @@ from app.models.core.user import User
 from app.models.core.event import Event
 from app import db
 
-# Import the main blueprint from the package
-from . import main
+main = Blueprint('main', __name__)
 
 @main.route('/')
 @login_required
@@ -84,55 +83,6 @@ def asset_management():
                          locations_with_assets=locations_with_assets,
                          asset_types_with_counts=asset_types_with_counts)
 
-@main.route('/dashboard')
-@login_required
-def dashboard():
-    """Enhanced dashboard with more detailed statistics"""
-    # Get comprehensive statistics
-    stats = {
-        'total_assets': Asset.query.count(),
-        'active_assets': Asset.query.filter_by(status='Active').count(),
-        'total_locations': MajorLocation.query.count(),
-        'total_users': User.query.count(),
-        'total_events': Event.query.count(),
-        'total_asset_types': AssetType.query.count(),
-        'total_make_models': MakeModel.query.count()
-    }
-    
-    # Get recent activity
-    recent_assets = Asset.query.order_by(Asset.created_at.desc()).limit(10).all()
-    recent_events = Event.query.order_by(Event.timestamp.desc()).limit(10).all()
-    
-    # Get top locations by asset count
-    locations = MajorLocation.query.all()
-    location_stats = []
-    for location in locations:
-        asset_count = Asset.query.filter_by(major_location_id=location.id).count()
-        location_stats.append({
-            'location': location,
-            'asset_count': asset_count
-        })
-    location_stats.sort(key=lambda x: x['asset_count'], reverse=True)
-    
-    # Get top asset types by count
-    asset_type_stats = []
-    for asset_type in AssetType.query.all():
-        # Get make_models for this asset type
-        make_models = MakeModel.query.filter_by(asset_type_id=asset_type.id).all()
-        asset_count = sum(Asset.query.filter_by(make_model_id=make_model.id).count() for make_model in make_models)
-        asset_type_stats.append({
-            'asset_type': asset_type,
-            'asset_count': asset_count
-        })
-    asset_type_stats.sort(key=lambda x: x['asset_count'], reverse=True)
-    
-    return render_template('dashboard.html',
-                         stats=stats,
-                         recent_assets=recent_assets,
-                         recent_events=recent_events,
-                         location_stats=location_stats,
-                         asset_type_stats=asset_type_stats)
-
 @main.route('/search')
 @login_required
 def search():
@@ -184,4 +134,9 @@ def help():
 @login_required
 def about():
     """About page with system information"""
-    return render_template('about.html') 
+    return render_template('about.html')
+
+@main.route('/.well-known/appspecific/com.chrome.devtools.json')
+def chrome_devtools():
+    """Chrome DevTools configuration"""
+    return '{"name": "Asset Management System", "version": "1.0.0"}'

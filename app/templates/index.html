@@ -3,107 +3,249 @@
 {% block title %}Asset Management System - Home{% endblock %}
 
 {% block head %}
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<style>
+    .section-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border: none;
+        border-radius: 12px;
+    }
+    
+    .section-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .section-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .feature-grid {
+        margin-top: 3rem;
+    }
+    
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    
+    .status-active { background-color: #28a745; }
+    .status-development { background-color: #ffc107; }
+    .status-planned { background-color: #6c757d; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h1 class="mb-4">Asset Management System</h1>
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-3">Asset Management System</h1>
+                <p class="lead mb-4">Comprehensive fleet and asset management solution for modern operations</p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('main.asset_management') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-gear"></i> Get Started
+                    </a>
+                    <a href="{{ url_for('main.help') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-question-circle"></i> Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="bi bi-tools" style="font-size: 6rem; opacity: 0.8;"></i>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2">
-        <a href="{{ url_for('core_assets.list') }}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">{{ total_assets }}</h5>
-                    <p class="card-text">Assets</p>
+<!-- Main Sections Grid -->
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center mb-5">System Modules</h2>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Core Management -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card section-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="section-icon text-primary">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <h4 class="card-title">Core Management</h4>
+                    <p class="card-text text-muted mb-4">
+                        Manage users, locations, asset types, and make/models. The foundation of the system.
+                    </p>
+                    <div class="mb-3">
+                        <span class="status-indicator status-active"></span>
+                        <small class="text-success">Active</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('users.list') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                        <a href="{{ url_for('locations.list') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-geo-alt"></i> Locations
+                        </a>
+                        <a href="{{ url_for('asset_types.list') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-tags"></i> Asset Types
+                        </a>
+                        <a href="{{ url_for('make_models.list') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-tag"></i> Make/Models
+                        </a>
+                    </div>
                 </div>
             </div>
-        </a>
-    </div>
-    <div class="col-md-2">
-        <a href="{{ url_for('locations.list') }}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">{{ total_locations }}</h5>
-                    <p class="card-text">Locations</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-2">
-        <a href="{{ url_for('asset_types.list') }}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">{{ total_asset_types }}</h5>
-                    <p class="card-text">Asset Types</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-2">
-        <a href="{{ url_for('make_models.list') }}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">{{ total_make_models }}</h5>
-                    <p class="card-text">Make/Models</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-2">
-        <a href="{{ url_for('users.list') }}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">{{ total_users }}</h5>
-                    <p class="card-text">Users</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-2">
-        <a href="{{ url_for('events.list') }}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">{{ total_events }}</h5>
-                    <p class="card-text">Events</p>
-                </div>
-            </div>
-        </a>
-    </div>
-</div>
+        </div>
 
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <a href="{{ url_for('core_assets.create') }}" class="btn btn-primary w-100 mb-2">
+        <!-- Asset Management -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card section-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="section-icon text-success">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <h4 class="card-title">Asset Management</h4>
+                    <p class="card-text text-muted mb-4">
+                        Track and manage all assets with detailed information, events, and maintenance history.
+                    </p>
+                    <div class="mb-3">
+                        <span class="status-indicator status-active"></span>
+                        <small class="text-success">Active</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.asset_management') }}" class="btn btn-success btn-sm">
+                            <i class="bi bi-arrow-right"></i> Asset Dashboard
+                        </a>
+                        <a href="{{ url_for('core_assets.list') }}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-list"></i> View Assets
+                        </a>
+                        <a href="{{ url_for('core_assets.create') }}" class="btn btn-outline-success btn-sm">
                             <i class="bi bi-plus-circle"></i> Add Asset
                         </a>
                     </div>
-                    <div class="col-md-3">
-                        <a href="{{ url_for('locations.create') }}" class="btn btn-secondary w-100 mb-2">
-                            <i class="bi bi-geo-alt"></i> Add Location
-                        </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dispatching -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card section-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="section-icon text-warning">
+                        <i class="bi bi-calendar-check"></i>
                     </div>
-                    <div class="col-md-3">
-                        <a href="{{ url_for('make_models.create') }}" class="btn btn-info w-100 mb-2">
-                            <i class="bi bi-tag"></i> Add Make/Model
-                        </a>
+                    <h4 class="card-title">Dispatching</h4>
+                    <p class="card-text text-muted mb-4">
+                        Schedule and dispatch assets for jobs, track assignments, and manage work orders.
+                    </p>
+                    <div class="mb-3">
+                        <span class="status-indicator status-development"></span>
+                        <small class="text-warning">In Development</small>
                     </div>
-                    <div class="col-md-3">
-                        <a href="{{ url_for('asset_types.create') }}" class="btn btn-warning w-100 mb-2">
-                            <i class="bi bi-tag"></i> Add Asset Type
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-warning btn-sm" disabled>
+                            <i class="bi bi-clock"></i> Coming Soon
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="bi bi-info-circle"></i> Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card section-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="section-icon text-info">
+                        <i class="bi bi-wrench"></i>
+                    </div>
+                    <h4 class="card-title">Maintenance</h4>
+                    <p class="card-text text-muted mb-4">
+                        Plan and track maintenance schedules, service records, and repair history.
+                    </p>
+                    <div class="mb-3">
+                        <span class="status-indicator status-development"></span>
+                        <small class="text-warning">In Development</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-info btn-sm" disabled>
+                            <i class="bi bi-clock"></i> Coming Soon
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="bi bi-info-circle"></i> Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supply -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card section-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="section-icon text-danger">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h4 class="card-title">Supply</h4>
+                    <p class="card-text text-muted mb-4">
+                        Manage inventory, parts, supplies, and procurement for maintenance operations.
+                    </p>
+                    <div class="mb-3">
+                        <span class="status-indicator status-planned"></span>
+                        <small class="text-muted">Planned</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-danger btn-sm" disabled>
+                            <i class="bi bi-clock"></i> Coming Soon
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="bi bi-info-circle"></i> Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card section-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="section-icon text-secondary">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <h4 class="card-title">System Status</h4>
+                    <p class="card-text text-muted mb-4">
+                        Monitor system health, performance, and get quick access to system tools.
+                    </p>
+                    <div class="mb-3">
+                        <span class="status-indicator status-active"></span>
+                        <small class="text-success">Online</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-graph-up"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('main.search') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-search"></i> Search
+                        </a>
+                        <a href="{{ url_for('main.help') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-question-circle"></i> Help
                         </a>
                     </div>
                 </div>
@@ -112,125 +254,77 @@
     </div>
 </div>
 
-<!-- Recent Activity -->
-<div class="row">
-    <!-- Recent Assets -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Recent Assets</h5>
-                    <a href="{{ url_for('core_assets.list') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if recent_assets %}
-                <div class="list-group list-group-flush">
-                    {% for asset in recent_assets %}
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">
-                                    <a href="{{ url_for('core_assets.detail', asset_id=asset.id) }}">{{ asset.name }}</a>
-                                </h6>
-                                <small class="text-muted">{{ asset.serial_number }}</small>
-                            </div>
-                            <span class="badge bg-{{ 'success' if asset.status == 'Active' else 'secondary' }}">
-                                {{ asset.status }}
-                            </span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No assets found</p>
-                {% endif %}
-            </div>
+<!-- Quick Stats Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="text-center mb-4">System Overview</h3>
         </div>
     </div>
-
-    <!-- Recent Events -->
-    <div class="col-md-6">
-        <div id="recent-events-container"
-             hx-get="{{ url_for('events.events_card', condensed_view=True, row_count=5) }}"
-             hx-trigger="load"
-             hx-swap="innerHTML">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Loading recent events...</p>
+    <div class="row g-3">
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ total_assets or 0 }}</h5>
+                    <p class="card-text small">Assets</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">{{ total_locations or 0 }}</h5>
+                    <p class="card-text small">Locations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">{{ total_users or 0 }}</h5>
+                    <p class="card-text small">Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">{{ total_events or 0 }}</h5>
+                    <p class="card-text small">Events</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">{{ total_asset_types or 0 }}</h5>
+                    <p class="card-text small">Asset Types</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary">{{ total_make_models or 0 }}</h5>
+                    <p class="card-text small">Make/Models</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Location and Asset Type Summary -->
-<div class="row mt-4">
-    <!-- Assets by Location -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Assets by Location</h5>
-                    <a href="{{ url_for('locations.list') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if locations_with_assets %}
-                <div class="list-group list-group-flush">
-                    {% for location_data in locations_with_assets %}
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">
-                                    <a href="{{ url_for('locations.detail', location_id=location_data.location.id) }}">{{ location_data.location.name }}</a>
-                                </h6>
-                                <small class="text-muted">{{ location_data.location.description or 'No description' }}</small>
-                            </div>
-                            <span class="badge bg-primary">{{ location_data.asset_count }} assets</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No locations with assets</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Assets by Type -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Assets by Type</h5>
-                    <a href="{{ url_for('core_assets.list') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if asset_types_with_counts %}
-                <div class="list-group list-group-flush">
-                    {% for type_data in asset_types_with_counts %}
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">
-                                    <a href="{{ url_for('core_assets.list', asset_type_id=type_data.asset_type.id) }}">{{ type_data.asset_type.name }}</a>
-                                </h6>
-                                <small class="text-muted">{{ type_data.asset_type.category or 'No category' }}</small>
-                            </div>
-                            <span class="badge bg-info">{{ type_data.asset_count }} assets</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-muted text-center py-3">No asset types with assets</p>
-                {% endif %}
+<!-- Footer Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <hr>
+            <div class="text-center text-muted">
+                <p class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Need help? Check out our 
+                    <a href="{{ url_for('main.help') }}">documentation</a> or 
+                    <a href="{{ url_for('main.about') }}">about page</a>.
+                </p>
             </div>
         </div>
     </div>

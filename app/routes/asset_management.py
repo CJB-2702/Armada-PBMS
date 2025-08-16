@@ -1,6 +1,6 @@
 """
-Main routes for the Asset Management System
-Dashboard and main navigation routes
+Asset Management routes
+Asset-focused functionality moved from main routes
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
@@ -13,29 +13,12 @@ from app.models.core.user import User
 from app.models.core.event import Event
 from app import db
 
-# Import the main blueprint from the package
-from . import main
+asset_management = Blueprint('asset_management', __name__)
 
-@main.route('/')
+@asset_management.route('/assets/')
 @login_required
 def index():
-    """New landing page with functional group navigation"""
-    # Get basic statistics for overview
-    stats = {
-        'total_assets': Asset.query.count(),
-        'total_asset_types': AssetType.query.count(),
-        'total_make_models': MakeModel.query.count(),
-        'total_locations': MajorLocation.query.count(),
-        'total_users': User.query.count(),
-        'total_events': Event.query.count()
-    }
-    
-    return render_template('index.html', **stats)
-
-@main.route('/asset-management')
-@login_required
-def asset_management():
-    """Asset management dashboard with detailed statistics and recent activity"""
+    """Asset management home page with navigation and basic stats"""
     # Get basic statistics
     total_assets = Asset.query.count()
     total_asset_types = AssetType.query.count()
@@ -63,7 +46,6 @@ def asset_management():
     # Get assets by type (through make/models)
     asset_types_with_counts = []
     for asset_type in AssetType.query.all():
-        # Get make_models for this asset type
         make_models = MakeModel.query.filter_by(asset_type_id=asset_type.id).all()
         asset_count = sum(Asset.query.filter_by(make_model_id=make_model.id).count() for make_model in make_models)
         if asset_count > 0:
@@ -84,10 +66,10 @@ def asset_management():
                          locations_with_assets=locations_with_assets,
                          asset_types_with_counts=asset_types_with_counts)
 
-@main.route('/dashboard')
+@asset_management.route('/assets/dashboard')
 @login_required
 def dashboard():
-    """Enhanced dashboard with more detailed statistics"""
+    """Enhanced asset dashboard with detailed statistics"""
     # Get comprehensive statistics
     stats = {
         'total_assets': Asset.query.count(),
@@ -117,7 +99,6 @@ def dashboard():
     # Get top asset types by count
     asset_type_stats = []
     for asset_type in AssetType.query.all():
-        # Get make_models for this asset type
         make_models = MakeModel.query.filter_by(asset_type_id=asset_type.id).all()
         asset_count = sum(Asset.query.filter_by(make_model_id=make_model.id).count() for make_model in make_models)
         asset_type_stats.append({
@@ -126,62 +107,9 @@ def dashboard():
         })
     asset_type_stats.sort(key=lambda x: x['asset_count'], reverse=True)
     
-    return render_template('dashboard.html',
+    return render_template('assets/dashboard.html',
                          stats=stats,
                          recent_assets=recent_assets,
                          recent_events=recent_events,
                          location_stats=location_stats,
                          asset_type_stats=asset_type_stats)
-
-@main.route('/search')
-@login_required
-def search():
-    """Global search across all entities"""
-    query = request.args.get('q', '')
-    if not query:
-        return render_template('search.html', results=None)
-    
-    # Search assets
-    assets = Asset.query.filter(
-        Asset.name.ilike(f'%{query}%') |
-        Asset.serial_number.ilike(f'%{query}%')
-    ).limit(10).all()
-    
-    # Search locations
-    locations = MajorLocation.query.filter(
-        MajorLocation.name.ilike(f'%{query}%') |
-        MajorLocation.description.ilike(f'%{query}%')
-    ).limit(10).all()
-    
-    # Search make/models
-    make_models = MakeModel.query.filter(
-        MakeModel.make.ilike(f'%{query}%') |
-        MakeModel.model.ilike(f'%{query}%')
-    ).limit(10).all()
-    
-    # Search users
-    users = User.query.filter(
-        User.username.ilike(f'%{query}%') |
-        User.email.ilike(f'%{query}%')
-    ).limit(10).all()
-    
-    results = {
-        'assets': assets,
-        'locations': locations,
-        'make_models': make_models,
-        'users': users
-    }
-    
-    return render_template('search.html', results=results, query=query)
-
-@main.route('/help')
-@login_required
-def help():
-    """Help and documentation page"""
-    return render_template('help.html')
-
-@main.route('/about')
-@login_required
-def about():
-    """About page with system information"""
-    return render_template('about.html') 

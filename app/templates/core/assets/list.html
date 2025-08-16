@@ -2,6 +2,10 @@
 
 {% block title %}Assets - Asset Management System{% endblock %}
 
+{% block head %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
@@ -123,7 +127,11 @@
                         </thead>
                         <tbody>
                             {% for asset in assets.items %}
-                            <tr>
+                            <tr hx-get="{{ url_for('core_assets.asset_details_card', asset_id=asset.id) }}"
+                                hx-target="#asset-details-container"
+                                hx-swap="innerHTML"
+                                style="cursor: pointer;"
+                                class="asset-row">
                                 <td>
                                     <small class="text-muted">
                                         <code>{{ asset.id }}</code>
@@ -275,6 +283,31 @@
     </div>
 </div>
 
+<!-- HTMX Asset Details Section -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Asset Details
+                    <small class="text-muted">(Click on any asset row above to view details)</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="asset-details-container"
+                     hx-get="{{ url_for('core_assets.asset_details_card') }}"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <div class="text-center py-4">
+                        <i class="bi bi-arrow-up text-muted"></i>
+                        <p class="text-muted mt-2">Click on any asset row above to view its details here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -297,11 +330,48 @@
     </div>
 </div>
 
+<style>
+.asset-row {
+    transition: background-color 0.2s ease;
+}
+
+.asset-row:hover {
+    background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+.asset-row:active {
+    background-color: rgba(0, 123, 255, 0.2) !important;
+}
+
+/* Prevent action buttons from triggering row click */
+.asset-row .btn-group {
+    position: relative;
+    z-index: 10;
+}
+
+.asset-row .btn-group .btn {
+    pointer-events: auto;
+}
+</style>
+
 <script>
 function confirmDelete(assetId, assetName) {
     document.getElementById('deleteAssetName').textContent = assetName;
     document.getElementById('deleteForm').action = "{{ url_for('core_assets.delete', asset_id=0) }}".replace('0', assetId);
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
+
+// Prevent row click when clicking on action buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const assetRows = document.querySelectorAll('.asset-row');
+    assetRows.forEach(row => {
+        const actionButtons = row.querySelectorAll('.btn-group .btn');
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    });
+});
 </script>
 {% endblock %} 

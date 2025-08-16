@@ -10,6 +10,7 @@ from app.models.core.asset_type import AssetType
 from app.models.core.make_model import MakeModel
 from app.models.core.major_location import MajorLocation
 from app.models.core.event import Event
+from app.models.assets.all_details import AllAssetDetail
 from app import db
 
 bp = Blueprint('assets', __name__)
@@ -211,4 +212,58 @@ def delete(asset_id):
     db.session.commit()
     
     flash('Asset deleted successfully', 'success')
-    return redirect(url_for('core_assets.list')) 
+    return redirect(url_for('core_assets.list'))
+
+@bp.route('/assets/<int:asset_id>/all-details')
+@login_required
+def all_details(asset_id):
+    """View all detail records for an asset"""
+    asset = Asset.query.get_or_404(asset_id)
+    
+    # Get all detail records for this asset
+    all_details = AllAssetDetail.get_details_for_asset(asset_id)
+    
+    # Group details by table type for better organization
+    details_by_type = {}
+    for detail in all_details:
+        table_name = detail.table_name
+        if table_name not in details_by_type:
+            details_by_type[table_name] = []
+        details_by_type[table_name].append(detail)
+    
+    return render_template('core/assets/all_details.html',
+                         asset=asset,
+                         all_details=all_details,
+                         details_by_type=details_by_type)
+
+@bp.route('/assets/details-card')
+@bp.route('/assets/details-card/<int:asset_id>')
+@login_required
+def asset_details_card(asset_id=None):
+    """HTMX endpoint for asset details card"""
+    if asset_id is None:
+        # Return empty state
+        return render_template('core/assets/asset_details_card.html', asset=None)
+    
+    asset = Asset.query.get_or_404(asset_id)
+    
+    # Get related data
+    asset_type = asset.asset_type
+    make_model = asset.make_model
+    location = asset.major_location
+    
+    # Get recent events
+    from app.models.core.event import Event
+    events = asset.events.order_by(Event.timestamp.desc()).limit(5).all()
+    
+    # Get detail records count
+    from app.models.assets.all_details import AllAssetDetail
+    detail_count = AllAssetDetail.query.filter_by(asset_id=asset_id).count()
+    
+    return render_template('core/assets/asset_details_card.html',
+                         asset=asset,
+                         asset_type=asset_type,
+                         make_model=make_model,
+                         location=location,
+                         events=events,
+                         detail_count=detail_count) 

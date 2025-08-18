@@ -4,6 +4,7 @@ Routes for managing model-specific detail tables
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, jsonify
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.make_model import MakeModel
 from app.models.assets.model_details.emissions_info import EmissionsInfo
@@ -12,6 +13,7 @@ from app import db
 from pathlib import Path
 
 bp = Blueprint('model_details', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 # Model detail table configuration
 MODEL_DETAIL_TABLES = {

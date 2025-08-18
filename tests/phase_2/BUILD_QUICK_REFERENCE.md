@@ -105,7 +105,7 @@ python phase_2/test_phase2.py
 ### If Model Build Fails
 ```bash
 # Check what tables exist
-python -c "from app import db; inspector = db.inspect(db.engine); print(inspector.get_table_names())"
+python -c "from app import db; inspector = db.inspect(db.engine); logger.debug(inspector.get_table_names())"
 
 # Rebuild from scratch
 python -c "from app.build import build_database; build_database(build_phase='phase1', data_phase='none')"
@@ -114,7 +114,7 @@ python -c "from app.build import build_database; build_database(build_phase='pha
 ### If Data Insertion Fails
 ```bash
 # Check if required data exists
-python -c "from app.models.core.user import User; print(User.query.all())"
+python -c "from app.models.core.user import User; logger.debug(User.query.all())"
 
 # Reinsert data only
 python -c "from app.build import build_database; build_database(build_phase='none', data_phase='phase1')"

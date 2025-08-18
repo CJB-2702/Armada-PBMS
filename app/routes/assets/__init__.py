@@ -4,8 +4,10 @@ Includes routes for asset detail tables and model details
 """
 
 from flask import Blueprint
+from app.logger import get_logger
 
 bp = Blueprint('assets', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 # Import asset detail routes
 from . import detail_tables, model_details

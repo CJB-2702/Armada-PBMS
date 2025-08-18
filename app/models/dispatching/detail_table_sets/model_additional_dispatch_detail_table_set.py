@@ -5,6 +5,8 @@ Configuration container that defines additional dispatch detail table types for 
 """
 
 from app.models.core.user_created_base import UserCreatedBase
+from app.logger import get_logger
+logger = get_logger("asset_management.models.dispatching")
 from app import db
 
 class ModelAdditionalDispatchDetailTableSet(UserCreatedBase, db.Model):
@@ -45,7 +47,7 @@ class ModelAdditionalDispatchDetailTableSet(UserCreatedBase, db.Model):
                 cls._create_single_dispatch_detail_row(config, dispatch_id)
                 
         except Exception as e:
-            print(f"Error creating model additional dispatch detail table rows for dispatch {dispatch_id}: {e}")
+            logger.debug(f"Error creating model additional dispatch detail table rows for dispatch {dispatch_id}: {e}")
     
     @classmethod
     def _create_single_dispatch_detail_row(cls, config, dispatch_id):
@@ -59,7 +61,7 @@ class ModelAdditionalDispatchDetailTableSet(UserCreatedBase, db.Model):
             
             dispatch_detail_table_class_path = dispatch_detail_table_registry.get(config.dispatch_detail_table_type)
             if not dispatch_detail_table_class_path:
-                print(f"Warning: Unknown dispatch detail table type '{config.dispatch_detail_table_type}'")
+                logger.debug(f"Warning: Unknown dispatch detail table type '{config.dispatch_detail_table_type}'")
                 return
             
             # Import the dispatch detail table class
@@ -70,7 +72,7 @@ class ModelAdditionalDispatchDetailTableSet(UserCreatedBase, db.Model):
             # Create the dispatch detail table row - check for duplicates first
             existing_row = dispatch_detail_table_class.query.filter_by(dispatch_id=dispatch_id).first()
             if existing_row:
-                print(f"DEBUG: Dispatch detail row already exists for dispatch {dispatch_id}, skipping")
+                logger.debug(f"DEBUG: Dispatch detail row already exists for dispatch {dispatch_id}, skipping")
                 return  # Already exists, don't create duplicate
             
             dispatch_detail_row = dispatch_detail_table_class(dispatch_id=dispatch_id)
@@ -79,5 +81,5 @@ class ModelAdditionalDispatchDetailTableSet(UserCreatedBase, db.Model):
             db.session.add(dispatch_detail_row)
             
         except Exception as e:
-            print(f"Error creating dispatch detail row for {config.dispatch_detail_table_type}: {e}")
+            logger.debug(f"Error creating dispatch detail row for {config.dispatch_detail_table_type}: {e}")
             # Don't rollback here - let the main transaction handle it

@@ -16,14 +16,14 @@ def test_model_build():
     app = create_app()
     
     with app.app_context():
-        print("Testing master table model build...")
+        logger.debug("Testing master table model build...")
         
         # Import the master table models
         try:
             from app.models.assets.all_details import AllAssetDetail, AllModelDetail
-            print("✓ Successfully imported AllAssetDetail and AllModelDetail")
+            logger.debug("✓ Successfully imported AllAssetDetail and AllModelDetail")
         except Exception as e:
-            print(f"✗ Error importing master table models: {e}")
+            logger.debug(f"✗ Error importing master table models: {e}")
             return
         
         # Check if models are properly mapped
@@ -31,9 +31,9 @@ def test_model_build():
             # Try to query the tables to see if they're mapped
             asset_count = AllAssetDetail.query.count()
             model_count = AllModelDetail.query.count()
-            print(f"✓ Models are properly mapped. Asset details: {asset_count}, Model details: {model_count}")
+            logger.debug(f"✓ Models are properly mapped. Asset details: {asset_count}, Model details: {model_count}")
         except Exception as e:
-            print(f"✗ Error querying models: {e}")
+            logger.debug(f"✗ Error querying models: {e}")
             return
         
         # Test creating instances
@@ -44,7 +44,7 @@ def test_model_build():
                 row_id=1,
                 asset_id=1
             )
-            print("✓ Successfully created AllAssetDetail instance")
+            logger.debug("✓ Successfully created AllAssetDetail instance")
             
             # Test creating an AllModelDetail instance
             test_model_detail = AllModelDetail(
@@ -52,13 +52,13 @@ def test_model_build():
                 row_id=1,
                 make_model_id=1
             )
-            print("✓ Successfully created AllModelDetail instance")
+            logger.debug("✓ Successfully created AllModelDetail instance")
             
         except Exception as e:
-            print(f"✗ Error creating instances: {e}")
+            logger.debug(f"✗ Error creating instances: {e}")
             return
         
-        print("✓ All model build tests passed!")
+        logger.debug("✓ All model build tests passed!")
 
 if __name__ == '__main__':
     test_model_build()

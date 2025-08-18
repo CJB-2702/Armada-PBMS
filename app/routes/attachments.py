@@ -1,4 +1,5 @@
 from flask import Blueprint, request, send_file, flash, redirect, url_for, jsonify, render_template
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app import db
 from app.models.core.attachment import Attachment
@@ -8,6 +9,7 @@ import io
 import os
 
 bp = Blueprint('attachments', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 
 

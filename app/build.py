@@ -7,11 +7,9 @@ Handles phased building of models and data insertion
 from app import create_app, db
 from pathlib import Path
 import json
-import logging
+from app.logger import get_logger
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger("asset_management.build")
 
 def check_system_initialization():
     """

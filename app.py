@@ -5,10 +5,12 @@ Run script for the Asset Management System
 
 from app import create_app
 from app.build import build_database
+from app.logger import get_logger
 import sys
 import argparse
 
 app = create_app()
+logger = get_logger("asset_management.run")
 
 def parse_arguments():
     """Parse command line arguments for build phases"""
@@ -29,44 +31,44 @@ def parse_arguments():
 if __name__ == '__main__':
     args = parse_arguments()
     
-    print("Starting Asset Management System...")
+    logger.debug("Starting Asset Management System...")
     
     # Determine build phase based on arguments
     if args.phase1:
-        print("=== Building Phase 1 Only ===")
-        print("Phase 1A: Core Foundation Tables")
-        print("Phase 1B: Core System Initialization")
+        logger.debug("=== Building Phase 1 Only ===")
+        logger.debug("Phase 1A: Core Foundation Tables")
+        logger.debug("Phase 1B: Core System Initialization")
         build_phase = 'phase1'
     elif args.phase2:
-        print("=== Building Phase 1 and Phase 2 ===")
-        print("Phase 1A: Core Foundation Tables")
-        print("Phase 1B: Core System Initialization")
-        print("Phase 2: Asset Detail Tables")
+        logger.debug("=== Building Phase 1 and Phase 2 ===")
+        logger.debug("Phase 1A: Core Foundation Tables")
+        logger.debug("Phase 1B: Core System Initialization")
+        logger.debug("Phase 2: Asset Detail Tables")
         build_phase = 'phase2'
     elif args.phase3:
-        print("=== Building Phase 1, Phase 2, and Phase 3 ===")
-        print("Phase 1A: Core Foundation Tables")
-        print("Phase 1B: Core System Initialization")
-        print("Phase 2: Asset Detail Tables")
-        print("Phase 3: Automatic Detail Creation")
+        logger.debug("=== Building Phase 1, Phase 2, and Phase 3 ===")
+        logger.debug("Phase 1A: Core Foundation Tables")
+        logger.debug("Phase 1B: Core System Initialization")
+        logger.debug("Phase 2: Asset Detail Tables")
+        logger.debug("Phase 3: Automatic Detail Creation")
         build_phase = 'phase3'
     elif args.phase4:
-        print("=== Building Phase 1, Phase 2, Phase 3, and Phase 4 ===")
-        print("Phase 1A: Core Foundation Tables")
-        print("Phase 1B: Core System Initialization")
-        print("Phase 2: Asset Detail Tables")
-        print("Phase 3: Automatic Detail Creation")
-        print("Phase 4: User Interface & Authentication")
+        logger.debug("=== Building Phase 1, Phase 2, Phase 3, and Phase 4 ===")
+        logger.debug("Phase 1A: Core Foundation Tables")
+        logger.debug("Phase 1B: Core System Initialization")
+        logger.debug("Phase 2: Asset Detail Tables")
+        logger.debug("Phase 3: Automatic Detail Creation")
+        logger.debug("Phase 4: User Interface & Authentication")
         build_phase = 'phase4'
     else:
-        print("=== Building All Phases ===")
-        print("Phase 1A: Core Foundation Tables")
-        print("Phase 1B: Core System Initialization")
-        print("Phase 2: Asset Detail Tables")
-        print("Phase 3: Automatic Detail Creation")
-        print("Phase 4: User Interface & Authentication")
+        logger.debug("=== Building All Phases ===")
+        logger.debug("Phase 1A: Core Foundation Tables")
+        logger.debug("Phase 1B: Core System Initialization")
+        logger.debug("Phase 2: Asset Detail Tables")
+        logger.debug("Phase 3: Automatic Detail Creation")
+        logger.debug("Phase 4: User Interface & Authentication")
         build_phase = 'all'
-    print("")
+    logger.debug("")
     
     # Build database first
     if args.phase1:
@@ -81,9 +83,9 @@ if __name__ == '__main__':
         build_database(build_phase=build_phase)
     
     if args.build_only:
-        print("Build completed. Exiting without starting web server.")
+        logger.debug("Build completed. Exiting without starting web server.")
         sys.exit(0)
     
-    print("")
-    print("Access the application at: http://localhost:5000")
+    logger.debug("")
+    logger.debug("Access the application at: http://localhost:5000")
     app.run(debug=True, host='127.0.0.1', port=5000) 

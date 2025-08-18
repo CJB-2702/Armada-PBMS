@@ -1,4 +1,6 @@
 from app.models.core.user_created_base import UserCreatedBase
+from app.logger import get_logger
+logger = get_logger("asset_management.models.core")
 from app import db
 from sqlalchemy import event
 
@@ -39,7 +41,7 @@ class Asset(UserCreatedBase, db.Model):
         if cls._automatic_detail_insertion_enabled:
             return
         cls._automatic_detail_insertion_enabled = True
-        print("Automatic detail insertion enabled")
+        logger.debug("Automatic detail insertion enabled")
     
     @classmethod
     def disable_automatic_detail_insertion(cls):
@@ -65,7 +67,7 @@ class Asset(UserCreatedBase, db.Model):
             db.session.add(event)
             
         except Exception as e:
-            print(f"Error in post-insert events: {e}")
+            logger.debug(f"Error in post-insert events: {e}")
     
     def create_detail_table_rows(self):
         """Create detail table rows for this asset after it has been committed"""
@@ -83,7 +85,7 @@ class Asset(UserCreatedBase, db.Model):
                 ModelDetailTableSet.create_detail_table_rows(self.id, self.make_model_id)
                 
         except Exception as e:
-            print(f"Error creating detail table rows for asset {self.id}: {e}")
+            logger.debug(f"Error creating detail table rows for asset {self.id}: {e}")
     
     def __repr__(self):
         return f'<Asset {self.name} ({self.serial_number})>' 

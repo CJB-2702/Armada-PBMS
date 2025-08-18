@@ -71,6 +71,22 @@
                     <li class="nav-item">
                         <a class="nav-link disabled" href="#" title="Coming Soon">Supply</a>
                     </li>
+                    
+                    <!-- System/Admin -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            System
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('main.logs') }}">
+                                <i class="bi bi-journal-text"></i> Log Viewer
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item disabled" href="#" title="Coming Soon">
+                                <i class="bi bi-gear"></i> Settings
+                            </a></li>
+                        </ul>
+                    </li>
                 </ul>
                 
                 <!-- Search -->

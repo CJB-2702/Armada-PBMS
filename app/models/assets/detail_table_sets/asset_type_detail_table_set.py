@@ -5,6 +5,8 @@ Configuration container that defines which detail table types are available for 
 """
 
 from app.models.core.user_created_base import UserCreatedBase
+from app.logger import get_logger
+logger = get_logger("asset_management.models.assets")
 from app import db
 
 class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
@@ -56,28 +58,28 @@ class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
     @classmethod
     def create_detail_table_rows(cls, asset_id, make_model_id):
         """Create detail table rows based on asset type configurations"""
-        print(f"DEBUG: AssetTypeDetailTableSet.create_detail_table_rows called for asset {asset_id}")
+        logger.debug(f"DEBUG: AssetTypeDetailTableSet.create_detail_table_rows called for asset {asset_id}")
         try:
             # Get the asset to determine its asset type
             from app.models.core.asset import Asset
             asset = Asset.query.get(asset_id)
             if not asset or not asset.asset_type:
-                print(f"DEBUG: Asset or asset type not found")
+                logger.debug(f"DEBUG: Asset or asset type not found")
                 return
             
             asset_type_id = asset.asset_type.id
-            print(f"DEBUG: Asset type ID: {asset_type_id}")
+            logger.debug(f"DEBUG: Asset type ID: {asset_type_id}")
             
             # Get all detail table configurations for this asset type
             detail_configs = cls.get_detail_table_types_for_asset_type(asset_type_id)
-            print(f"DEBUG: Found {len(detail_configs)} detail configurations")
+            logger.debug(f"DEBUG: Found {len(detail_configs)} detail configurations")
             
             for config in detail_configs:
-                print(f"DEBUG: Creating detail row for {config.detail_table_type}")
+                logger.debug(f"DEBUG: Creating detail row for {config.detail_table_type}")
                 cls._create_single_detail_row(config, asset_id, make_model_id)
                 
         except Exception as e:
-            print(f"Error creating asset type detail table rows for asset {asset_id}: {e}")
+            logger.debug(f"Error creating asset type detail table rows for asset {asset_id}: {e}")
         
         # Update row_ids for all created detail rows
         cls._update_pending_row_ids()
@@ -94,7 +96,7 @@ class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
     @classmethod
     def _create_single_detail_row(cls, config, asset_id, make_model_id):
         """Create a single detail table row based on configuration"""
-        print(f"DEBUG: _create_single_detail_row called for {config.detail_table_type}")
+        logger.debug(f"DEBUG: _create_single_detail_row called for {config.detail_table_type}")
         try:
             # Detail table registry mapping
             detail_table_registry = {
@@ -107,41 +109,41 @@ class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
             
             detail_table_class_path = detail_table_registry.get(config.detail_table_type)
             if not detail_table_class_path:
-                print(f"Warning: Unknown detail table type '{config.detail_table_type}'")
+                logger.debug(f"Warning: Unknown detail table type '{config.detail_table_type}'")
                 return
             
-            print(f"DEBUG: Detail table class path: {detail_table_class_path}")
+            logger.debug(f"DEBUG: Detail table class path: {detail_table_class_path}")
             
             # Import the detail table class
             module_path, class_name = detail_table_class_path.rsplit('.', 1)
             module = __import__(module_path, fromlist=[class_name])
             detail_table_class = getattr(module, class_name)
             
-            print(f"DEBUG: Detail table class: {detail_table_class}")
+            logger.debug(f"DEBUG: Detail table class: {detail_table_class}")
             
             # Create the detail table row
             if config.is_asset_detail:
                 # Create asset-specific detail row - check for duplicates first
-                print(f"DEBUG: Creating asset detail row for asset_id={asset_id}")
+                logger.debug(f"DEBUG: Creating asset detail row for asset_id={asset_id}")
                 existing_row = detail_table_class.query.filter_by(asset_id=asset_id).first()
                 if existing_row:
-                    print(f"DEBUG: Asset detail row already exists for asset {asset_id}, skipping")
+                    logger.debug(f"DEBUG: Asset detail row already exists for asset {asset_id}, skipping")
                     return  # Already exists, don't create duplicate
                 detail_row = detail_table_class(asset_id=asset_id)
             else:
                 # Create model-specific detail row (check if it already exists)
                 existing_row = detail_table_class.query.filter_by(make_model_id=make_model_id).first()
                 if existing_row:
-                    print(f"DEBUG: Model detail row already exists, skipping")
+                    logger.debug(f"DEBUG: Model detail row already exists, skipping")
                     return  # Already exists, don't create duplicate
-                print(f"DEBUG: Creating model detail row for make_model_id={make_model_id}")
+                logger.debug(f"DEBUG: Creating model detail row for make_model_id={make_model_id}")
                 detail_row = detail_table_class(make_model_id=make_model_id)
             
-            print(f"DEBUG: Created detail row: {detail_row}")
+            logger.debug(f"DEBUG: Created detail row: {detail_row}")
             
             # Add to session (don't commit - let the main transaction handle it)
             db.session.add(detail_row)
-            print(f"DEBUG: Added detail row to session")
+            logger.debug(f"DEBUG: Added detail row to session")
             
             # Store the detail row for later row_id update
             if not hasattr(cls, '_pending_detail_rows'):
@@ -149,5 +151,5 @@ class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
             cls._pending_detail_rows.append(detail_row)
             
         except Exception as e:
-            print(f"Error creating detail row for {config.detail_table_type}: {e}")
+            logger.debug(f"Error creating detail row for {config.detail_table_type}: {e}")
             # Don't rollback here - let the main transaction handle it 

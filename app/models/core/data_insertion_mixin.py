@@ -6,9 +6,9 @@ Provides from_dict and to_dict methods for automatic data insertion
 from app import db
 from datetime import datetime
 from sqlalchemy import inspect
-import logging
+from app.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("asset_management.models.core.data_insertion")
 
 class DataInsertionMixin:
     """

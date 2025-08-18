@@ -4,6 +4,7 @@ Asset-focused functionality moved from main routes
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.asset import Asset
 from app.models.core.asset_type import AssetType
@@ -14,6 +15,7 @@ from app.models.core.event import Event
 from app import db
 
 asset_management = Blueprint('asset_management', __name__)
+logger = get_logger("asset_management.routes.asset_management")
 
 @asset_management.route('/assets/')
 @login_required

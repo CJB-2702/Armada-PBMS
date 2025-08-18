@@ -16,24 +16,24 @@ def test_detail_virtual_classes():
     app = create_app()
     
     with app.app_context():
-        print("Testing detail virtual classes...")
+        logger.debug("Testing detail virtual classes...")
         
         # Test importing the virtual classes
         try:
             from app.models.assets.asset_detail_virtual import AssetDetailVirtual
             from app.models.assets.model_detail_virtual import ModelDetailVirtual
-            print("✓ Successfully imported virtual classes")
+            logger.debug("✓ Successfully imported virtual classes")
         except Exception as e:
-            print(f"✗ Error importing virtual classes: {e}")
+            logger.debug(f"✗ Error importing virtual classes: {e}")
             return
         
         # Test importing concrete detail classes
         try:
             from app.models.assets.asset_details.purchase_info import PurchaseInfo
             from app.models.assets.model_details.model_info import ModelInfo
-            print("✓ Successfully imported concrete detail classes")
+            logger.debug("✓ Successfully imported concrete detail classes")
         except Exception as e:
-            print(f"✗ Error importing concrete detail classes: {e}")
+            logger.debug(f"✗ Error importing concrete detail classes: {e}")
             return
         
         # Test creating instances (this should work without the automatic insertion)
@@ -48,11 +48,11 @@ def test_detail_virtual_classes():
             test_user = User.query.first()
             
             if not test_asset or not test_model or not test_user:
-                print("✗ Need test data: assets, make_models, and users")
+                logger.debug("✗ Need test data: assets, make_models, and users")
                 return
             
-            print(f"✓ Using test asset: {test_asset.name}")
-            print(f"✓ Using test model: {test_model.make} {test_model.model}")
+            logger.debug(f"✓ Using test asset: {test_asset.name}")
+            logger.debug(f"✓ Using test model: {test_model.make} {test_model.model}")
             
             # Test creating a purchase info instance
             purchase_info = PurchaseInfo(
@@ -63,7 +63,7 @@ def test_detail_virtual_classes():
                 created_by_id=test_user.id,
                 updated_by_id=test_user.id
             )
-            print("✓ Successfully created PurchaseInfo instance")
+            logger.debug("✓ Successfully created PurchaseInfo instance")
             
             # Test creating a model info instance
             model_info = ModelInfo(
@@ -74,13 +74,13 @@ def test_detail_virtual_classes():
                 created_by_id=test_user.id,
                 updated_by_id=test_user.id
             )
-            print("✓ Successfully created ModelInfo instance")
+            logger.debug("✓ Successfully created ModelInfo instance")
             
         except Exception as e:
-            print(f"✗ Error creating instances: {e}")
+            logger.debug(f"✗ Error creating instances: {e}")
             return
         
-        print("✓ All detail virtual class tests passed!")
+        logger.debug("✓ All detail virtual class tests passed!")
 
 if __name__ == '__main__':
     test_detail_virtual_classes()

@@ -4,9 +4,9 @@ Handles building and initializing core foundation models and data
 """
 
 from app import db
-import logging
+from app.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("asset_management.models.core")
 
 def build_models():
     """

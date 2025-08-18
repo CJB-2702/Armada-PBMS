@@ -16,7 +16,7 @@ def create_master_tables():
     app = create_app()
     
     with app.app_context():
-        print("Creating master table tables...")
+        logger.debug("Creating master table tables...")
         
         # Import the master table models to register them
         from app.models.assets.all_details import AllAssetDetail, AllModelDetail
@@ -24,18 +24,18 @@ def create_master_tables():
         try:
             # Create the tables
             db.create_all()
-            print("✓ Successfully created all tables")
+            logger.debug("✓ Successfully created all tables")
             
             # Verify the tables exist
             asset_count = AllAssetDetail.query.count()
             model_count = AllModelDetail.query.count()
-            print(f"✓ Tables verified. Asset details: {asset_count}, Model details: {model_count}")
+            logger.debug(f"✓ Tables verified. Asset details: {asset_count}, Model details: {model_count}")
             
         except Exception as e:
-            print(f"✗ Error creating tables: {e}")
+            logger.debug(f"✗ Error creating tables: {e}")
             return
         
-        print("✓ Master table creation completed!")
+        logger.debug("✓ Master table creation completed!")
 
 if __name__ == '__main__':
     create_master_tables()

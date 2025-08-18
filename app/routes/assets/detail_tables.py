@@ -4,6 +4,7 @@ Routes for managing asset-specific detail tables
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, jsonify
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.asset import Asset
 from app.models.assets.asset_details.purchase_info import PurchaseInfo
@@ -13,6 +14,7 @@ from app import db
 from pathlib import Path
 
 bp = Blueprint('detail_tables', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 # Detail table configuration
 DETAIL_TABLES = {

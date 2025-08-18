@@ -306,17 +306,17 @@ python phase_2/test_phase2.py
 from app import db
 inspector = db.inspect(db.engine)
 tables = inspector.get_table_names()
-print(tables)
+logger.debug(tables)
 
 # Check specific table schema
 columns = inspector.get_columns('table_name')
 for column in columns:
-    print(f"{column['name']}: {column['type']}")
+    logger.debug(f"{column['name']}: {column['type']}")
 
 # Verify relationships
 from app.models.core.asset import Asset
 asset = Asset.query.first()
-print(asset.purchaseinfo_details)  # Check backref relationships
+logger.debug(asset.purchaseinfo_details)  # Check backref relationships
 ```
 
 ## Conclusion

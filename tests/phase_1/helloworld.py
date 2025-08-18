@@ -24,60 +24,60 @@ class TableCreated(db.Model):
 
 def test_helloworld():
     """Test creating database, table, and inserting data"""
-    print("=== Hello World Database Test ===")
+    logger.debug("=== Hello World Database Test ===")
     
     try:
         with app.app_context():
             # Step 1: Create all tables
-            print("1. Creating database tables...")
+            logger.debug("1. Creating database tables...")
             db.create_all()
-            print("   ✓ Tables created successfully")
+            logger.debug("   ✓ Tables created successfully")
             
             # Step 2: Insert a row with boolean 'yes'
-            print("2. Inserting data...")
+            logger.debug("2. Inserting data...")
             new_row = TableCreated(yes=True)
             db.session.add(new_row)
             db.session.commit()
-            print("   ✓ Data inserted successfully")
+            logger.debug("   ✓ Data inserted successfully")
             
             # Step 3: Verify table exists
-            print("3. Verifying table exists...")
+            logger.debug("3. Verifying table exists...")
             inspector = db.inspect(db.engine)
             tables = inspector.get_table_names()
             
             if 'tablecreated' in tables:
-                print("   ✓ Table 'tablecreated' exists")
+                logger.debug("   ✓ Table 'tablecreated' exists")
             else:
-                print("   ✗ Table 'tablecreated' missing")
+                logger.debug("   ✗ Table 'tablecreated' missing")
                 return False
             
             # Step 4: Verify data was inserted
-            print("4. Verifying data was inserted...")
+            logger.debug("4. Verifying data was inserted...")
             result = TableCreated.query.first()
             if result and result.yes:
-                print("   ✓ Row found with yes=True")
-                print(f"   ✓ Row ID: {result.id}")
+                logger.debug("   ✓ Row found with yes=True")
+                logger.debug(f"   ✓ Row ID: {result.id}")
             else:
-                print("   ✗ No row found or yes is not True")
+                logger.debug("   ✗ No row found or yes is not True")
                 return False
             
             # Step 5: Show table schema
-            print("5. Table schema:")
+            logger.debug("5. Table schema:")
             columns = inspector.get_columns('tablecreated')
             for column in columns:
                 nullable = "NULL" if column['nullable'] else "NOT NULL"
-                print(f"   - {column['name']}: {column['type']} {nullable}")
+                logger.debug(f"   - {column['name']}: {column['type']} {nullable}")
             
             # Step 6: Count rows
             row_count = TableCreated.query.count()
-            print(f"6. Total rows in table: {row_count}")
+            logger.debug(f"6. Total rows in table: {row_count}")
             
-        print("\n=== Hello World Test PASSED ===")
+        logger.debug("\n=== Hello World Test PASSED ===")
         return True
         
     except Exception as e:
-        print(f"\n=== Hello World Test FAILED ===")
-        print(f"Error: {str(e)}")
+        logger.debug(f"\n=== Hello World Test FAILED ===")
+        logger.debug(f"Error: {str(e)}")
         import traceback
         traceback.print_exc()
         return False

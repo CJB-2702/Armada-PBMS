@@ -16,8 +16,8 @@ def test_duplicate_events():
     app = create_app()
     
     with app.app_context():
-        print("Testing for Duplicate Events")
-        print("=" * 50)
+        logger.debug("Testing for Duplicate Events")
+        logger.debug("=" * 50)
         
         # Get existing data
         admin_user = User.query.filter_by(username='admin').first()
@@ -25,27 +25,27 @@ def test_duplicate_events():
         make_model = MakeModel.query.first()
         
         if not all([admin_user, location, make_model]):
-            print("❌ Missing required data for test")
+            logger.debug("❌ Missing required data for test")
             return False
         
-        print(f"✓ Found admin user: {admin_user.username}")
-        print(f"✓ Found location: {location.name}")
-        print(f"✓ Found make/model: {make_model.make} {make_model.model}")
+        logger.debug(f"✓ Found admin user: {admin_user.username}")
+        logger.debug(f"✓ Found location: {location.name}")
+        logger.debug(f"✓ Found make/model: {make_model.make} {make_model.model}")
         
         # Count events before creating asset
         events_before = Event.query.count()
-        print(f"Events before asset creation: {events_before}")
+        logger.debug(f"Events before asset creation: {events_before}")
         
         # List all events before
-        print("\nEvents before asset creation:")
+        logger.debug("\nEvents before asset creation:")
         for event in Event.query.all():
-            print(f"  - {event}")
+            logger.debug(f"  - {event}")
         
         # Create a new asset with unique serial number
         timestamp = int(time.time())
         serial_number = f"TEST{timestamp}"
         
-        print(f"\nCreating new asset with serial number: {serial_number}")
+        logger.debug(f"\nCreating new asset with serial number: {serial_number}")
         
         new_asset = Asset(
             name="Test Asset",
@@ -64,16 +64,16 @@ def test_duplicate_events():
         db.session.add(new_asset)
         db.session.commit()
         
-        print(f"✓ Asset created with ID: {new_asset.id}")
+        logger.debug(f"✓ Asset created with ID: {new_asset.id}")
         
         # Check events after creating asset
         events_after = Event.query.count()
-        print(f"Events after asset creation: {events_after}")
+        logger.debug(f"Events after asset creation: {events_after}")
         
         # List all events after
-        print("\nEvents after asset creation:")
+        logger.debug("\nEvents after asset creation:")
         for event in Event.query.all():
-            print(f"  - {event}")
+            logger.debug(f"  - {event}")
         
         # Check for duplicate events
         asset_creation_events = Event.query.filter_by(
@@ -81,30 +81,30 @@ def test_duplicate_events():
             asset_id=new_asset.id
         ).all()
         
-        print(f"\nAsset creation events for asset {new_asset.id}: {len(asset_creation_events)}")
+        logger.debug(f"\nAsset creation events for asset {new_asset.id}: {len(asset_creation_events)}")
         for event in asset_creation_events:
-            print(f"  - {event}")
+            logger.debug(f"  - {event}")
         
         if len(asset_creation_events) > 1:
-            print(f"❌ DUPLICATE EVENTS DETECTED! Found {len(asset_creation_events)} events")
+            logger.debug(f"❌ DUPLICATE EVENTS DETECTED! Found {len(asset_creation_events)} events")
             return False
         elif len(asset_creation_events) == 1:
-            print(f"✓ Single event created successfully")
+            logger.debug(f"✓ Single event created successfully")
             return True
         else:
-            print(f"❌ No asset creation event found")
+            logger.debug(f"❌ No asset creation event found")
             return False
 
 if __name__ == "__main__":
     try:
         success = test_duplicate_events()
         if success:
-            print("\n" + "=" * 50)
-            print("✓ No duplicate events detected!")
+            logger.debug("\n" + "=" * 50)
+            logger.debug("✓ No duplicate events detected!")
         else:
-            print("\n" + "=" * 50)
-            print("❌ Duplicate events detected!")
+            logger.debug("\n" + "=" * 50)
+            logger.debug("❌ Duplicate events detected!")
     except Exception as e:
-        print(f"❌ Test failed with error: {e}")
+        logger.debug(f"❌ Test failed with error: {e}")
         import traceback
         traceback.print_exc() 

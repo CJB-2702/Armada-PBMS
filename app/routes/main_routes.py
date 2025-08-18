@@ -3,7 +3,8 @@ Main routes for the Asset Management System
 Dashboard and main navigation routes
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.asset import Asset
 from app.models.core.asset_type import AssetType
@@ -184,4 +185,178 @@ def help():
 @login_required
 def about():
     """About page with system information"""
-    return render_template('about.html') 
+    return render_template('about.html')
+
+@main.route('/logs')
+@login_required
+def logs():
+    """Log viewer page"""
+    logger = get_logger()
+    logger.debug(f"User {current_user.username} accessing log viewer")
+    
+    # Get query parameters for filtering and sorting
+    sort_by = request.args.get('sort_by', 'line')  # level, module, function, line, message
+    sort_order = request.args.get('sort_order', 'desc')  # asc, desc
+    level_filter = request.args.get('level', '')  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    module_filter = request.args.get('module', '')  # module name
+    function_filter = request.args.get('function', '')  # function name
+    message_filter = request.args.get('message', '')  # message content
+    limit = request.args.get('limit', 100, type=int)  # number of entries to show
+    
+    # Read log file and convert to valid JSON
+    import json
+    from pathlib import Path
+    
+    logs_dir = Path('logs')
+    log_file = logs_dir / 'asset_management.log'
+    
+    logs_data = []
+    if log_file.exists():
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
+                lines = [line.strip() for line in f if line.strip()]
+                
+            # Convert to valid JSON array
+            valid_logs = []
+            for line_num, line in enumerate(lines):
+                try:
+                    log_entry = json.loads(line)
+                    log_entry['index'] = line_num + 1
+                    valid_logs.append(log_entry)
+                except json.JSONDecodeError:
+                    # Skip invalid JSON lines
+                    continue
+            
+            # Apply filters
+            filtered_logs = []
+            for log in valid_logs:
+                # Level filter
+                if level_filter and log.get('level') != level_filter:
+                    continue
+                # Module filter
+                if module_filter and module_filter.lower() not in log.get('module', '').lower():
+                    continue
+                # Function filter
+                if function_filter and function_filter.lower() not in log.get('function', '').lower():
+                    continue
+                # Message filter
+                if message_filter and message_filter.lower() not in log.get('message', '').lower():
+                    continue
+                filtered_logs.append(log)
+            
+            # Apply sorting
+            reverse_sort = sort_order == 'index'
+            if sort_by == 'index':
+                filtered_logs.sort(key=lambda x: x.get('index', ''), reverse=reverse_sort)
+            elif sort_by == 'level':
+                filtered_logs.sort(key=lambda x: x.get('level', ''), reverse=reverse_sort)
+            elif sort_by == 'module':
+                filtered_logs.sort(key=lambda x: x.get('module', ''), reverse=reverse_sort)
+            elif sort_by == 'function':
+                filtered_logs.sort(key=lambda x: x.get('function', ''), reverse=reverse_sort)
+            elif sort_by == 'line':
+                filtered_logs.sort(key=lambda x: int(x.get('line', 0)), reverse=reverse_sort)
+            elif sort_by == 'message':
+                filtered_logs.sort(key=lambda x: x.get('message', ''), reverse=reverse_sort)
+            else:
+                # Default sort by line number
+                filtered_logs.sort(key=lambda x: int(x.get('line', 0)), reverse=reverse_sort)
+            
+            # Apply limit
+            logs_data = filtered_logs[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error reading log file: {e}")
+    
+    # Get unique values for filter dropdowns
+    unique_levels = sorted(list(set(log.get('level') for log in logs_data)))
+    unique_modules = sorted(list(set(log.get('module') for log in logs_data)))
+    unique_functions = sorted(list(set(log.get('function') for log in logs_data)))
+    
+    return render_template('logs_table.html', 
+                         logs=logs_data,
+                         sort_by=sort_by,
+                         sort_order=sort_order,
+                         level_filter=level_filter,
+                         module_filter=module_filter,
+                         function_filter=function_filter,
+                         message_filter=message_filter,
+                         limit=limit,
+                         unique_levels=unique_levels,
+                         unique_modules=unique_modules,
+                         unique_functions=unique_functions)
+
+@main.route('/api/logs')
+@login_required
+def api_logs():
+    """API endpoint to get log data"""
+    import json
+    from pathlib import Path
+    from datetime import datetime
+    from flask import jsonify, request
+    
+    # Get query parameters for filtering
+    log_type = request.args.get('type', 'asset_management')  # asset_management or errors
+    limit = request.args.get('limit', 100, type=int)
+    level = request.args.get('level', '')  # DEBUG, INFO, WARNING, ERROR
+    logger_name = request.args.get('logger', '')  # specific logger name
+    search = request.args.get('search', '')  # text search
+    
+    logger.debug(f"Log API request - Type: {log_type}, Limit: {limit}, Level: {level}, Logger: {logger_name}")
+    
+    # Find the most recent log file
+    logs_dir = Path('logs')
+    if not logs_dir.exists():
+        return jsonify({'logs': [], 'error': 'Logs directory not found'})
+    
+    # Use fixed filenames for the simplified logger
+    if log_type == 'errors':
+        log_file = logs_dir / 'errors.log'
+    else:
+        log_file = logs_dir / 'asset_management.log'
+    
+    if not log_file.exists():
+        return jsonify({'logs': [], 'error': f'Log file not found: {log_file.name}'})
+    
+    logs_data = []
+    try:
+        with open(log_file, 'r', encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                if line.strip():
+                    try:
+                        log_entry = json.loads(line.strip())
+                        
+                        # Apply filters
+                        if level and log_entry.get('level') != level:
+                            continue
+                        if logger_name and logger_name not in log_entry.get('module', ''):
+                            continue
+                        if search and search.lower() not in log_entry.get('message', '').lower():
+                            continue
+                        
+                        # Add line number for reference
+                        log_entry['line_number'] = line_num
+                        logs_data.append(log_entry)
+                        
+                        # Limit results
+                        if len(logs_data) >= limit:
+                            break
+                            
+                    except json.JSONDecodeError:
+                        # Skip invalid JSON lines
+                        continue
+        
+        # Reverse to show newest first
+        logs_data.reverse()
+        
+        logger.info(f"Log API returned {len(logs_data)} log entries from {log_file.name}")
+        return jsonify({
+            'logs': logs_data,
+            'log_file': log_file.name,
+            'total_entries': len(logs_data),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error reading log file: {e}")
+        return jsonify({'logs': [], 'error': str(e)}) 

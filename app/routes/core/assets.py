@@ -12,13 +12,17 @@ from app.models.core.major_location import MajorLocation
 from app.models.core.event import Event
 from app.models.assets.all_details import AllAssetDetail
 from app import db
+from app.logger import get_logger
 
+logger = get_logger("asset_management.routes.core.assets")
 bp = Blueprint('assets', __name__)
 
 @bp.route('/assets')
 @login_required
 def list():
     """List all assets with basic filtering"""
+    logger.debug(f"User {current_user.username} accessing assets list")
+    
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
@@ -29,6 +33,8 @@ def list():
     status = request.args.get('status')
     serial_number = request.args.get('serial_number')
     name = request.args.get('name')
+    
+    logger.debug(f"Assets list filters - Type: {asset_type_id}, Location: {location_id}, Model: {make_model_id}, Status: {status}")
     
     query = Asset.query
     
@@ -62,6 +68,8 @@ def list():
     locations = MajorLocation.query.all()
     make_models = MakeModel.query.all()
     
+    logger.info(f"Assets list returned {assets.total} assets (page {page})")
+    
     return render_template('core/assets/list.html', 
                          assets=assets,
                          asset_types=asset_types,
@@ -80,6 +88,8 @@ def list():
 @login_required
 def detail(asset_id):
     """View individual asset details"""
+    logger.debug(f"User {current_user.username} accessing asset detail for asset ID: {asset_id}")
+    
     asset = Asset.query.get_or_404(asset_id)
     
     # Get related data through relationships
@@ -89,6 +99,8 @@ def detail(asset_id):
     
     # Get asset events
     events = asset.events.order_by(Event.timestamp.desc()).limit(10).all()
+    
+    logger.info(f"Asset detail accessed - Asset: {asset.name} (ID: {asset_id}), Type: {asset_type.name if asset_type else 'None'}")
     
     return render_template('core/assets/detail.html', 
                          asset=asset,

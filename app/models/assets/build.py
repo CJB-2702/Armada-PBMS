@@ -4,11 +4,11 @@ Handles building and initializing asset detail models and data
 """
 from app.models.core.build import init_essential_data, init_data
 from app import db
-import logging
+from app.logger import get_logger
 from datetime import datetime
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+logger = get_logger("asset_management.models.assets")
 
 # Centralized detail table registry
 DETAIL_TABLE_REGISTRY = {

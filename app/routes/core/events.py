@@ -4,6 +4,7 @@ CRUD operations for Event model
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.event import Event
 from app.models.core.asset import Asset
@@ -13,6 +14,7 @@ from app.models.core.make_model import MakeModel
 from app import db
 
 bp = Blueprint('events', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 def build_event_query(row_count=50):
     """Helper function to build event query with filters"""

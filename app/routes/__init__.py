@@ -4,6 +4,9 @@ Organized in a tiered structure mirroring the model organization
 """
 
 from flask import Blueprint
+from app.logger import get_logger
+
+logger = get_logger("asset_management.routes")
 
 # Create main blueprint
 main = Blueprint('main', __name__)
@@ -13,6 +16,8 @@ from . import core, assets, main_routes
 
 def init_app(app):
     """Initialize all route blueprints with the Flask app"""
+    logger.debug("Initializing route blueprints")
+    
     # Don't register main again - it's already registered in app/__init__.py
     app.register_blueprint(core.bp, url_prefix='/core')
     app.register_blueprint(assets.bp, url_prefix='/assets')
@@ -36,4 +41,6 @@ def init_app(app):
     # Register dispatching blueprint
     from .dispatching import dispatches
     
-    app.register_blueprint(dispatches.dispatching_bp, url_prefix='/dispatching') 
+    app.register_blueprint(dispatches.dispatching_bp, url_prefix='/dispatching')
+    
+    logger.info("All route blueprints registered successfully") 

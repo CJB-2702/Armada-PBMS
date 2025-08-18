@@ -64,7 +64,7 @@ class Attachment(UserCreatedBase, db.Model):
         """Generate filesystem path for large attachments using row_id_filename structure"""
         timestamp = datetime.now()
         safe_filename = secure_filename(filename)
-        return f"large_attachments/{timestamp.year}/{timestamp.month:02d}/{row_id}_{safe_filename}"
+        return f"instance/large_attachments/{timestamp.year}/{timestamp.month:02d}/{row_id}_{safe_filename}"
     
     def save_file(self, file_data, filename):
         """Save file data to appropriate storage"""

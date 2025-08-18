@@ -23,10 +23,10 @@ def migrate_existing_data():
     app = create_app()
     
     with app.app_context():
-        print("Starting migration to master tables...")
+        logger.debug("Starting migration to master tables...")
         
         # Migrate asset details
-        print("Migrating asset details...")
+        logger.debug("Migrating asset details...")
         
         # PurchaseInfo
         purchase_records = PurchaseInfo.query.all()
@@ -48,7 +48,7 @@ def migrate_existing_data():
                     updated_at=record.updated_at
                 )
                 db.session.add(master_record)
-                print(f"Added purchase_info record {record.id} to master table")
+                logger.debug(f"Added purchase_info record {record.id} to master table")
         
         # VehicleRegistration
         vehicle_records = VehicleRegistration.query.all()
@@ -69,7 +69,7 @@ def migrate_existing_data():
                     updated_at=record.updated_at
                 )
                 db.session.add(master_record)
-                print(f"Added vehicle_registration record {record.id} to master table")
+                logger.debug(f"Added vehicle_registration record {record.id} to master table")
         
         # ToyotaWarrantyReceipt
         warranty_records = ToyotaWarrantyReceipt.query.all()
@@ -90,10 +90,10 @@ def migrate_existing_data():
                     updated_at=record.updated_at
                 )
                 db.session.add(master_record)
-                print(f"Added toyota_warranty_receipt record {record.id} to master table")
+                logger.debug(f"Added toyota_warranty_receipt record {record.id} to master table")
         
         # Migrate model details
-        print("Migrating model details...")
+        logger.debug("Migrating model details...")
         
         # ModelInfo
         model_records = ModelInfo.query.all()
@@ -114,7 +114,7 @@ def migrate_existing_data():
                     updated_at=record.updated_at
                 )
                 db.session.add(master_record)
-                print(f"Added model_info record {record.id} to master table")
+                logger.debug(f"Added model_info record {record.id} to master table")
         
         # EmissionsInfo
         emissions_records = EmissionsInfo.query.all()
@@ -135,15 +135,15 @@ def migrate_existing_data():
                     updated_at=record.updated_at
                 )
                 db.session.add(master_record)
-                print(f"Added emissions_info record {record.id} to master table")
+                logger.debug(f"Added emissions_info record {record.id} to master table")
         
         # Commit all changes
         try:
             db.session.commit()
-            print("Migration completed successfully!")
+            logger.debug("Migration completed successfully!")
         except Exception as e:
             db.session.rollback()
-            print(f"Migration failed: {e}")
+            logger.debug(f"Migration failed: {e}")
             raise
 
 if __name__ == '__main__':

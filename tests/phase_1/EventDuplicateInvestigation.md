@@ -42,7 +42,7 @@ existing_event = Event.query.filter_by(
 ).first()
 
 if existing_event:
-    print(f"DEBUG: Asset creation event already exists for asset {self.id}, skipping")
+    logger.debug(f"DEBUG: Asset creation event already exists for asset {self.id}, skipping")
     return
 ```
 - Checks if an event already exists for the asset before creating a new one
@@ -51,7 +51,7 @@ if existing_event:
 #### 3. **Detail Creation Progress Flag**
 ```python
 if not cls._automatic_detail_insertion_enabled or cls._detail_creation_in_progress:
-    print(f"DEBUG: Skipping detail creation - already in progress or disabled")
+    logger.debug(f"DEBUG: Skipping detail creation - already in progress or disabled")
     return
 ```
 - Prevents duplicate detail table creation

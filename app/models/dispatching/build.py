@@ -5,6 +5,8 @@ Builds and registers all dispatch-related models
 """
 
 from app import db
+from app.logger import get_logger
+logger = get_logger("asset_management.models.dispatching")
 from app.models.core.user_created_base import UserCreatedBase
 from sqlalchemy import event
 
@@ -30,7 +32,7 @@ DISPATCH_DETAIL_TABLE_REGISTRY = {
 
 def register_dispatch_models():
     """Register all dispatch models with the database"""
-    print("Registering dispatch models...")
+    logger.debug("Registering dispatch models...")
     
     # Core dispatch models
     models = [
@@ -44,19 +46,19 @@ def register_dispatch_models():
     ]
     
     for model in models:
-        print(f"  - Registered {model.__name__}")
+        logger.debug(f"  - Registered {model.__name__}")
     
-    print("Dispatch models registered successfully!")
+    logger.debug("Dispatch models registered successfully!")
 
 def setup_dispatch_automatic_detail_insertion():
     """Setup automatic dispatch detail table creation"""
-    print("Setting up automatic dispatch detail insertion...")
+    logger.debug("Setting up automatic dispatch detail insertion...")
     # Note: Automatic detail insertion is handled manually in tests
     # In production, this would be set up with proper event listeners
 
 def create_sample_dispatch_configurations():
     """Create sample dispatch detail table configurations using new structured format"""
-    print("Creating sample dispatch configurations...")
+    logger.debug("Creating sample dispatch configurations...")
     
     try:
         # Load build data to get configurations
@@ -71,14 +73,14 @@ def create_sample_dispatch_configurations():
         from app.models.core.user import User
         system_user = User.query.filter_by(username='system').first()
         if not system_user:
-            print("Warning: System user not found, skipping dispatch configurations")
+            logger.debug("Warning: System user not found, skipping dispatch configurations")
             return
         
         system_user_id = system_user.id
         
         # Create dispatch detail table sets
         if 'Dispatching' in build_data and 'Dispatch_Detail_Table_Sets' in build_data['Dispatching']:
-            print("Creating dispatch detail table sets...")
+            logger.debug("Creating dispatch detail table sets...")
             detail_table_sets = build_data['Dispatching']['Dispatch_Detail_Table_Sets']
             
             # Create AssetTypeDispatchDetailTableSet records
@@ -97,7 +99,7 @@ def create_sample_dispatch_configurations():
                             created_by_id=system_user_id
                         )
                         db.session.add(config)
-                        print(f"  - Created AssetTypeDispatchDetailTableSet: asset_type_id={config_data['asset_type_id']}, type={config_data['dispatch_detail_table_type']}")
+                        logger.debug(f"  - Created AssetTypeDispatchDetailTableSet: asset_type_id={config_data['asset_type_id']}, type={config_data['dispatch_detail_table_type']}")
             
             # Create ModelAdditionalDispatchDetailTableSet records
             if 'ModelAdditionalDispatchDetailTableSet' in detail_table_sets:
@@ -115,19 +117,19 @@ def create_sample_dispatch_configurations():
                             created_by_id=system_user_id
                         )
                         db.session.add(config)
-                        print(f"  - Created ModelAdditionalDispatchDetailTableSet: make_model_id={config_data['make_model_id']}, type={config_data['dispatch_detail_table_type']}")
+                        logger.debug(f"  - Created ModelAdditionalDispatchDetailTableSet: make_model_id={config_data['make_model_id']}, type={config_data['dispatch_detail_table_type']}")
         
         db.session.commit()
-        print("Sample dispatch configurations created successfully!")
+        logger.debug("Sample dispatch configurations created successfully!")
         
     except Exception as e:
-        print(f"Error creating sample dispatch configurations: {e}")
+        logger.debug(f"Error creating sample dispatch configurations: {e}")
         db.session.rollback()
 
 
 def create_example_dispatch_records():
     """Create example dispatch records from the new structured JSON data"""
-    print("Creating example dispatch records...")
+    logger.debug("Creating example dispatch records...")
     
     try:
         # Load build data
@@ -141,7 +143,7 @@ def create_example_dispatch_records():
         
         # Get example dispatches from Dispatching section
         if 'Dispatching' not in build_data or 'Example_Dispatches' not in build_data['Dispatching']:
-            print("No example dispatches found in build_data")
+            logger.debug("No example dispatches found in build_data")
             return
         
         example_dispatches = build_data['Dispatching']['Example_Dispatches']
@@ -159,7 +161,7 @@ def create_example_dispatch_records():
         
         # Create example dispatches
         for dispatch_key, dispatch_data in example_dispatches.items():
-            print(f"  Creating dispatch: {dispatch_key}")
+            logger.debug(f"  Creating dispatch: {dispatch_key}")
             
             # Get the main dispatch record
             dispatch_info = dispatch_data.get('dispatch', {})
@@ -168,13 +170,13 @@ def create_example_dispatch_records():
             # Find the asset
             asset = Asset.query.filter_by(name=asset_name).first()
             if not asset:
-                print(f"    Warning: Asset '{asset_name}' not found, skipping dispatch")
+                logger.debug(f"    Warning: Asset '{asset_name}' not found, skipping dispatch")
                 continue
             
             # Check if a dispatch for this asset already exists
             existing_dispatch = Dispatch.query.filter_by(asset_id=asset.id).first()
             if existing_dispatch:
-                print(f"    Dispatch for asset '{asset_name}' already exists, skipping")
+                logger.debug(f"    Dispatch for asset '{asset_name}' already exists, skipping")
                 continue
             
             # Generate unique dispatch number
@@ -194,11 +196,11 @@ def create_example_dispatch_records():
             db.session.add(dispatch)
             db.session.flush()  # Get the dispatch ID
             
-            print(f"    Created dispatch record: {dispatch.dispatch_number}")
+            logger.debug(f"    Created dispatch record: {dispatch.dispatch_number}")
             
             # After creating the dispatch, trigger automatic detail insertion
             # This will create the appropriate detail records based on the asset type and model
-            print(f"    Triggering automatic detail insertion for dispatch {dispatch.id}")
+            logger.debug(f"    Triggering automatic detail insertion for dispatch {dispatch.id}")
             
             # The automatic detail insertion system should create the appropriate detail records
             # based on the asset type and model configurations
@@ -219,7 +221,7 @@ def create_example_dispatch_records():
                 created_by_id=system_user_id
             )
             db.session.add(vehicle_dispatch)
-            print(f"    Created vehicle dispatch detail record")
+            logger.debug(f"    Created vehicle dispatch detail record")
             
             # Create truck dispatch checklist detail record (for trucks/F-250)
             if asset.make_model and asset.make_model.make == 'Ford' and asset.make_model.model == 'F-250':
@@ -241,19 +243,19 @@ def create_example_dispatch_records():
                     created_by_id=system_user_id
                 )
                 db.session.add(truck_checklist)
-                print(f"    Created truck dispatch checklist detail record")
+                logger.debug(f"    Created truck dispatch checklist detail record")
         
         db.session.commit()
-        print("Example dispatch records created successfully!")
+        logger.debug("Example dispatch records created successfully!")
         
     except Exception as e:
-        print(f"Error creating example dispatch records: {e}")
+        logger.debug(f"Error creating example dispatch records: {e}")
         db.session.rollback()
         raise
 
 def build_dispatch_models():
     """Main function to build all dispatch models"""
-    print("Building dispatch models...")
+    logger.debug("Building dispatch models...")
     
     # Register models
     register_dispatch_models()
@@ -264,7 +266,7 @@ def build_dispatch_models():
     # Create sample configurations (but not records - those are created during data insertion)
     create_sample_dispatch_configurations()
     
-    print("Dispatch models built successfully!")
+    logger.debug("Dispatch models built successfully!")
 
 if __name__ == "__main__":
     build_dispatch_models()

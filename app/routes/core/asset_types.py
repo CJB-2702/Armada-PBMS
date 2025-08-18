@@ -4,6 +4,7 @@ CRUD operations for AssetType model
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.asset_type import AssetType
 from app.models.core.make_model import MakeModel
@@ -11,6 +12,7 @@ from app.models.core.asset import Asset
 from app import db
 
 bp = Blueprint('asset_types', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 @bp.route('/asset-types')
 @login_required

@@ -15,7 +15,9 @@ from app.models.core.major_location import MajorLocation
 from app.models.dispatching.detail_table_sets.asset_type_dispatch_detail_table_set import AssetTypeDispatchDetailTableSet
 from datetime import datetime
 import uuid
+from app.logger import get_logger
 
+logger = get_logger("asset_management.routes.dispatching")
 # Create blueprint
 dispatching_bp = Blueprint('dispatching', __name__)
 
@@ -23,7 +25,9 @@ dispatching_bp = Blueprint('dispatching', __name__)
 @login_required
 def index():
     """List all dispatches"""
+    logger.debug(f"User {current_user.username} accessing dispatches list")
     dispatches = Dispatch.query.order_by(Dispatch.created_date.desc()).all()
+    logger.info(f"Dispatches list returned {len(dispatches)} dispatches")
     return render_template('dispatching/index.html', dispatches=dispatches)
 
 @dispatching_bp.route('/create', methods=['GET', 'POST'])
@@ -31,6 +35,7 @@ def index():
 def create():
     """Create a new dispatch"""
     if request.method == 'POST':
+        logger.debug(f"User {current_user.username} creating new dispatch")
         try:
             # Generate unique dispatch number
             dispatch_number = f"DISP-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
@@ -58,12 +63,16 @@ def create():
             if dispatch.asset_id:
                 AssetTypeDispatchDetailTableSet.create_dispatch_detail_table_rows(dispatch.id, dispatch.asset_id)
             
+            logger.info(f"Dispatch created successfully - Number: {dispatch_number}, Title: {dispatch.title}")
             flash('Dispatch created successfully!', 'success')
             return redirect(url_for('dispatching.view', dispatch_id=dispatch.id))
             
         except Exception as e:
             db.session.rollback()
+            logger.error(f"Error creating dispatch: {str(e)}")
             flash(f'Error creating dispatch: {str(e)}', 'error')
+    else:
+        logger.debug(f"User {current_user.username} accessing dispatch creation form")
     
     # Get data for form
     assets = Asset.query.filter_by(status='Active').all()
@@ -79,7 +88,9 @@ def create():
 @login_required
 def view(dispatch_id):
     """View a specific dispatch"""
+    logger.debug(f"User {current_user.username} viewing dispatch ID: {dispatch_id}")
     dispatch = Dispatch.query.get_or_404(dispatch_id)
+    logger.info(f"Dispatch viewed - Number: {dispatch.dispatch_number}, Title: {dispatch.title}")
     return render_template('dispatching/view.html', dispatch=dispatch)
 
 @dispatching_bp.route('/<int:dispatch_id>/edit', methods=['GET', 'POST'])

@@ -12,13 +12,17 @@ from app.models.core.major_location import MajorLocation
 from app.models.core.user import User
 from app.models.core.event import Event
 from app import db
+from app.logger import get_logger
 
+logger = get_logger("asset_management.routes.main")
 main = Blueprint('main', __name__)
 
 @main.route('/')
 @login_required
 def index():
     """New landing page with functional group navigation"""
+    logger.debug(f"User {current_user.username} accessing main index page")
+    
     # Get basic statistics for overview
     stats = {
         'total_assets': Asset.query.count(),
@@ -28,6 +32,8 @@ def index():
         'total_users': User.query.count(),
         'total_events': Event.query.count()
     }
+    
+    logger.info(f"Main page statistics - Assets: {stats['total_assets']}, Types: {stats['total_asset_types']}, Locations: {stats['total_locations']}")
     
     return render_template('index.html', **stats)
 

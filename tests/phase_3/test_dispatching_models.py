@@ -28,7 +28,7 @@ from app.models.dispatching.dispatch_details.truck_dispatch_checklist import Tru
 
 def test_dispatching_models():
     """Test the dispatching models functionality"""
-    print("Testing Dispatching Models...")
+    logger.debug("Testing Dispatching Models...")
     
     app = create_app()
     
@@ -36,12 +36,12 @@ def test_dispatching_models():
         try:
             # Create database tables
             db.create_all()
-            print("✓ Database tables created")
+            logger.debug("✓ Database tables created")
             
             # Setup automatic dispatch detail insertion
             from app.models.dispatching.build import setup_dispatch_automatic_detail_insertion
             setup_dispatch_automatic_detail_insertion()
-            print("✓ Automatic dispatch detail insertion setup")
+            logger.debug("✓ Automatic dispatch detail insertion setup")
             
             # Clean up any existing test data
             import datetime
@@ -55,7 +55,7 @@ def test_dispatching_models():
             test_user.set_password('password123')
             db.session.add(test_user)
             db.session.flush()
-            print("✓ Test user created")
+            logger.debug("✓ Test user created")
             
             # Create test asset type
             vehicle_type = AssetType(
@@ -64,7 +64,7 @@ def test_dispatching_models():
             )
             db.session.add(vehicle_type)
             db.session.flush()
-            print("✓ Vehicle asset type created")
+            logger.debug("✓ Vehicle asset type created")
             
             # Create test make/model
             toyota_camry = MakeModel(
@@ -74,7 +74,7 @@ def test_dispatching_models():
             )
             db.session.add(toyota_camry)
             db.session.flush()
-            print("✓ Toyota Camry make/model created")
+            logger.debug("✓ Toyota Camry make/model created")
             
             # Create test location
             test_location = MajorLocation(
@@ -84,7 +84,7 @@ def test_dispatching_models():
             )
             db.session.add(test_location)
             db.session.flush()
-            print("✓ Test location created")
+            logger.debug("✓ Test location created")
             
             # Create test asset
             test_asset = Asset(
@@ -95,7 +95,7 @@ def test_dispatching_models():
             )
             db.session.add(test_asset)
             db.session.flush()
-            print("✓ Test asset created")
+            logger.debug("✓ Test asset created")
             
             # Configure dispatch detail table sets for asset types
             vehicle_dispatch_config = AssetTypeDispatchDetailTableSet(
@@ -104,7 +104,7 @@ def test_dispatching_models():
                 created_by_id=test_user.id
             )
             db.session.add(vehicle_dispatch_config)
-            print("✓ Vehicle dispatch configuration created for Vehicle asset type")
+            logger.debug("✓ Vehicle dispatch configuration created for Vehicle asset type")
             
             # Create a dispatch
             test_dispatch = Dispatch(
@@ -118,46 +118,46 @@ def test_dispatching_models():
             )
             db.session.add(test_dispatch)
             db.session.commit()
-            print("✓ Test dispatch created")
+            logger.debug("✓ Test dispatch created")
             
             # Create initial event manually
             test_dispatch.create_initial_event()
-            print("✓ Initial event created")
+            logger.debug("✓ Initial event created")
             
             # Manually create dispatch detail tables
             AssetTypeDispatchDetailTableSet.create_dispatch_detail_table_rows(test_dispatch.id, test_asset.id)
-            print("✓ Dispatch detail tables created")
+            logger.debug("✓ Dispatch detail tables created")
             
             # Test status update
             test_dispatch.update_status('Assigned', test_user.id, 'Testing status update')
-            print("✓ Status updated to Assigned")
+            logger.debug("✓ Status updated to Assigned")
             
             # Check if vehicle dispatch detail was created
             vehicle_dispatch = VehicleDispatch.query.filter_by(dispatch_id=test_dispatch.id).first()
             if vehicle_dispatch:
-                print("✓ Vehicle dispatch detail created automatically")
+                logger.debug("✓ Vehicle dispatch detail created automatically")
                 
                 # Test vehicle dispatch functionality
                 vehicle_dispatch.destination_address = '456 Destination Ave'
                 vehicle_dispatch.fuel_level_start = 75.0
                 vehicle_dispatch.mileage_start = 1000.0
-                print("✓ Vehicle dispatch details updated")
+                logger.debug("✓ Vehicle dispatch details updated")
             else:
-                print("✗ Vehicle dispatch detail not created")
+                logger.debug("✗ Vehicle dispatch detail not created")
             
             # Check master table entry
             master_entry = AllDispatchDetail.query.filter_by(dispatch_id=test_dispatch.id).first()
             if master_entry:
-                print("✓ Master table entry created")
+                logger.debug("✓ Master table entry created")
             else:
-                print("✗ Master table entry not created")
+                logger.debug("✗ Master table entry not created")
             
             # Check status history
             status_history = DispatchStatusHistory.query.filter_by(dispatch_id=test_dispatch.id).first()
             if status_history:
-                print("✓ Status history created")
+                logger.debug("✓ Status history created")
             else:
-                print("✗ Status history not created")
+                logger.debug("✗ Status history not created")
             
             # Test truck dispatch checklist
             truck_type = AssetType(
@@ -190,7 +190,7 @@ def test_dispatching_models():
                 created_by_id=test_user.id
             )
             db.session.add(truck_checklist_config)
-            print("✓ Truck checklist configuration created for Truck asset type")
+            logger.debug("✓ Truck checklist configuration created for Truck asset type")
             
             truck_dispatch = Dispatch(
                 dispatch_number=f'DISP002_{timestamp}',
@@ -209,28 +209,28 @@ def test_dispatching_models():
             
             # Manually create dispatch detail tables for truck
             AssetTypeDispatchDetailTableSet.create_dispatch_detail_table_rows(truck_dispatch.id, test_truck.id)
-            print("✓ Truck dispatch detail tables created")
+            logger.debug("✓ Truck dispatch detail tables created")
             
             truck_checklist = TruckDispatchChecklist.query.filter_by(dispatch_id=truck_dispatch.id).first()
             if truck_checklist:
-                print("✓ Truck dispatch checklist created automatically")
+                logger.debug("✓ Truck dispatch checklist created automatically")
                 
                 # Test checklist functionality
                 truck_checklist.tires_checked = True
                 truck_checklist.lights_checked = True
                 truck_checklist.brakes_checked = True
-                print(f"✓ Checklist completion: {truck_checklist.completion_percentage:.1f}%")
+                logger.debug(f"✓ Checklist completion: {truck_checklist.completion_percentage:.1f}%")
                 
                 incomplete_items = truck_checklist.get_incomplete_items()
-                print(f"✓ Incomplete items: {len(incomplete_items)}")
+                logger.debug(f"✓ Incomplete items: {len(incomplete_items)}")
             else:
-                print("✗ Truck dispatch checklist not created")
+                logger.debug("✗ Truck dispatch checklist not created")
             
             db.session.commit()
-            print("\n✓ All tests completed successfully!")
+            logger.debug("\n✓ All tests completed successfully!")
             
         except Exception as e:
-            print(f"✗ Test failed: {e}")
+            logger.debug(f"✗ Test failed: {e}")
             db.session.rollback()
             raise
 

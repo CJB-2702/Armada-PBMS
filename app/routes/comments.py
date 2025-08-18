@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, flash, redirect, url_for
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app import db
 from app.models.core.comment import Comment
@@ -8,6 +9,7 @@ from app.models.core.event import Event
 import json
 
 bp = Blueprint('comments', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 @bp.route('/events/<int:event_id>/comments', methods=['POST'])
 @login_required

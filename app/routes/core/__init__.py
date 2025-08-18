@@ -4,8 +4,10 @@ Includes CRUD operations for User, MajorLocation, AssetType, MakeModel, Asset, E
 """
 
 from flask import Blueprint
+from app.logger import get_logger
 
 bp = Blueprint('core', __name__)
+logger = get_logger("asset_management.routes.bp")
 
 # Import all core route modules
 from . import users, locations, asset_types, make_models, assets, events 

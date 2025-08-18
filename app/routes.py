@@ -3,7 +3,8 @@ Main routes for the Asset Management System
 Dashboard and main navigation routes
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.models.core.asset import Asset
 from app.models.core.asset_type import AssetType
@@ -14,6 +15,7 @@ from app.models.core.event import Event
 from app import db
 
 main = Blueprint('main', __name__)
+logger = get_logger("asset_management.routes.main")
 
 @main.route('/')
 @login_required
@@ -166,6 +168,10 @@ def help():
 def about():
     """About page with system information"""
     return render_template('about.html') 
+
+
+
+
 
 @main.route('/.well-known/appspecific/com.chrome.devtools.json')
 def chrome_devtools():

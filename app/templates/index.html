@@ -153,16 +153,19 @@
                         Schedule and dispatch assets for jobs, track assignments, and manage work orders.
                     </p>
                     <div class="mb-3">
-                        <span class="status-indicator status-development"></span>
-                        <small class="text-warning">In Development</small>
+                        <span class="status-indicator status-active"></span>
+                        <small class="text-success">Active</small>
                     </div>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-warning btn-sm" disabled>
-                            <i class="bi bi-clock"></i> Coming Soon
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                            <i class="bi bi-info-circle"></i> Learn More
-                        </button>
+                        <a href="{{ url_for('dispatching.index') }}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-calendar-check"></i> Dispatch Dashboard
+                        </a>
+                        <a href="{{ url_for('dispatching.create') }}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-plus-circle"></i> Create Dispatch
+                        </a>
+                        <a href="{{ url_for('dispatching.index') }}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-list"></i> View All Dispatches
+                        </a>
                     </div>
                 </div>
             </div>

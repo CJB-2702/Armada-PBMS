@@ -50,6 +50,38 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.btn').forEach(function(btn) {
         btn.setAttribute('data-original-text', btn.innerHTML);
     });
+
+    // Instant modal functionality - remove transitions
+    var assetManagementModal = document.getElementById('assetManagementModal');
+    if (assetManagementModal) {
+        // Remove fade class to disable transitions
+        assetManagementModal.classList.remove('fade');
+        
+        // Override Bootstrap modal show/hide to be instant
+        assetManagementModal.addEventListener('show.bs.modal', function() {
+            this.style.display = 'block';
+            this.classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // Create backdrop instantly
+            var backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop show';
+            backdrop.id = 'assetManagementModalBackdrop';
+            document.body.appendChild(backdrop);
+        });
+        
+        assetManagementModal.addEventListener('hide.bs.modal', function() {
+            this.style.display = 'none';
+            this.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            
+            // Remove backdrop instantly
+            var backdrop = document.getElementById('assetManagementModalBackdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        });
+    }
 });
 
 // Utility functions

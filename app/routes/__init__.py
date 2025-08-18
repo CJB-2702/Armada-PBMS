@@ -31,4 +31,9 @@ def init_app(app):
     from . import comments, attachments
     
     app.register_blueprint(comments.bp, url_prefix='')
-    app.register_blueprint(attachments.bp, url_prefix='') 
+    app.register_blueprint(attachments.bp, url_prefix='')
+    
+    # Register dispatching blueprint
+    from .dispatching import dispatches
+    
+    app.register_blueprint(dispatches.dispatching_bp, url_prefix='/dispatching') 

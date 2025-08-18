@@ -1,11 +1,12 @@
 from app.models.core.user_created_base import UserCreatedBase
 from app import db
+from sqlalchemy import event
 
 class Asset(UserCreatedBase, db.Model):
     __tablename__ = 'assets'
     
     # Class-level state for automatic detail insertion
-    _automatic_detail_insertion_enabled = False
+    _automatic_detail_insertion_enabled = True  # Always enabled by default
     _detail_table_registry = None
     _detail_rows_created = False  
     
@@ -37,10 +38,7 @@ class Asset(UserCreatedBase, db.Model):
         """Enable automatic detail table row creation for new assets"""
         if cls._automatic_detail_insertion_enabled:
             return
-        
         cls._automatic_detail_insertion_enabled = True
-        from sqlalchemy import event
-        event.listen(cls, 'after_insert', cls._after_insert)
         print("Automatic detail insertion enabled")
     
     @classmethod
@@ -55,7 +53,6 @@ class Asset(UserCreatedBase, db.Model):
             return
         
         try:
-    
             # Create asset creation event
             from app.models.core.event import Event
             event = Event(
@@ -66,23 +63,30 @@ class Asset(UserCreatedBase, db.Model):
                 major_location_id=target.major_location_id
             )
             db.session.add(event)
-            db.session.commit()
-
-
-            if cls._automatic_detail_insertion_enabled:
-                # Create detail table rows
-                from app.models.assets.detail_table_sets.asset_type_detail_table_set import AssetTypeDetailTableSet
-                from app.models.assets.detail_table_sets.model_detail_table_set import ModelDetailTableSet
-                
-                if target.asset_type:
-                    AssetTypeDetailTableSet.create_detail_table_rows(target.id, target.make_model_id)
-                
-                if target.make_model_id:
-                    ModelDetailTableSet.create_detail_table_rows(target.id, target.make_model_id)
-            
             
         except Exception as e:
             print(f"Error in post-insert events: {e}")
     
+    def create_detail_table_rows(self):
+        """Create detail table rows for this asset after it has been committed"""
+        if not self._automatic_detail_insertion_enabled:
+            return
+        
+        try:
+            from app.models.assets.detail_table_sets.asset_type_detail_table_set import AssetTypeDetailTableSet
+            from app.models.assets.detail_table_sets.model_detail_table_set import ModelDetailTableSet
+            
+            if self.asset_type:
+                AssetTypeDetailTableSet.create_detail_table_rows(self.id, self.make_model_id)
+            
+            if self.make_model_id:
+                ModelDetailTableSet.create_detail_table_rows(self.id, self.make_model_id)
+                
+        except Exception as e:
+            print(f"Error creating detail table rows for asset {self.id}: {e}")
+    
     def __repr__(self):
         return f'<Asset {self.name} ({self.serial_number})>' 
+
+# Enable the after_insert listener by default when the class is loaded
+event.listen(Asset, 'after_insert', Asset._after_insert) 

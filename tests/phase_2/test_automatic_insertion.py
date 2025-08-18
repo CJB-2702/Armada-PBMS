@@ -57,6 +57,9 @@ def test_automatic_insertion():
             db.session.add(purchase_info)
             db.session.commit()
             
+            # Update the row_id in the master table
+            purchase_info.update_row_id()
+            
             print(f"✓ Created purchase_info record with ID: {purchase_info.id}")
             
             # Check if it was automatically added to master table
@@ -84,6 +87,9 @@ def test_automatic_insertion():
             
             db.session.add(model_info)
             db.session.commit()
+            
+            # Update the row_id in the master table
+            model_info.update_row_id()
             
             print(f"✓ Created model_info record with ID: {model_info.id}")
             

@@ -103,13 +103,10 @@ def create_system_failure_event(system_user_id=None, error_message=None):
 
 def init_essential_data(build_data):
     """
-    Initialize essential data from build_data
-    """
-    """
-    Initialize core data from build_data
+    Initialize essential data from build_data using new structured format
     
     Args:
-        build_data (dict): Build data from JSON file
+        build_data (dict): Build data from JSON file with new structure
     """
     from app.models.core.user import User
     from app.models.core.major_location import MajorLocation
@@ -127,40 +124,50 @@ def init_essential_data(build_data):
     
     logger.info("Initializing core data...")
     
-    # Create users
-    if 'core_users' in build_data:
-        logger.info("Creating users...")
-        for user_data in build_data['core_users']:
+    # Create users from Essential section
+    if 'Essential' in build_data and 'Users' in build_data['Essential']:
+        logger.info("Creating essential users...")
+        for user_key, user_data in build_data['Essential']['Users'].items():
             User.find_or_create_from_dict(
                 user_data, 
                 user_id=system_user_id,
                 lookup_fields=['username']
             )
     
-    # Create locations
-    if 'core_locations' in build_data:
+    # Create users from Core section
+    if 'Core' in build_data and 'Users' in build_data['Core']:
+        logger.info("Creating core users...")
+        for user_key, user_data in build_data['Core']['Users'].items():
+            User.find_or_create_from_dict(
+                user_data, 
+                user_id=system_user_id,
+                lookup_fields=['username']
+            )
+    
+    # Create locations from Core section
+    if 'Core' in build_data and 'Locations' in build_data['Core']:
         logger.info("Creating locations...")
-        for location_data in build_data['core_locations']:
+        for location_key, location_data in build_data['Core']['Locations'].items():
             MajorLocation.find_or_create_from_dict(
                 location_data,
                 user_id=system_user_id,
                 lookup_fields=['name']
             )
     
-    # Create asset types
-    if 'core_asset_types' in build_data:
+    # Create asset types from Core section
+    if 'Core' in build_data and 'Asset_Types' in build_data['Core']:
         logger.info("Creating asset types...")
-        for asset_type_data in build_data['core_asset_types']:
+        for asset_type_key, asset_type_data in build_data['Core']['Asset_Types'].items():
             AssetType.find_or_create_from_dict(
                 asset_type_data,
                 user_id=system_user_id,
                 lookup_fields=['name']
             )
     
-    # Create make/models
-    if 'core_make_models' in build_data:
+    # Create make/models from Core section
+    if 'Core' in build_data and 'Make_Models' in build_data['Core']:
         logger.info("Creating make/models...")
-        for make_model_data in build_data['core_make_models']:
+        for make_model_key, make_model_data in build_data['Core']['Make_Models'].items():
             # Handle asset_type_name reference
             if 'asset_type_name' in make_model_data:
                 asset_type_name = make_model_data.pop('asset_type_name')
@@ -173,7 +180,7 @@ def init_essential_data(build_data):
                 user_id=system_user_id,
                 lookup_fields=['make', 'model', 'year']
             )
-    
+
 
 def init_assets(build_data):
     from app.models.core.event import Event
@@ -190,9 +197,10 @@ def init_assets(build_data):
     else:
         system_user_id = system_user.id
 
-    if 'core_assets' in build_data:
+    # Create assets from Core section
+    if 'Core' in build_data and 'Assets' in build_data['Core']:
         logger.info("Creating assets...")
-        for asset_data in build_data['core_assets']:
+        for asset_key, asset_data in build_data['Core']['Assets'].items():
             # Handle major_location_name reference
             if 'major_location_name' in asset_data:
                 major_location_name = asset_data.pop('major_location_name')
@@ -226,10 +234,10 @@ def init_assets(build_data):
                 lookup_fields=['name']
             )
     
-    # Handle system initialization event specially
-    if 'core_events' in build_data:
+    # Handle system initialization event from Essential section
+    if 'Essential' in build_data and 'Events' in build_data['Essential']:
         logger.info("Processing system events...")
-        for event_data in build_data['core_events']:
+        for event_key, event_data in build_data['Essential']['Events'].items():
             # Check if this is a system initialization event
             if (event_data.get('event_type') == 'System' and 
                 event_data.get('description') == 'System initialized with core data'):

@@ -10,6 +10,11 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import event
 from app.models.assets.all_details import AllAssetDetail
 
+def set_row_id_after_insert(mapper, connection, target):
+    """Set the row_id after the detail record is inserted"""
+    if hasattr(target, 'set_row_id'):
+        target.set_row_id()
+
 class AssetDetailVirtual(UserCreatedBase, db.Model):
     """
     Base class for all asset-specific detail tables
@@ -53,7 +58,9 @@ class AssetDetailVirtual(UserCreatedBase, db.Model):
     
     def __init__(self, *args, **kwargs):
         """Initialize the asset detail record with automatic master table integration"""
-        kwargs['detail_id']= self.create_master_table_entry(kwargs)
+        # Create master table entry first
+        detail_id = self.create_master_table_entry(kwargs)
+        kwargs['detail_id'] = detail_id
         super().__init__(*args, **kwargs)
 
     
@@ -73,6 +80,27 @@ class AssetDetailVirtual(UserCreatedBase, db.Model):
         
         return master_record.id
     
+    def set_row_id(self):
+        """Set the row_id after the detail record is created"""
+        if hasattr(self, 'id') and self.id:
+            master_record = AllAssetDetail.query.filter_by(
+                table_name=self.__tablename__,
+                asset_id=self.asset_id,
+                row_id=None
+            ).first()
+            if master_record:
+                master_record.row_id = self.id
+                # Don't flush here - let the main transaction handle it
+    
+    def update_row_id(self):
+        """Update the row_id in the master table after the record is committed"""
+        if hasattr(self, 'id') and self.id and hasattr(self, 'detail_id'):
+            master_record = AllAssetDetail.query.get(self.detail_id)
+            if master_record and master_record.row_id is None:
+                master_record.row_id = self.id
+                db.session.commit()
+                return True
+        return False
     
     def remove_from_master_table(self, detail_id):
         """
@@ -93,3 +121,6 @@ class AssetDetailVirtual(UserCreatedBase, db.Model):
         detail_id = self.detail_id
         super().delete()
         self.remove_from_master_table(detail_id)
+
+# Note: Event listeners for abstract classes don't work in SQLAlchemy
+# The event listener will be registered on concrete classes in their __init__.py files

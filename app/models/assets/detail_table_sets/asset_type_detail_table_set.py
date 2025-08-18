@@ -78,6 +78,18 @@ class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
                 
         except Exception as e:
             print(f"Error creating asset type detail table rows for asset {asset_id}: {e}")
+        
+        # Update row_ids for all created detail rows
+        cls._update_pending_row_ids()
+    
+    @classmethod
+    def _update_pending_row_ids(cls):
+        """Update row_ids for all pending detail rows"""
+        if hasattr(cls, '_pending_detail_rows') and cls._pending_detail_rows:
+            for detail_row in cls._pending_detail_rows:
+                if hasattr(detail_row, 'update_row_id'):
+                    detail_row.update_row_id()
+            cls._pending_detail_rows = []
     
     @classmethod
     def _create_single_detail_row(cls, config, asset_id, make_model_id):
@@ -130,6 +142,11 @@ class AssetTypeDetailTableSet(UserCreatedBase, db.Model):
             # Add to session (don't commit - let the main transaction handle it)
             db.session.add(detail_row)
             print(f"DEBUG: Added detail row to session")
+            
+            # Store the detail row for later row_id update
+            if not hasattr(cls, '_pending_detail_rows'):
+                cls._pending_detail_rows = []
+            cls._pending_detail_rows.append(detail_row)
             
         except Exception as e:
             print(f"Error creating detail row for {config.detail_table_type}: {e}")

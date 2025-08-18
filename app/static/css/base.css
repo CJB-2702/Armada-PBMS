@@ -282,4 +282,31 @@ body {
 
 #assetManagementModal .btn:hover {
     transform: translateY(-1px);
+}
+
+/* Instant modal transitions - no smooth animations */
+.modal.fade .modal-dialog {
+    transition: none !important;
+    transform: none !important;
+}
+
+.modal.fade.show .modal-dialog {
+    transform: none !important;
+}
+
+.modal-backdrop {
+    transition: none !important;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+}
+
+/* Remove all modal transitions */
+.modal,
+.modal-dialog,
+.modal-content,
+.modal-backdrop {
+    transition: none !important;
+    animation: none !important;
 } 

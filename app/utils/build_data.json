@@ -1,183 +1,290 @@
 {
-  "core_users": [
-    {
-      "id": 1,
-      "username": "admin",
-      "email": "admin@assetmanagement.local",
-      "is_active": true,
-      "is_system": false,
-      "is_admin": true,
-      "password": "admin-password-change-me"
+  "Essential": {
+    "Users": {
+      "System": {
+        "id": 0,
+        "username": "system",
+        "email": "system@assetmanagement.local",
+        "is_active": true,
+        "is_system": true,
+        "is_admin": false,
+        "password": "system-password-not-for-login"
+      },
+      "Admin": {
+        "id": 1,
+        "username": "admin",
+        "email": "admin@assetmanagement.local",
+        "is_active": true,
+        "is_system": false,
+        "is_admin": true,
+        "password": "admin-password-change-me"
+      }
     },
-    {
-      "id": 0,
-      "username": "system",
-      "email": "system@assetmanagement.local",
-      "is_active": true,
-      "is_system": true,
-      "is_admin": false,
-      "password": "system-password-not-for-login"
+    "Events": {
+      "System_Initialized": {
+        "event_type": "System",
+        "description": "System initialized with core data",
+        "user_username": "system"
+      }
     }
-  ],
-  "core_locations": [
-    {
-      "name": "SanDiegoHQ",
-      "description": "Main office location",
-      "address": "San Diego, CA",
-      "is_active": true
+  },
+  "Core": {
+    "Users": {
+      "Generic_User": {
+        "id": 2,
+        "username": "Generic_User",
+        "email": "Generic_User@assetmanagement.local",
+        "is_active": true,
+        "is_system": false,
+        "is_admin": false,
+        "password": "Generic_User"
+      }
     },
-    {
-      "name": "LosAngelesOffice",
-      "description": "Los Angeles branch office",
-      "address": "Los Angeles, CA",
-      "is_active": true
-    }
-  ],
-  "core_asset_types": [
-    {
-      "name": "Vehicle",
-      "category": "Transportation",
-      "description": "Motor vehicles for transportation",
-      "is_active": true
-    }
-  ],
-  "core_make_models": [
-    {
-      "make": "Toyota",
-      "model": "Corolla",
-      "year": 2023,
-      "description": "Toyota Corolla 2023 model",
-      "asset_type_name": "Vehicle",
-      "is_active": true
-    }
-  ],
-  "core_events": [
-    {
-      "event_type": "System",
-      "description": "System initialized with core data",
-      "user_username": "system"
-    }
-  ],
-  "detail_table_configurations": {
-    "asset_type_configs": [
-      {
-        "asset_type_name": "Vehicle",
-        "detail_table_type": "purchase_info",
-        "is_asset_detail": true,
+    "Locations": {
+      "San_Diego_HQ": {
+        "name": "SanDiegoHQ",
+        "description": "Main office location",
+        "address": "San Diego, CA",
         "is_active": true
       },
-      {
-        "asset_type_name": "Vehicle",
-        "detail_table_type": "vehicle_registration",
-        "is_asset_detail": true,
-        "is_active": true
-      },
-      {
-        "asset_type_name": "Vehicle",
-        "detail_table_type": "emissions_info",
-        "is_asset_detail": false,
-        "is_active": true
-      },
-      {
-        "asset_type_name": "Vehicle",
-        "detail_table_type": "model_info",
-        "is_asset_detail": false,
+      "Los_Angeles_Office": {
+        "name": "LosAngelesOffice",
+        "description": "Los Angeles branch office",
+        "address": "Los Angeles, CA",
         "is_active": true
       }
-    ],
-    "model_configs": [
-      {
+    },
+    "Asset_Types": {
+      "Vehicle": {
+        "name": "Vehicle",
+        "category": "Transportation",
+        "description": "Motor vehicles for transportation",
+        "is_active": true
+      }
+    },
+    "Make_Models": {
+      "Toyota_Corolla": {
         "make": "Toyota",
         "model": "Corolla",
-        "detail_table_type": "toyota_warranty_receipt",
-        "is_asset_detail": true,
+        "year": 2023,
+        "description": "Toyota Corolla 2023 model",
+        "asset_type_name": "Vehicle",
+        "is_active": true
+      },
+      "Ford_F250": {
+        "make": "Ford",
+        "model": "F-250",
+        "year": 2023,
+        "description": "Ford F-250 Super Duty 2023 model",
+        "asset_type_name": "Vehicle",
         "is_active": true
       }
-    ]
-  },
-  "sample_data": {
-    "purchase_info": {
-      "purchase_date": "2023-01-15",
-      "purchase_price": 25000.00,
-      "purchase_vendor": "Toyota of San Diego",
-      "purchase_order_number": "PO-2023-001",
-      "warranty_start_date": "2023-01-15",
-      "warranty_end_date": "2026-01-15",
-      "purchase_notes": "Purchased for fleet use"
     },
-    "vehicle_registration": {
-      "license_plate": "ABC123",
-      "registration_number": "REG-2023-001",
-      "registration_expiry": "2024-12-31",
-      "vin_number": "1HGBH41JXMN109186",
-      "state_registered": "CA",
-      "registration_status": "Active",
-      "insurance_provider": "State Farm",
-      "insurance_policy_number": "SF-123456",
-      "insurance_expiry": "2024-06-30"
-    },
-    "toyota_warranty_receipt": {
-      "warranty_receipt_number": "TOY-2023-001",
-      "warranty_type": "Basic",
-      "warranty_mileage_limit": 36000,
-      "warranty_time_limit_months": 36,
-      "dealer_name": "Toyota of San Diego",
-      "dealer_contact": "John Smith",
-      "dealer_phone": "(619) 555-0123",
-      "dealer_email": "service@toyotasandiego.com",
-      "service_history": "Initial inspection completed",
-      "warranty_claims": "None"
-    },
-    "emissions_info": {
-      "emissions_standard": "EPA",
-      "emissions_rating": "ULEV",
-      "fuel_type": "gasoline",
-      "mpg_city": 32.0,
-      "mpg_highway": 41.0,
-      "mpg_combined": 35.0,
-      "co2_emissions": 250.0,
-      "emissions_test_date": "2022-12-01",
-      "emissions_certification": "EPA-2023-001"
-    },
-    "model_info": {
-      "model_year": 2023,
-      "body_style": "sedan",
-      "engine_type": "2.0L 4-Cylinder",
-      "engine_displacement": "2.0L",
-      "transmission_type": "automatic",
-      "drivetrain": "FWD",
-      "seating_capacity": 5,
-      "cargo_capacity": 13.1,
-      "towing_capacity": 1500,
-      "manufacturer_website": "https://www.toyota.com/corolla",
-      "technical_specifications": "2.0L Dynamic Force 4-Cylinder engine with 169 hp"
+    "Assets": {
+      "VTC_001": {
+        "name": "VTC-001",
+        "serial_number": "VTC0012023001",
+        "make": "Toyota",
+        "model": "Corolla",
+        "status": "Active",
+        "major_location_name": "SanDiegoHQ"
+      },
+      "VTC_002": {
+        "name": "VTC-002",
+        "serial_number": "VTC0022023002",
+        "make": "Toyota",
+        "model": "Corolla",
+        "status": "Active",
+        "major_location_name": "LosAngelesOffice"
+      },
+      "FTK_001": {
+        "name": "FTK-001",
+        "serial_number": "FTK0012023001",
+        "make": "Ford",
+        "model": "F-250",
+        "status": "Active",
+        "major_location_name": "SanDiegoHQ"
+      }
     }
   },
-  "test_assets": [
-    {
-      "name": "VTC-002",
-      "serial_number": "VTC0022023002",
-      "make": "Toyota",
-      "model": "Corolla",
-      "status": "Active"
-    }
-  ],
-  "core_assets": [
-    {
-      "name": "VTC-001",
-      "serial_number": "VTC0012023001",
-      "make": "Toyota",
-      "model": "Corolla",
-      "status": "Active",
-      "major_location_name": "SanDiegoHQ"
+  "Asset_Details": {
+    "Detail_Table_Configurations": {
+      "Asset_Type_Configs": [
+        {
+          "asset_type_name": "Vehicle",
+          "detail_table_type": "purchase_info",
+          "is_asset_detail": true,
+          "is_active": true
+        },
+        {
+          "asset_type_name": "Vehicle",
+          "detail_table_type": "vehicle_registration",
+          "is_asset_detail": true,
+          "is_active": true
+        },
+        {
+          "asset_type_name": "Vehicle",
+          "detail_table_type": "emissions_info",
+          "is_asset_detail": false,
+          "is_active": true
+        },
+        {
+          "asset_type_name": "Vehicle",
+          "detail_table_type": "model_info",
+          "is_asset_detail": false,
+          "is_active": true
+        }
+      ],
+      "Model_Configs": [
+        {
+          "make": "Toyota",
+          "model": "Corolla",
+          "detail_table_type": "toyota_warranty_receipt",
+          "is_asset_detail": true,
+          "is_active": true
+        }
+      ]
     },
-    {
-      "name": "VTC-002",
-      "serial_number": "VTC0022023002",
-      "make": "Toyota",
-      "model": "Corolla",
-      "status": "Active",
-      "major_location_name": "LosAngelesOffice"
+    "Sample_Data": {
+      "Purchase_Info": {
+        "purchase_date": "2023-01-15",
+        "purchase_price": 25000.00,
+        "purchase_vendor": "Toyota of San Diego",
+        "purchase_order_number": "PO-2023-001",
+        "warranty_start_date": "2023-01-15",
+        "warranty_end_date": "2026-01-15",
+        "purchase_notes": "Purchased for fleet use"
+      },
+      "Vehicle_Registration": {
+        "license_plate": "ABC123",
+        "registration_number": "REG-2023-001",
+        "registration_expiry": "2024-12-31",
+        "vin_number": "1HGBH41JXMN109186",
+        "state_registered": "CA",
+        "registration_status": "Active",
+        "insurance_provider": "State Farm",
+        "insurance_policy_number": "SF-123456",
+        "insurance_expiry": "2024-06-30"
+      },
+      "Toyota_Warranty_Receipt": {
+        "warranty_receipt_number": "TOY-2023-001",
+        "warranty_type": "Basic",
+        "warranty_mileage_limit": 36000,
+        "warranty_time_limit_months": 36,
+        "dealer_name": "Toyota of San Diego",
+        "dealer_contact": "John Smith",
+        "dealer_phone": "(619) 555-0123",
+        "dealer_email": "service@toyotasandiego.com",
+        "service_history": "Initial inspection completed",
+        "warranty_claims": "None"
+      },
+      "Emissions_Info": {
+        "emissions_standard": "EPA",
+        "emissions_rating": "ULEV",
+        "fuel_type": "gasoline",
+        "mpg_city": 32.0,
+        "mpg_highway": 41.0,
+        "mpg_combined": 35.0,
+        "co2_emissions": 250.0,
+        "emissions_test_date": "2022-12-01",
+        "emissions_certification": "EPA-2023-001"
+      },
+      "Model_Info": {
+        "model_year": 2023,
+        "body_style": "sedan",
+        "engine_type": "2.0L 4-Cylinder",
+        "engine_displacement": "2.0L",
+        "transmission_type": "automatic",
+        "drivetrain": "FWD",
+        "seating_capacity": 5,
+        "cargo_capacity": 13.1,
+        "towing_capacity": 1500,
+        "manufacturer_website": "https://www.toyota.com/corolla",
+        "technical_specifications": "2.0L Dynamic Force 4-Cylinder engine with 169 hp"
+      }
     }
-  ]
+  },
+  "Dispatching": {
+    "Users": {
+      "cbissett": {
+        "username": "cbissett",
+        "email": "cbissett@assetmanagement.local",
+        "is_active": true,
+        "is_system": false,
+        "is_admin": false,
+        "password": "cbissett"
+      }
+    },
+    "Dispatch_Detail_Table_Sets": {
+      "AssetTypeDispatchDetailTableSet":[ 
+        {
+        "asset_type_id": 1,
+        "dispatch_detail_table_type": "vehicle_dispatch",
+        "is_active": true
+        }
+      ],
+      "ModelAdditionalDispatchDetailTableSet": [
+        {
+        "make_model_id": 2,
+        "dispatch_detail_table_type": "truck_dispatch_checklist",
+        "is_active": true
+        }
+      ]
+    },
+    "Example_Dispatches": {
+      "Toyota_Corolla_Dispatch": {
+        "dispatch": {
+          "asset_name": "VTC-001",
+          "driver_name": "Sarah Johnson",
+          "destination": "Los Angeles Office",
+          "estimated_duration": "2 hours",
+          "dispatch_date": "2023-08-15",
+          "status": "In Progress",
+          "dispatch_notes": "Regular office delivery route"
+        },
+        "vehicle_dispatch": {
+          "driver_name": "Sarah Johnson",
+          "destination": "Los Angeles Office",
+          "estimated_duration": "2 hours",
+          "dispatch_notes": "Regular route delivery",
+          "vehicle_condition": "Good",
+          "fuel_level": "3/4 tank"
+        }
+      },
+      "Ford_F250_Dispatch": {
+        "dispatch": {
+          "asset_name": "FTK-001",
+          "driver_name": "Mike Wilson",
+          "destination": "Construction Site - Downtown",
+          "estimated_duration": "4 hours",
+          "dispatch_date": "2023-08-16",
+          "status": "Completed",
+          "dispatch_notes": "Equipment delivery to construction site"
+        },
+        "vehicle_dispatch": {
+          "driver_name": "Mike Wilson",
+          "destination": "Construction Site - Downtown",
+          "estimated_duration": "4 hours",
+          "dispatch_notes": "Heavy equipment transport",
+          "vehicle_condition": "Excellent",
+          "fuel_level": "Full tank"
+        },
+        "truck_dispatch_checklist": {
+          "pre_trip_inspection": "Completed",
+          "safety_equipment": "All present and functional",
+          "cargo_verification": "Confirmed - Equipment properly secured",
+          "checklist_notes": "All safety protocols followed",
+          "tire_pressure": "Optimal",
+          "brake_check": "Passed",
+          "lights_check": "All working"
+        }
+      }
+    }
+  },
+  "Maintenance": {
+
+  },
+  "Supply": {
+
+    }
 } 

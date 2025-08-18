@@ -1,0 +1,164 @@
+{% extends "dispatching/base.html" %}
+
+{% block dispatching_title %}All Dispatches{% endblock %}
+
+{% block dispatching_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">All Dispatches</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('dispatching.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Dispatch
+        </a>
+    </div>
+</div>
+
+<!-- Status Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">{{ dispatches|length }}</h5>
+                <p class="card-text">Total Dispatches</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">{{ dispatches|selectattr('status', 'equalto', 'Created')|list|length }}</h5>
+                <p class="card-text">Created</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">{{ dispatches|selectattr('status', 'equalto', 'In Progress')|list|length }}</h5>
+                <p class="card-text">In Progress</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">{{ dispatches|selectattr('status', 'equalto', 'Completed')|list|length }}</h5>
+                <p class="card-text">Completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dispatches Table -->
+<div class="table-responsive">
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Dispatch #</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Asset</th>
+                <th>Assigned To</th>
+                <th>Location</th>
+                <th>Created</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dispatch in dispatches %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('dispatching.view', dispatch_id=dispatch.id) }}">
+                        {{ dispatch.dispatch_number }}
+                    </a>
+                </td>
+                <td>{{ dispatch.title }}</td>
+                <td>
+                    <span class="badge 
+                        {% if dispatch.status == 'Created' %}bg-warning
+                        {% elif dispatch.status == 'Assigned' %}bg-info
+                        {% elif dispatch.status == 'In Progress' %}bg-primary
+                        {% elif dispatch.status == 'Completed' %}bg-success
+                        {% elif dispatch.status == 'Cancelled' %}bg-secondary
+                        {% else %}bg-light text-dark{% endif %}">
+                        {{ dispatch.status }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge 
+                        {% if dispatch.priority == 'Critical' %}bg-danger
+                        {% elif dispatch.priority == 'High' %}bg-warning
+                        {% elif dispatch.priority == 'Normal' %}bg-info
+                        {% elif dispatch.priority == 'Low' %}bg-secondary
+                        {% else %}bg-light text-dark{% endif %}">
+                        {{ dispatch.priority }}
+                    </span>
+                </td>
+                <td>{{ dispatch.asset.name if dispatch.asset else '-' }}</td>
+                <td>{{ dispatch.assigned_user.username if dispatch.assigned_user else '-' }}</td>
+                <td>{{ dispatch.major_location.name if dispatch.major_location else '-' }}</td>
+                <td>{{ dispatch.created_date.strftime('%Y-%m-%d %H:%M') if dispatch.created_date else '-' }}</td>
+                <td>
+                    {% if dispatch.due_date %}
+                        {% if dispatch.is_overdue and dispatch.status not in ['Completed', 'Cancelled'] %}
+                            <span class="text-danger">{{ dispatch.due_date.strftime('%Y-%m-%d') }}</span>
+                        {% else %}
+                            {{ dispatch.due_date.strftime('%Y-%m-%d') }}
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('dispatching.view', dispatch_id=dispatch.id) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('dispatching.edit', dispatch_id=dispatch.id) }}" 
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                onclick="deleteDispatch({{ dispatch.id }})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this dispatch? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteDispatch(dispatchId) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const form = document.getElementById('deleteForm');
+    form.action = `/dispatching/${dispatchId}/delete`;
+    modal.show();
+}
+</script>
+{% endblock %}

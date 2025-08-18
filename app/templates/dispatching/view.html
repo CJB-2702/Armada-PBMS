@@ -1,0 +1,303 @@
+{% extends "dispatching/base.html" %}
+
+{% block dispatching_title %}{{ dispatch.dispatch_number }}{% endblock %}
+
+{% block dispatching_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ dispatch.dispatch_number }} - {{ dispatch.title }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('dispatching.edit', dispatch_id=dispatch.id) }}" class="btn btn-secondary">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <a href="{{ url_for('dispatching.history', dispatch_id=dispatch.id) }}" class="btn btn-info">
+            <i class="bi bi-clock-history"></i> History
+        </a>
+        <a href="{{ url_for('dispatching.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dispatches
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Dispatch Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Dispatch Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Dispatch Number:</strong> {{ dispatch.dispatch_number }}</p>
+                        <p><strong>Title:</strong> {{ dispatch.title }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge 
+                                {% if dispatch.status == 'Created' %}bg-warning
+                                {% elif dispatch.status == 'Assigned' %}bg-info
+                                {% elif dispatch.status == 'In Progress' %}bg-primary
+                                {% elif dispatch.status == 'Completed' %}bg-success
+                                {% elif dispatch.status == 'Cancelled' %}bg-secondary
+                                {% else %}bg-light text-dark{% endif %}">
+                                {{ dispatch.status }}
+                            </span>
+                        </p>
+                        <p><strong>Priority:</strong> 
+                            <span class="badge 
+                                {% if dispatch.priority == 'Critical' %}bg-danger
+                                {% elif dispatch.priority == 'High' %}bg-warning
+                                {% elif dispatch.priority == 'Normal' %}bg-info
+                                {% elif dispatch.priority == 'Low' %}bg-secondary
+                                {% else %}bg-light text-dark{% endif %}">
+                                {{ dispatch.priority }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Created:</strong> {{ dispatch.created_date.strftime('%Y-%m-%d %H:%M') if dispatch.created_date else '-' }}</p>
+                        <p><strong>Due Date:</strong> 
+                            {% if dispatch.due_date %}
+                                {% if dispatch.is_overdue and dispatch.status not in ['Completed', 'Cancelled'] %}
+                                    <span class="text-danger">{{ dispatch.due_date.strftime('%Y-%m-%d') }} (OVERDUE)</span>
+                                {% else %}
+                                    {{ dispatch.due_date.strftime('%Y-%m-%d') }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>Duration:</strong> 
+                            {% if dispatch.duration_hours %}
+                                {{ "%.1f"|format(dispatch.duration_hours) }} hours
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if dispatch.description %}
+                <div class="mt-3">
+                    <strong>Description:</strong>
+                    <p class="mt-2">{{ dispatch.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assignment Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Assignment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Asset:</strong> 
+                            {% if dispatch.asset %}
+                                <a href="{{ url_for('assets.view', asset_id=dispatch.asset.id) }}">
+                                    {{ dispatch.asset.name }} ({{ dispatch.asset.serial_number }})
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Assigned To:</strong> 
+                            {% if dispatch.assigned_user %}
+                                {{ dispatch.assigned_user.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Location:</strong> 
+                            {% if dispatch.major_location %}
+                                {{ dispatch.major_location.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Update -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Update Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('dispatching.update_status', dispatch_id=dispatch.id) }}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">New Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="Created" {% if dispatch.status == 'Created' %}selected{% endif %}>Created</option>
+                                <option value="Assigned" {% if dispatch.status == 'Assigned' %}selected{% endif %}>Assigned</option>
+                                <option value="In Progress" {% if dispatch.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                <option value="Completed" {% if dispatch.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                <option value="Cancelled" {% if dispatch.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="reason" class="form-label">Reason (Optional)</label>
+                            <input type="text" class="form-control" id="reason" name="reason" placeholder="Reason for status change">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-check-circle"></i> Update
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dispatch Details -->
+        {% if dispatch.all_details %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Dispatch Details</h5>
+            </div>
+            <div class="card-body">
+                {% for detail in dispatch.all_details %}
+                    <div class="alert alert-info">
+                        <strong>{{ detail.table_name|title }}:</strong> 
+                        {% if detail.table_name == 'vehicle_dispatches' %}
+                            Vehicle dispatch details available
+                        {% elif detail.table_name == 'truck_dispatch_checklists' %}
+                            Truck dispatch checklist available
+                        {% else %}
+                            {{ detail.table_name }} details
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Timeline -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Timeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% if dispatch.created_date %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6>Created</h6>
+                            <small class="text-muted">{{ dispatch.created_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if dispatch.assigned_date %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <h6>Assigned</h6>
+                            <small class="text-muted">{{ dispatch.assigned_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if dispatch.started_date %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <h6>Started</h6>
+                            <small class="text-muted">{{ dispatch.started_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if dispatch.completed_date %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6>Completed</h6>
+                            <small class="text-muted">{{ dispatch.completed_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Status History -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Status Changes</h5>
+            </div>
+            <div class="card-body">
+                {% for history in dispatch.status_history[:5] %}
+                <div class="mb-2">
+                    <small class="text-muted">{{ history.changed_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                    <div>
+                        <span class="badge bg-secondary">{{ history.status_from or 'New' }}</span>
+                        <i class="bi bi-arrow-right"></i>
+                        <span class="badge 
+                            {% if history.status_to == 'Created' %}bg-warning
+                            {% elif history.status_to == 'Assigned' %}bg-info
+                            {% elif history.status_to == 'In Progress' %}bg-primary
+                            {% elif history.status_to == 'Completed' %}bg-success
+                            {% elif history.status_to == 'Cancelled' %}bg-secondary
+                            {% else %}bg-light text-dark{% endif %}">
+                            {{ history.status_to }}
+                        </span>
+                    </div>
+                    {% if history.change_reason %}
+                    <small class="text-muted">{{ history.change_reason }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                {% if dispatch.status_history|length > 5 %}
+                <a href="{{ url_for('dispatching.history', dispatch_id=dispatch.id) }}" class="btn btn-sm btn-outline-primary">
+                    View All History
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content h6 {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.timeline-content small {
+    font-size: 0.8rem;
+}
+</style>
+{% endblock %}

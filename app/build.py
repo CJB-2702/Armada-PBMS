@@ -115,9 +115,9 @@ def build_models(phase):
         build_asset_models()
     
     if phase in ['phase3', 'all']:
-        logger.info("Building Phase 3 models (Maintenance & Operations)")
-        # Phase 3 builds on top of Phase 2, so Phase 2 models are already included
-        pass
+        logger.info("Building Phase 3 models (Dispatching)")
+        from app.models.dispatching.build import build_dispatch_models
+        build_dispatch_models()
     
     # Create all tables
     db.create_all()
@@ -146,17 +146,36 @@ def insert_data(phase):
         phase_2_init_data(build_data)
     
     if phase in ['phase3', 'phase4', 'all']:
-        logger.info("Inserting Phase 3 data (Maintenance & Operations)")
+        logger.info("Inserting Phase 3 data (Dispatching)")
         try:
             from app.models.core.asset import Asset
             from app.models.core.build import init_essential_data
             from app.models.assets.build import phase3_insert_data, phase3_update_data
             
-            # Enable automatic detail insertion for Phase 3
-            Asset.enable_automatic_detail_insertion()
+            # Automatic detail insertion is now enabled by default in assets build
             init_essential_data(build_data)
             phase3_insert_data(build_data)
             phase3_update_data(build_data)
+            
+            # Create dispatching users (after core users are created)
+            if 'Dispatching' in build_data and 'Users' in build_data['Dispatching']:
+                logger.info("Creating dispatching users...")
+                from app.models.core.user import User
+                system_user = User.query.filter_by(username='system').first()
+                system_user_id = system_user.id if system_user else None
+                
+                for user_key, user_data in build_data['Dispatching']['Users'].items():
+                    User.find_or_create_from_dict(
+                        user_data,
+                        user_id=system_user_id,
+                        lookup_fields=['username']
+                    )
+                    logger.info(f"Created dispatching user: {user_data.get('username')}")
+            
+            # Setup dispatching configurations
+            from app.models.dispatching.build import create_sample_dispatch_configurations, create_example_dispatch_records
+            create_sample_dispatch_configurations()
+            create_example_dispatch_records()
         except ImportError as e:
             logger.error(f"Phase 3 failed to insert data: {e}")
             raise

@@ -59,7 +59,7 @@
                     
                     <!-- Dispatching -->
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="#" title="Coming Soon">Dispatching</a>
+                        <a class="nav-link" href="{{ url_for('dispatching.index') }}">Dispatching</a>
                     </li>
                     
                     <!-- Maintenance -->
@@ -137,7 +137,7 @@
     {% block extra_js %}{% endblock %}
     
     <!-- Asset Management Modal -->
-    <div class="modal fade" id="assetManagementModal" tabindex="-1" aria-labelledby="assetManagementModalLabel" aria-hidden="true">
+    <div class="modal" id="assetManagementModal" tabindex="-1" aria-labelledby="assetManagementModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">

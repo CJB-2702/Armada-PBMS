@@ -26,7 +26,7 @@ def create_app():
     login_manager.login_message_category = 'info'
     
     # Import and register blueprints
-    from app.models import core, assets
+    from app.models import core, assets, dispatching
     
     # Import models to ensure they're registered with SQLAlchemy
     from app.models.core.user import User
@@ -36,6 +36,16 @@ def create_app():
     from app.models.core.make_model import MakeModel
     from app.models.core.asset import Asset
     from app.models.core.event import Event
+    
+    # Import dispatching models to ensure they're registered
+    from app.models.dispatching.dispatch import Dispatch
+    from app.models.dispatching.dispatch_status_history import DispatchStatusHistory
+    from app.models.dispatching.all_dispatch_details import AllDispatchDetail
+    from app.models.dispatching.dispatch_detail_virtual import DispatchDetailVirtual
+    from app.models.dispatching.detail_table_sets.asset_type_dispatch_detail_table_set import AssetTypeDispatchDetailTableSet
+    from app.models.dispatching.detail_table_sets.model_additional_dispatch_detail_table_set import ModelAdditionalDispatchDetailTableSet
+    from app.models.dispatching.dispatch_details.vehicle_dispatch import VehicleDispatch
+    from app.models.dispatching.dispatch_details.truck_dispatch_checklist import TruckDispatchChecklist
     
     # Register blueprints
     from app.auth import auth

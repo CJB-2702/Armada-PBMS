@@ -8,7 +8,7 @@
     
     <div>
         <h3>Filters</h3>
-        <form method="GET" action="{{ url_for('main.asset_list') }}">
+        <form method="GET" action="{{ url_for('core_assets.list') }}">
             <div>
                 <label for="asset_type_id">Asset Type:</label>
                 <select name="asset_type_id" id="asset_type_id">
@@ -37,7 +37,7 @@
             
             <div>
                 <button type="submit">Apply Filters</button>
-                <a href="{{ url_for('main.asset_list') }}">Clear Filters</a>
+                <a href="{{ url_for('core_assets.list') }}">Clear Filters</a>
             </div>
         </form>
     </div>
@@ -78,7 +78,7 @@
                             </td>
                             <td>{{ asset.created_at.strftime('%Y-%m-%d') }}</td>
                             <td>
-                                <a href="{{ url_for('main.asset_view', asset_id=asset.id) }}">View</a>
+                                <a href="{{ url_for('core_assets.detail', asset_id=asset.id) }}">View</a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -87,13 +87,13 @@
             
             <div>
                 {% if assets.has_prev %}
-                    <a href="{{ url_for('main.asset_list', page=assets.prev_num, **request.args) }}">Previous</a>
+                    <a href="{{ url_for('core_assets.list', page=assets.prev_num, **request.args) }}">Previous</a>
                 {% endif %}
                 
                 <span>Page {{ assets.page }} of {{ assets.pages }}</span>
                 
                 {% if assets.has_next %}
-                    <a href="{{ url_for('main.asset_list', page=assets.next_num, **request.args) }}">Next</a>
+                    <a href="{{ url_for('core_assets.list', page=assets.next_num, **request.args) }}">Next</a>
                 {% endif %}
             </div>
         {% else %}

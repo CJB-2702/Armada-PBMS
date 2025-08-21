@@ -94,7 +94,7 @@
                     <div class="col-md-4">
                         <p><strong>Asset:</strong> 
                             {% if dispatch.asset %}
-                                <a href="{{ url_for('assets.view', asset_id=dispatch.asset.id) }}">
+                                <a href="{{ url_for('core_assets.detail', asset_id=dispatch.asset.id) }}">
                                     {{ dispatch.asset.name }} ({{ dispatch.asset.serial_number }})
                                 </a>
                             {% else %}

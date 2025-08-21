@@ -70,14 +70,6 @@
         "description": "Toyota Corolla 2023 model",
         "asset_type_name": "Vehicle",
         "is_active": true
-      },
-      "Ford_F250": {
-        "make": "Ford",
-        "model": "F-250",
-        "year": 2023,
-        "description": "Ford F-250 Super Duty 2023 model",
-        "asset_type_name": "Vehicle",
-        "is_active": true
       }
     },
     "Assets": {
@@ -88,28 +80,12 @@
         "model": "Corolla",
         "status": "Active",
         "major_location_name": "SanDiegoHQ"
-      },
-      "VTC_002": {
-        "name": "VTC-002",
-        "serial_number": "VTC0022023002",
-        "make": "Toyota",
-        "model": "Corolla",
-        "status": "Active",
-        "major_location_name": "LosAngelesOffice"
-      },
-      "FTK_001": {
-        "name": "FTK-001",
-        "serial_number": "FTK0012023001",
-        "make": "Ford",
-        "model": "F-250",
-        "status": "Active",
-        "major_location_name": "SanDiegoHQ"
       }
     }
   },
   "Asset_Details": {
-    "Detail_Table_Configurations": {
-      "Asset_Type_Configs": [
+    "Detail_Table_Templates": {
+      "Asset_details_from_asset_type": [
         {
           "asset_type_name": "Vehicle",
           "detail_table_type": "purchase_info",
@@ -123,19 +99,13 @@
           "is_active": true
         },
         {
-          "asset_type_name": "Vehicle",
-          "detail_table_type": "emissions_info",
-          "is_asset_detail": false,
-          "is_active": true
-        },
-        {
-          "asset_type_name": "Vehicle",
-          "detail_table_type": "model_info",
-          "is_asset_detail": false,
+          "asset_type_name": null,
+          "detail_table_type": "purchase_info",
+          "is_asset_detail": true,
           "is_active": true
         }
       ],
-      "Model_Configs": [
+      "Asset_details_from_model_type": [
         {
           "make": "Toyota",
           "model": "Corolla",
@@ -143,8 +113,47 @@
           "is_asset_detail": true,
           "is_active": true
         }
+      ],
+      "Model_detail_table_template": [
+        {
+          "asset_type_name": "Vehicle",
+          "detail_table_type": "emissions_info",
+          "is_asset_detail": false,
+          "is_active": true
+        },
+        {
+          "asset_type_name": null,
+          "detail_table_type": "model_info",
+          "is_asset_detail": false,
+          "is_active": true
+        }
       ]
     },
+    "Models_for_automatic_detail_insertion": [
+      {
+        "make": "Ford",
+        "model": "F-250",
+        "year": 2023
+      }
+    ],
+    "Assets_for_automatic_detail_insertion": [   
+      {
+        "name": "VTC-002",
+        "serial_number": "VTC0022023002",
+        "make": "Toyota",
+        "model": "Corolla",
+        "status": "Active",
+        "major_location_name": "LosAngelesOffice"
+      },
+      {
+        "name": "FTK-001",
+        "serial_number": "FTK0012023001",
+        "make": "Ford",
+        "model": "F-250",
+        "status": "Active",
+        "major_location_name": "SanDiegoHQ"
+      }
+    ],
     "Sample_Data": {
       "Purchase_Info": {
         "purchase_date": "2023-01-15",

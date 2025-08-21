@@ -101,7 +101,10 @@ def test_phase1_implementation():
             logger.debug(f"   ✓ Serial Number: {vtc_001.serial_number}")
             logger.debug(f"   ✓ Status: {vtc_001.status}")
             logger.debug(f"   ✓ Location: {vtc_001.major_location.name}")
-            logger.debug(f"   ✓ Type: {vtc_001.asset_type.name}")
+            # Get asset type object to display name
+            from app.models.core.asset_type import AssetType
+            asset_type = AssetType.query.get(vtc_001.asset_type_id)
+            logger.debug(f"   ✓ Type: {asset_type.name if asset_type else 'None'}")
             logger.debug(f"   ✓ Make/Model: {vtc_001.make_model.make} {vtc_001.make_model.model}")
             logger.debug(f"   ✓ Created by: {vtc_001.created_by.username}")
         else:

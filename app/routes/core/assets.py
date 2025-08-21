@@ -10,7 +10,9 @@ from app.models.core.asset_type import AssetType
 from app.models.core.make_model import MakeModel
 from app.models.core.major_location import MajorLocation
 from app.models.core.event import Event
-from app.models.assets.all_details import AllAssetDetail
+from app.models.assets.detail_table_templates.asset_details_from_asset_type import AssetDetailTemplateByAssetType
+from app.models.assets.detail_table_templates.asset_details_from_model_type import AssetDetailTemplateByModelType
+from app.models.assets.detail_table_templates.model_detail_table_template import ModelDetailTableTemplate
 from app import db
 from app.logger import get_logger
 
@@ -93,9 +95,15 @@ def detail(asset_id):
     asset = Asset.query.get_or_404(asset_id)
     
     # Get related data through relationships
-    asset_type = asset.asset_type  # Use the property
+    asset_type_id = asset.asset_type_id  # Use the property
     make_model = asset.make_model  # Use the relationship
     location = asset.major_location  # Use the relationship
+    
+    # Get asset type object if needed
+    asset_type = None
+    if asset_type_id:
+        from app.models.core.asset_type import AssetType
+        asset_type = AssetType.query.get(asset_type_id)
     
     # Get asset events
     events = asset.events.order_by(Event.timestamp.desc()).limit(10).all()
@@ -229,24 +237,45 @@ def delete(asset_id):
 @bp.route('/assets/<int:asset_id>/all-details')
 @login_required
 def all_details(asset_id):
-    """View all detail records for an asset"""
+    """View all detail records for an asset using the new template structure"""
     asset = Asset.query.get_or_404(asset_id)
     
-    # Get all detail records for this asset
-    all_details = AllAssetDetail.get_details_for_asset(asset_id)
+    # Get asset detail records using the new structure
+    from app.models.assets.asset_details.purchase_info import PurchaseInfo
+    from app.models.assets.asset_details.vehicle_registration import VehicleRegistration
+    from app.models.assets.asset_details.toyota_warranty_receipt import ToyotaWarrantyReceipt
     
-    # Group details by table type for better organization
-    details_by_type = {}
-    for detail in all_details:
-        table_name = detail.table_name
-        if table_name not in details_by_type:
-            details_by_type[table_name] = []
-        details_by_type[table_name].append(detail)
+    # Get all asset detail records for this asset
+    asset_details = {}
+    asset_details['purchase_info'] = PurchaseInfo.query.filter_by(asset_id=asset_id).all()
+    asset_details['vehicle_registration'] = VehicleRegistration.query.filter_by(asset_id=asset_id).all()
+    asset_details['toyota_warranty_receipt'] = ToyotaWarrantyReceipt.query.filter_by(asset_id=asset_id).all()
+    
+    # Get model detail records if asset has a make_model
+    model_details = {}
+    if asset.make_model_id:
+        from app.models.assets.model_details.emissions_info import EmissionsInfo
+        from app.models.assets.model_details.model_info import ModelInfo
+        
+        model_details['emissions_info'] = EmissionsInfo.query.filter_by(make_model_id=asset.make_model_id).all()
+        model_details['model_info'] = ModelInfo.query.filter_by(make_model_id=asset.make_model_id).all()
+    
+    # Get configuration templates to show what detail tables are available
+    asset_type_configs = []
+    model_type_configs = []
+    
+    if asset.asset_type_id:
+        asset_type_configs = AssetDetailTemplateByAssetType.query.filter_by(asset_type_id=asset.asset_type_id).all()
+    
+    if asset.make_model_id:
+        model_type_configs = AssetDetailTemplateByModelType.query.filter_by(make_model_id=asset.make_model_id).all()
     
     return render_template('core/assets/all_details.html',
                          asset=asset,
-                         all_details=all_details,
-                         details_by_type=details_by_type)
+                         asset_details=asset_details,
+                         model_details=model_details,
+                         asset_type_configs=asset_type_configs,
+                         model_type_configs=model_type_configs)
 
 @bp.route('/assets/details-card')
 @bp.route('/assets/details-card/<int:asset_id>')
@@ -260,17 +289,37 @@ def asset_details_card(asset_id=None):
     asset = Asset.query.get_or_404(asset_id)
     
     # Get related data
-    asset_type = asset.asset_type
+    asset_type_id = asset.asset_type_id
     make_model = asset.make_model
     location = asset.major_location
+    
+    # Get asset type object if needed
+    asset_type = None
+    if asset_type_id:
+        from app.models.core.asset_type import AssetType
+        asset_type = AssetType.query.get(asset_type_id)
     
     # Get recent events
     from app.models.core.event import Event
     events = asset.events.order_by(Event.timestamp.desc()).limit(5).all()
     
-    # Get detail records count
-    from app.models.assets.all_details import AllAssetDetail
-    detail_count = AllAssetDetail.query.filter_by(asset_id=asset_id).count()
+    # Get detail records count using the new structure
+    from app.models.assets.asset_details.purchase_info import PurchaseInfo
+    from app.models.assets.asset_details.vehicle_registration import VehicleRegistration
+    from app.models.assets.asset_details.toyota_warranty_receipt import ToyotaWarrantyReceipt
+    
+    detail_count = 0
+    detail_count += PurchaseInfo.query.filter_by(asset_id=asset_id).count()
+    detail_count += VehicleRegistration.query.filter_by(asset_id=asset_id).count()
+    detail_count += ToyotaWarrantyReceipt.query.filter_by(asset_id=asset_id).count()
+    
+    # Add model details if asset has a make_model
+    if asset.make_model_id:
+        from app.models.assets.model_details.emissions_info import EmissionsInfo
+        from app.models.assets.model_details.model_info import ModelInfo
+        
+        detail_count += EmissionsInfo.query.filter_by(make_model_id=asset.make_model_id).count()
+        detail_count += ModelInfo.query.filter_by(make_model_id=asset.make_model_id).count()
     
     return render_template('core/assets/asset_details_card.html',
                          asset=asset,

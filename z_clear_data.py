@@ -52,6 +52,19 @@ def clear_data():
             print(f"   ✗ Failed to remove {pyc_file}: {e}")
     
     print(f"   Total .pyc files removed: {pyc_count}")
+
+    # Also remove .pyc files (compiled Python files)
+    print("\n3. Removing .log files...")
+    log_count = 0
+    for log_file in current_dir.rglob('*.log'):
+        try:
+            log_file.unlink()
+            print(f"   ✓ Removed: {log_file}")
+            log_count += 1
+        except Exception as e:
+            print(f"   ✗ Failed to remove {log_file}: {e}")
+    
+    print(f"   Total .log files removed: {log_count}")
     
     # Summary
     total_removed = pycache_count + db_count + pyc_count

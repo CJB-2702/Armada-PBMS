@@ -44,11 +44,11 @@ class AssetTypeDispatchDetailTableSet(UserCreatedBase, db.Model):
             # Get the asset to determine its asset type
             from app.models.core.asset import Asset
             asset = Asset.query.get(asset_id)
-            if not asset or not asset.asset_type:
+            if not asset or not asset.asset_type_id:
                 logger.debug(f"DEBUG: Asset or asset type not found")
                 return
             
-            asset_type_id = asset.asset_type.id
+            asset_type_id = asset.asset_type_id
             logger.debug(f"DEBUG: Asset type ID: {asset_type_id}")
             
             # Get all dispatch detail table configurations for this asset type

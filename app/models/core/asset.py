@@ -8,7 +8,7 @@ class Asset(UserCreatedBase, db.Model):
     __tablename__ = 'assets'
     
     # Class-level state for automatic detail insertion
-    _automatic_detail_insertion_enabled = True  # Always enabled by default
+    _automatic_detail_insertion_enabled = True
     _detail_table_registry = None
     _detail_rows_created = False  
     
@@ -27,19 +27,36 @@ class Asset(UserCreatedBase, db.Model):
     major_location = db.relationship('MajorLocation', overlaps="assets")
     make_model = db.relationship('MakeModel', overlaps="assets")
     events = db.relationship('Event', backref='asset_ref', lazy='dynamic')
+
+
     
     @property
-    def asset_type(self):
-        """Get the asset type through the make_model relationship"""
-        if self.make_model and self.make_model.asset_type:
-            return self.make_model.asset_type
+    def asset_type_id(self):
+        """Get the asset type ID through the make_model relationship"""
+        if self.make_model_id:
+            # Use direct query to avoid relationship loading issues in event listeners
+            # Do NOT CHANGE THIS. this was a nightmare to fix.
+            from app.models.core.make_model import MakeModel
+            make_model = MakeModel.query.get(self.make_model_id)
+            if make_model:
+                return make_model.asset_type_id
         return None
+    
+    
+    def get_asset_type_id(self, force_reload=False):
+        """Get the asset type ID with optional force reload for event listener contexts"""
+        if force_reload or not hasattr(self, '_cached_asset_type_id'):
+            if self.make_model_id:
+                from app.models.core.make_model import MakeModel
+                make_model = MakeModel.query.get(self.make_model_id)
+                self._cached_asset_type_id = make_model.asset_type_id if make_model else None
+            else:
+                self._cached_asset_type_id = None
+        return self._cached_asset_type_id
     
     @classmethod
     def enable_automatic_detail_insertion(cls):
         """Enable automatic detail table row creation for new assets"""
-        if cls._automatic_detail_insertion_enabled:
-            return
         cls._automatic_detail_insertion_enabled = True
         logger.debug("Automatic detail insertion enabled")
     
@@ -51,9 +68,6 @@ class Asset(UserCreatedBase, db.Model):
     @classmethod
     def _after_insert(cls, mapper, connection, target):
         """Handle all post-insert events for an asset"""
-        if not cls._automatic_detail_insertion_enabled:
-            return
-        
         try:
             # Create asset creation event
             from app.models.core.event import Event
@@ -68,24 +82,55 @@ class Asset(UserCreatedBase, db.Model):
             
         except Exception as e:
             logger.debug(f"Error in post-insert events: {e}")
+
+        if cls._automatic_detail_insertion_enabled:
+            target.create_detail_table_rows()
+
+
     
     def create_detail_table_rows(self):
         """Create detail table rows for this asset after it has been committed"""
-        if not self._automatic_detail_insertion_enabled:
-            return
+        logger.info(f"DEBUG: Creating detail table rows for asset {self.id} \n\n\n\n")
+        
         
         try:
-            from app.models.assets.detail_table_sets.asset_type_detail_table_set import AssetTypeDetailTableSet
-            from app.models.assets.detail_table_sets.model_detail_table_set import ModelDetailTableSet
+            from app.models.assets.detail_table_templates.asset_details_from_asset_type import AssetDetailTemplateByAssetType
+            from app.models.assets.detail_table_templates.asset_details_from_model_type import AssetDetailTemplateByModelType
             
-            if self.asset_type:
-                AssetTypeDetailTableSet.create_detail_table_rows(self.id, self.make_model_id)
+            # Create asset detail rows based on asset type - use method for reliability in event listeners
+            asset_type_id = self.get_asset_type_id(force_reload=True)
+            logger.debug(f"DEBUG: Creating asset type detail rows base off of asset type: {asset_type_id} \n\n\n\n")
+            if asset_type_id:
+                AssetDetailTemplateByAssetType.create_detail_table_rows(self)
             
+            # Create asset detail rows based on model type
             if self.make_model_id:
-                ModelDetailTableSet.create_detail_table_rows(self.id, self.make_model_id)
+                AssetDetailTemplateByModelType.create_detail_table_rows(self)
                 
         except Exception as e:
             logger.debug(f"Error creating detail table rows for asset {self.id}: {e}")
+
+    @classmethod
+    def _create_detail_tables_for_asset(cls, asset):
+        """Create detail table rows for a specific asset"""
+        logger.warning(f"DEBUG: _create_detail_tables_for_asset called for asset {asset.id}")
+        try:
+            from app.models.assets.detail_table_templates.asset_details_from_asset_type import AssetDetailTemplateByAssetType
+            from app.models.assets.detail_table_templates.asset_details_from_model_type import AssetDetailTemplateByModelType
+            
+            # Create asset detail rows based on asset type - use method for reliability
+            asset_type_id = asset.get_asset_type_id(force_reload=True)
+            if asset_type_id:
+                AssetDetailTemplateByAssetType.create_detail_table_rows(asset)
+            else:
+                logger.warning(f"DEBUG: No asset type found for asset {asset.id}")
+            
+            # Create asset detail rows based on model type
+            if asset.make_model_id:
+                AssetDetailTemplateByModelType.create_detail_table_rows(asset)
+                
+        except Exception as e:
+            logger.debug(f"Error creating detail table rows for asset {asset.id}: {e}")
     
     def __repr__(self):
         return f'<Asset {self.name} ({self.serial_number})>' 

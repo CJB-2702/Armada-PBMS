@@ -3,7 +3,7 @@ from app.logger import get_logger
 from flask_login import login_required, current_user
 from app import db
 from app.models.core.comment import Comment
-from app.models.core.comment_attachment import CommentAttachment
+from app.models.core.comment import CommentAttachment
 from app.models.core.attachment import Attachment
 from app.models.core.event import Event
 import json
@@ -78,8 +78,10 @@ def create(event_id):
             
             # Create comment attachment link
             comment_attachment = CommentAttachment(
-                comment_id=comment.id,
+                attached_to_id=comment.id,  # Use attached_to_id instead of comment_id
                 attachment_id=attachment.id,
+                display_order=len(comment.comment_attachments) + 1,  # Add display order
+                attachment_type='Document',  # Set attachment type
                 created_by_id=current_user.id,
                 updated_by_id=current_user.id
             )

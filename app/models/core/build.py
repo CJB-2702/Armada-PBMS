@@ -21,7 +21,10 @@ def build_models():
     import app.models.core.event
     import app.models.core.attachment
     import app.models.core.comment
-    import app.models.core.comment_attachment
+    
+    # Initialize attachment sequence
+    from app.models.core.attachment import AttachmentIDManager
+    AttachmentIDManager.create_sequence_if_not_exists()
     
     logger.info("Core models build completed")
     pass

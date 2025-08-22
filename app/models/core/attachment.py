@@ -5,6 +5,28 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 from pathlib import Path
+from app.models.core.virtual_sequence_generator import VirtualSequenceGenerator
+
+class AttachmentIDManager(VirtualSequenceGenerator):
+    """
+    Manages all_attachments_id sequence for AttachmentRefrence tables
+    Ensures unique IDs across all attachment reference tables
+    """
+    
+    @classmethod
+    def get_sequence_table_name(cls):
+        """
+        Return the table name for the attachment sequence counter
+        """
+        return "attachment_id_counter"
+    
+    @classmethod
+    def get_next_attachment_id(cls):
+        """
+        Get the next available attachment ID
+        Uses the base class method for thread safety
+        """
+        return cls.get_next_id()
 
 class Attachment(UserCreatedBase):
     __tablename__ = 'attachments'
@@ -191,3 +213,27 @@ class Attachment(UserCreatedBase):
     
     def __repr__(self):
         return f'<Attachment {self.filename} ({self.get_file_size_display()})>' 
+
+
+class VirtualAttachmentRefrence(UserCreatedBase):
+    __abstract__ = True
+
+    # Relationships
+    attachment_id = db.Column(db.Integer, db.ForeignKey('attachments.id'), nullable=False)
+    all_attachment_refrences_id = db.Column(db.Integer, nullable=False) 
+    #attached_to_id = db.Column(db.Integer, nullable=False) # this is defined in each child class with proper foreign key
+    attached_to_type = db.Column(db.String(20), nullable=False)
+    display_order = db.Column(db.Integer, nullable=False)
+    
+    # Note: attached_to_id is defined in each child class with proper foreign key
+    
+    # Core fields
+    attachment_type = db.Column(db.String(20), nullable=False)  # 'Image', 'Document', 'Video'
+    caption = db.Column(db.String(255), nullable=True)  # Optional caption for the attachment
+    
+    def __init__(self, *args, **kwargs):
+        """Initialize the attachment reference record with global ID assignment"""
+        # Assign global ID before calling parent constructor
+        if 'all_attachment_refrences_id' not in kwargs:
+            kwargs['all_attachment_refrences_id'] = AttachmentIDManager.get_next_attachment_id()
+        super().__init__(*args, **kwargs) 

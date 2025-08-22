@@ -8,9 +8,8 @@ from .asset_type import AssetType
 from .make_model import MakeModel
 from .asset import Asset
 from .event import Event
-from .attachment import Attachment
-from .comment import Comment
-from .comment_attachment import CommentAttachment
+from .attachment import Attachment, AttachmentIDManager
+from .comment import Comment, CommentAttachment
 from .virtual_sequence_generator import VirtualSequenceGenerator
 
 __all__ = [
@@ -21,6 +20,7 @@ __all__ = [
     'Asset',
     'Event',
     'Attachment',
+    'AttachmentIDManager',
     'Comment',
     'CommentAttachment',
     'VirtualSequenceGenerator'

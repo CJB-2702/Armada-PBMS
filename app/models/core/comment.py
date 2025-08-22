@@ -1,6 +1,8 @@
 from app.models.core.user_created_base import UserCreatedBase
+from app.models.core.attachment import VirtualAttachmentRefrence
 from app import db
 from datetime import datetime
+from sqlalchemy.orm import foreign
 
 class Comment(UserCreatedBase):
     __tablename__ = 'comments'
@@ -35,4 +37,24 @@ class Comment(UserCreatedBase):
     
     def __repr__(self):
         preview = self.get_content_preview(50)
-        return f'<Comment {self.id}: {preview}>' 
+        return f'<Comment {self.id}: {preview}>'
+
+
+class CommentAttachment(VirtualAttachmentRefrence):
+    __tablename__ = 'comment_attachments'
+    
+    # Define attached_to_id with proper foreign key for comments
+    attached_to_id = db.Column(db.Integer, db.ForeignKey('comments.id'), nullable=False)
+    
+    # Relationships
+    attachment = db.relationship('Attachment')
+    comment = db.relationship('Comment', backref='comment_attachments')
+    
+    def __init__(self, *args, **kwargs):
+        """Initialize comment attachment with proper virtual reference setup"""
+        # Set the attached_to_type for comment attachments
+        kwargs['attached_to_type'] = 'Comment'
+        super().__init__(*args, **kwargs)
+    
+    def __repr__(self):
+        return f'<CommentAttachment Comment:{self.attached_to_id} -> Attachment:{self.attachment_id}>' 

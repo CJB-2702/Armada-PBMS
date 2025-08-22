@@ -76,7 +76,7 @@ def delete(attachment_id):
         return redirect(url_for('events.detail', event_id=attachment.event_id))
     
     # Find the comment that contains this attachment
-    from app.models.core.comment_attachment import CommentAttachment
+    from app.models.core.comment import CommentAttachment
     comment_attachment = CommentAttachment.query.filter_by(attachment_id=attachment_id).first()
     
     if not comment_attachment:

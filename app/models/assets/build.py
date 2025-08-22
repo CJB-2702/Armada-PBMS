@@ -63,7 +63,7 @@ def build_models():
     import app.models.assets.detail_table_templates.model_detail_table_template
     
     # Initialize ID sequences
-    from app.models.assets.global_id_managers import AssetDetailIDManager, ModelDetailIDManager
+    from app.models.assets.detail_id_managers import AssetDetailIDManager, ModelDetailIDManager
     AssetDetailIDManager.create_sequence_if_not_exists()
     ModelDetailIDManager.create_sequence_if_not_exists()
     

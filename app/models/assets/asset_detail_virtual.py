@@ -8,11 +8,11 @@ from app.models.core.user_created_base import UserCreatedBase
 from app import db
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import event    
-from app.models.assets.global_id_managers import AssetDetailIDManager
+from app.models.assets.detail_id_managers import AssetDetailIDManager
 from app.models.core.asset import Asset
 Asset.enable_automatic_detail_insertion()
 
-class AssetDetailVirtual(UserCreatedBase, db.Model):
+class AssetDetailVirtual(UserCreatedBase):
     """
     Base class for all asset-specific detail tables
     Provides common functionality for asset detail tables

@@ -8,10 +8,10 @@ from app.models.core.user_created_base import UserCreatedBase
 from app import db
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import event
-from app.models.assets.global_id_managers import ModelDetailIDManager
+from app.models.assets.detail_id_managers import ModelDetailIDManager
 
 
-class ModelDetailVirtual(UserCreatedBase, db.Model):
+class ModelDetailVirtual(UserCreatedBase):
     """
     Base class for all model-specific detail tables
     Provides common functionality for model detail tables

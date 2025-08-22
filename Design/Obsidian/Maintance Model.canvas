@@ -10,13 +10,15 @@
 		{"id":"d832f28632ab48ec","type":"text","text":"Asset","x":690,"y":-1137,"width":530,"height":97},
 		{"id":"a1509091d0b9239d","type":"text","text":"Part Demand","x":2480,"y":-200,"width":320,"height":400},
 		{"id":"cfb3b0b8cd58b9dc","type":"text","text":"Template Part Demand","x":160,"y":800,"width":560,"height":120},
-		{"id":"e9c4845d7577cad5","type":"text","text":"Parts","x":1500,"y":680,"width":380,"height":240},
+		{"id":"e9c4845d7577cad5","type":"text","text":"Parts","x":1500,"y":800,"width":380,"height":120},
 		{"id":"f44fc0343e0762dc","type":"text","text":"Attachments","x":-40,"y":1035,"width":2840,"height":245},
 		{"id":"4f266ac82c4ba3c7","type":"text","text":"Comments","x":1663,"y":-1234,"width":537,"height":194},
 		{"id":"209688ea1ec4b5da","type":"text","text":"Comment Attachments","x":2640,"y":-1234,"width":480,"height":194},
 		{"id":"cfde35d4291a9f40","type":"text","text":"Event","x":-321,"y":-936,"width":250,"height":60,"color":"5"},
-		{"id":"3adf8eb193aeacdc","x":118,"y":-1153,"width":250,"height":60,"type":"text","text":"Maintnence Status"},
-		{"id":"a2af0bfd0c00cc8c","x":17,"y":-1347,"width":250,"height":60,"color":"5","type":"text","text":"status sets"}
+		{"id":"3adf8eb193aeacdc","type":"text","text":"Maintnence Status","x":118,"y":-1153,"width":250,"height":60},
+		{"id":"a2af0bfd0c00cc8c","type":"text","text":"status sets","x":17,"y":-1347,"width":250,"height":60,"color":"5"},
+		{"id":"fc302eddf5bc8b48","x":1120,"y":480,"width":570,"height":80,"type":"text","text":"Virtual Action item"},
+		{"id":"0814ee8a842ceae2","x":1359,"y":642,"width":250,"height":60,"type":"text","text":"Virtual Part demand"}
 	],
 	"edges":[
 		{"id":"75762fe3c7c9e39c","fromNode":"1680d6827d6745aa","fromSide":"bottom","toNode":"64b330f58486a267","toSide":"top","label":"has"},
@@ -46,6 +48,8 @@
 		{"id":"28d999d1d238016b","fromNode":"d1bcbff5aa3f3deb","fromSide":"bottom","toNode":"f44fc0343e0762dc","toSide":"left","label":"has"},
 		{"id":"b662fe5bf0b23bee","fromNode":"45d6d99a69003cd8","fromSide":"left","toNode":"cfde35d4291a9f40","toSide":"right","color":"5","label":"inherits from"},
 		{"id":"63cbb41d16d630b6","fromNode":"3adf8eb193aeacdc","fromSide":"top","toNode":"a2af0bfd0c00cc8c","toSide":"bottom","label":"inherits from"},
-		{"id":"2a9505ac067fa66a","fromNode":"45d6d99a69003cd8","fromSide":"top","toNode":"3adf8eb193aeacdc","toSide":"bottom","label":"has"}
+		{"id":"2a9505ac067fa66a","fromNode":"45d6d99a69003cd8","fromSide":"top","toNode":"3adf8eb193aeacdc","toSide":"bottom","label":"has"},
+		{"id":"076ea1a8ae48626b","fromNode":"b59f5ab5ca366171","fromSide":"bottom","toNode":"fc302eddf5bc8b48","toSide":"right","label":"inherits from"},
+		{"id":"c7fa4f7d0e52b788","fromNode":"64b330f58486a267","fromSide":"top","toNode":"fc302eddf5bc8b48","toSide":"left","label":"iinherits from"}
 	]
 }

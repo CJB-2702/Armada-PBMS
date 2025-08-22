@@ -4,7 +4,7 @@ from app.logger import get_logger
 logger = get_logger("asset_management.models.core")
 from sqlalchemy import event
 
-class MakeModel(UserCreatedBase, db.Model):
+class MakeModel(UserCreatedBase):
     __tablename__ = 'make_models'
     _automatic_detail_insertion_enabled = True
     

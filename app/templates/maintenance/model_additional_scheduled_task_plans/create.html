@@ -1,0 +1,177 @@
+{% extends "maintenance/base.html" %}
+
+{% block maintenance_title %}Create Model Additional Scheduled Task Plan{% endblock %}
+
+{% block maintenance_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Create Model Additional Scheduled Task Plan</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Model Plan Details</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Plan Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="make_model_id" class="form-label">Make/Model *</label>
+                                <select class="form-select" id="make_model_id" name="make_model_id" required>
+                                    <option value="">Select Make/Model</option>
+                                    {% for make_model in make_models %}
+                                    <option value="{{ make_model.id }}">{{ make_model.make }} {{ make_model.model }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="template_action_set_id" class="form-label">Template Action Set *</label>
+                        <select class="form-select" id="template_action_set_id" name="template_action_set_id" required>
+                            <option value="">Select Action Set</option>
+                            {% for action_set in action_sets %}
+                            <option value="{{ action_set.id }}">{{ action_set.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Meter Intervals</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="interval_meter1" class="form-label">Meter 1 (Hours)</label>
+                                        <input type="number" class="form-control" id="interval_meter1" name="interval_meter1" min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="interval_meter2" class="form-label">Meter 2 (Hours)</label>
+                                        <input type="number" class="form-control" id="interval_meter2" name="interval_meter2" min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="interval_meter3" class="form-label">Meter 3 (Hours)</label>
+                                        <input type="number" class="form-control" id="interval_meter3" name="interval_meter3" min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="interval_meter4" class="form-label">Meter 4 (Hours)</label>
+                                        <input type="number" class="form-control" id="interval_meter4" name="interval_meter4" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Time Intervals</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="interval_days" class="form-label">Days</label>
+                                        <input type="number" class="form-control" id="interval_days" name="interval_days" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Active Plan
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_list') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create Model Plan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Help</h6>
+            </div>
+            <div class="card-body">
+                <h6>Model Additional Scheduled Task Plans</h6>
+                <p class="small text-muted">
+                    These plans define additional maintenance requirements specific to particular make/model combinations. 
+                    They supplement the base asset type plans with model-specific maintenance needs.
+                </p>
+                
+                <h6>Required Fields</h6>
+                <ul class="small text-muted">
+                    <li><strong>Plan Name:</strong> A descriptive name for the model plan</li>
+                    <li><strong>Make/Model:</strong> The specific make and model this plan applies to</li>
+                    <li><strong>Action Set:</strong> The template action set to use for maintenance</li>
+                </ul>
+                
+                <h6>Intervals</h6>
+                <p class="small text-muted">
+                    Set either meter intervals (in hours) or time intervals (in days) to determine when maintenance should be scheduled.
+                    These intervals are in addition to the base asset type plan intervals.
+                </p>
+
+                <h6>When to Use Model Plans</h6>
+                <ul class="small text-muted">
+                    <li>Model-specific maintenance requirements</li>
+                    <li>Additional maintenance beyond asset type plans</li>
+                    <li>Manufacturer-specific maintenance schedules</li>
+                    <li>Model-specific component replacements</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Related Plans</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    Model additional plans work together with:
+                </p>
+                <ul class="small text-muted">
+                    <li><strong>Asset Type Plans:</strong> Base maintenance schedules for asset types</li>
+                    <li><strong>Asset Additional Plans:</strong> Individual asset-specific maintenance</li>
+                    <li><strong>Template Action Sets:</strong> Standardized maintenance procedures</li>
+                </ul>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{{ url_for('maintenance.asset_type_scheduled_task_plans_list') }}" class="btn btn-sm btn-outline-info">
+                        View Asset Type Plans
+                    </a>
+                    <a href="{{ url_for('maintenance.template_action_sets_list') }}" class="btn btn-sm btn-outline-secondary">
+                        View Action Sets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

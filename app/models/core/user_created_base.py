@@ -3,8 +3,10 @@ from datetime import datetime
 from sqlalchemy.ext.declarative import declared_attr
 from app.models.core.data_insertion_mixin import DataInsertionMixin
 
-class UserCreatedBase(DataInsertionMixin):
+class UserCreatedBase(db.Model, DataInsertionMixin):
     """Abstract base class for all user-created entities with audit trail"""
+    
+    __abstract__ = True
     
     @declared_attr
     def __tablename__(cls):

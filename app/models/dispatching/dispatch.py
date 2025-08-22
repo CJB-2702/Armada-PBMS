@@ -9,7 +9,7 @@ from app import db
 from datetime import datetime
 from sqlalchemy import event
 
-class Dispatch(UserCreatedBase, db.Model):
+class Dispatch(UserCreatedBase):
     """
     Core dispatch entity representing work orders and assignments
     """

@@ -6,7 +6,7 @@ import uuid
 from werkzeug.utils import secure_filename
 from pathlib import Path
 
-class Attachment(UserCreatedBase, db.Model):
+class Attachment(UserCreatedBase):
     __tablename__ = 'attachments'
     
     # File information

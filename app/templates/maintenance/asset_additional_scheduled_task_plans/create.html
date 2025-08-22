@@ -1,0 +1,112 @@
+{% extends "maintenance/base.html" %}
+
+{% block title %}Create Asset Additional Scheduled Task Plan{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create Asset Additional Scheduled Task Plan</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="asset_id">Asset *</label>
+                                    <select class="form-control" id="asset_id" name="asset_id" required>
+                                        <option value="">Select Asset</option>
+                                        {% for asset in assets %}
+                                            <option value="{{ asset.id }}">{{ asset.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="template_action_set_id">Template Action Set *</label>
+                                    <select class="form-control" id="template_action_set_id" name="template_action_set_id" required>
+                                        <option value="">Select Template Action Set</option>
+                                        {% for action_set in action_sets %}
+                                            <option value="{{ action_set.id }}">{{ action_set.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="interval_days">Interval (Days)</label>
+                                    <input type="number" class="form-control" id="interval_days" name="interval_days" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="interval_meter1">Interval Meter 1 (Hours)</label>
+                                    <input type="number" class="form-control" id="interval_meter1" name="interval_meter1" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="interval_meter2">Interval Meter 2 (Hours)</label>
+                                    <input type="number" class="form-control" id="interval_meter2" name="interval_meter2" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="interval_meter3">Interval Meter 3 (Hours)</label>
+                                    <input type="number" class="form-control" id="interval_meter3" name="interval_meter3" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="interval_meter4">Interval Meter 4 (Hours)</label>
+                                    <input type="number" class="form-control" id="interval_meter4" name="interval_meter4" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Create Plan</button>
+                                <a href="{{ url_for('maintenance.asset_additional_scheduled_task_plans_list') }}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

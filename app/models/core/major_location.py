@@ -1,7 +1,7 @@
 from app.models.core.user_created_base import UserCreatedBase
 from app import db
 
-class MajorLocation(UserCreatedBase, db.Model):
+class MajorLocation(UserCreatedBase):
     __tablename__ = 'major_locations'
     
     name = db.Column(db.String(100), nullable=False)

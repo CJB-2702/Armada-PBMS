@@ -11,6 +11,7 @@ from .event import Event
 from .attachment import Attachment
 from .comment import Comment
 from .comment_attachment import CommentAttachment
+from .virtual_sequence_generator import VirtualSequenceGenerator
 
 __all__ = [
     'User',
@@ -21,5 +22,6 @@ __all__ = [
     'Event',
     'Attachment',
     'Comment',
-    'CommentAttachment'
+    'CommentAttachment',
+    'VirtualSequenceGenerator'
 ] 

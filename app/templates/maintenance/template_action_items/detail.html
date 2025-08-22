@@ -1,0 +1,83 @@
+{% extends "maintenance/base.html" %}
+
+{% block title %}Template Action Item Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Template Action Item Details</h3>
+                    <div>
+                        <a href="{{ url_for('maintenance.template_action_items_edit', id=action_item.id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{{ url_for('maintenance.template_action_items_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Basic Information</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Template Action Set:</th>
+                                    <td>{{ action_item.template_action_set.name if action_item.template_action_set else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Sequence Number:</th>
+                                    <td>{{ action_item.sequence_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Action Description:</th>
+                                    <td>{{ action_item.action_description }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Estimated Duration:</th>
+                                    <td>{{ action_item.estimated_duration or 'N/A' }} minutes</td>
+                                </tr>
+                                <tr>
+                                    <th>Required Skills:</th>
+                                    <td>{{ action_item.required_skills or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tools Template:</th>
+                                    <td>{{ action_item.tools_template.tool_name if action_item.tools_template else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Notes:</th>
+                                    <td>{{ action_item.notes or 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Audit Information</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Created By:</th>
+                                    <td>{{ action_item.created_by.username if action_item.created_by else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created On:</th>
+                                    <td>{{ action_item.created_at.strftime('%Y-%m-%d %H:%M:%S') if action_item.created_at else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Updated By:</th>
+                                    <td>{{ action_item.updated_by.username if action_item.updated_by else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Updated On:</th>
+                                    <td>{{ action_item.updated_at.strftime('%Y-%m-%d %H:%M:%S') if action_item.updated_at else 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

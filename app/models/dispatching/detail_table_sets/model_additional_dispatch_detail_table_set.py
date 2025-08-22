@@ -9,7 +9,7 @@ from app.logger import get_logger
 logger = get_logger("asset_management.models.dispatching")
 from app import db
 
-class ModelAdditionalDispatchDetailTableSet(UserCreatedBase, db.Model):
+class ModelAdditionalDispatchDetailTableSet(UserCreatedBase):
     """
     Configuration container that defines additional dispatch detail table types 
     for a specific model beyond what the asset type provides

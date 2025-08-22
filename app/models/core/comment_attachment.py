@@ -2,7 +2,7 @@ from app.models.core.user_created_base import UserCreatedBase
 from app import db
 from datetime import datetime
 
-class CommentAttachment(UserCreatedBase, db.Model):
+class CommentAttachment(UserCreatedBase):
     __tablename__ = 'comment_attachments'
     
     # Relationships

@@ -3,10 +3,9 @@ from datetime import datetime
 from app.models.core.data_insertion_mixin import DataInsertionMixin
 from app.models.core.user_created_base import UserCreatedBase
 
-class Event(UserCreatedBase, DataInsertionMixin, db.Model):
+class Event(UserCreatedBase, DataInsertionMixin):
     __tablename__ = 'events'
     
-    id = db.Column(db.Integer, primary_key=True)
     event_type = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)

@@ -1,0 +1,234 @@
+{% extends "maintenance/base.html" %}
+
+{% block maintenance_title %}{{ plan.name }} - Model Additional Scheduled Task Plan{% endblock %}
+
+{% block maintenance_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ plan.name }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_edit', id=plan.id) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_list') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Model Plan Details</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Name:</dt>
+                    <dd class="col-sm-8">{{ plan.name }}</dd>
+                    
+                    <dt class="col-sm-4">Description:</dt>
+                    <dd class="col-sm-8">
+                        {% if plan.description %}
+                            {{ plan.description }}
+                        {% else %}
+                            <span class="text-muted">No description provided</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-4">Make/Model:</dt>
+                    <dd class="col-sm-8">
+                        {% if plan.make_model %}
+                            <a href="{{ url_for('make_models.detail', id=plan.make_model.id) }}">
+                                {{ plan.make_model.make }} {{ plan.make_model.model }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Unknown</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-4">Template Action Set:</dt>
+                    <dd class="col-sm-8">
+                        {% if plan.template_action_set %}
+                            <a href="{{ url_for('maintenance.template_action_sets_detail', id=plan.template_action_set.id) }}">
+                                {{ plan.template_action_set.name }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Unknown</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Intervals -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Additional Maintenance Intervals</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Meter Intervals</h6>
+                        <dl class="row">
+                            <dt class="col-sm-6">Meter 1:</dt>
+                            <dd class="col-sm-6">
+                                {% if plan.interval_meter1 %}
+                                    {{ plan.interval_meter1 }} hours
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-6">Meter 2:</dt>
+                            <dd class="col-sm-6">
+                                {% if plan.interval_meter2 %}
+                                    {{ plan.interval_meter2 }} hours
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-6">Meter 3:</dt>
+                            <dd class="col-sm-6">
+                                {% if plan.interval_meter3 %}
+                                    {{ plan.interval_meter3 }} hours
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </dd>
+                            
+                            <dt class="col-sm-6">Meter 4:</dt>
+                            <dd class="col-sm-6">
+                                {% if plan.interval_meter4 %}
+                                    {{ plan.interval_meter4 }} hours
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Time Intervals</h6>
+                        <dl class="row">
+                            <dt class="col-sm-6">Days:</dt>
+                            <dd class="col-sm-6">
+                                {% if plan.interval_days %}
+                                    {{ plan.interval_days }} days
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Note:</strong> These intervals are in addition to the base asset type plan intervals. 
+                    This model plan supplements the standard maintenance schedule for this specific make/model combination.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Plan Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Plan Information</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Created:</dt>
+                    <dd class="col-sm-8">
+                        {% if plan.created_date %}
+                            {{ plan.created_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            <span class="text-muted">Unknown</span>
+                        {% endif %}
+                    </dd>
+                    
+                    {% if plan.created_by %}
+                    <dt class="col-sm-4">Created By:</dt>
+                    <dd class="col-sm-8">{{ plan.created_by.name }}</dd>
+                    {% endif %}
+                    
+                    {% if plan.updated_date %}
+                    <dt class="col-sm-4">Updated:</dt>
+                    <dd class="col-sm-8">{{ plan.updated_date.strftime('%Y-%m-%d %H:%M') }}</dd>
+                    {% endif %}
+                    
+                    {% if plan.updated_by %}
+                    <dt class="col-sm-4">Updated By:</dt>
+                    <dd class="col-sm-8">{{ plan.updated_by.name }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_edit', id=plan.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Edit Model Plan
+                    </a>
+                    <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list"></i> View All Model Plans
+                    </a>
+                    <a href="{{ url_for('maintenance.model_additional_scheduled_task_plans_create') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Create New Model Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Information -->
+        {% if plan.make_model %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Related Make/Model</h6>
+            </div>
+            <div class="card-body">
+                <h6>{{ plan.make_model.make }} {{ plan.make_model.model }}</h6>
+                <p class="small text-muted">
+                    This plan applies to all assets of make "{{ plan.make_model.make }}" and model "{{ plan.make_model.model }}".
+                </p>
+                <a href="{{ url_for('core_assets.list', make_model_id=plan.make_model.id) }}" class="btn btn-sm btn-outline-info">
+                    View Assets
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Related Plans -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Related Plans</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    This model plan works together with:
+                </p>
+                <ul class="small text-muted">
+                    <li><strong>Asset Type Plans:</strong> Base maintenance schedules</li>
+                    <li><strong>Asset Additional Plans:</strong> Individual asset maintenance</li>
+                </ul>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{{ url_for('maintenance.asset_type_scheduled_task_plans_list') }}" class="btn btn-sm btn-outline-info">
+                        View Asset Type Plans
+                    </a>
+                    <a href="{{ url_for('maintenance.asset_additional_scheduled_task_plans_list') }}" class="btn btn-sm btn-outline-warning">
+                        View Asset Plans
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

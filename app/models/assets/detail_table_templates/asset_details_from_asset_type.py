@@ -9,7 +9,7 @@ from app.logger import get_logger
 logger = get_logger("asset_management.models.assets")
 from app import db
 
-class AssetDetailTemplateByAssetType(UserCreatedBase, db.Model):
+class AssetDetailTemplateByAssetType(UserCreatedBase):
     """
     Configuration container that defines which detail table types are available for a specific asset type
     """

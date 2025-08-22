@@ -2,7 +2,7 @@ from app.models.core.user_created_base import UserCreatedBase
 from app import db
 from datetime import datetime
 
-class Comment(UserCreatedBase, db.Model):
+class Comment(UserCreatedBase):
     __tablename__ = 'comments'
     
     # Comment content

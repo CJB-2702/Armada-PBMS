@@ -4,7 +4,7 @@ logger = get_logger("asset_management.models.core")
 from app import db
 from sqlalchemy import event
 
-class Asset(UserCreatedBase, db.Model):
+class Asset(UserCreatedBase):
     __tablename__ = 'assets'
     
     # Class-level state for automatic detail insertion

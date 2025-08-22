@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import event
 from app.models.dispatching.all_dispatch_details import AllDispatchDetail
 
-class DispatchDetailVirtual(UserCreatedBase, db.Model):
+class DispatchDetailVirtual(UserCreatedBase):
     """
     Base class for all dispatch-specific detail tables
     Provides common functionality for dispatch detail tables

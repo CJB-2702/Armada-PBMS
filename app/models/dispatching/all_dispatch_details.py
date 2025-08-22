@@ -8,7 +8,7 @@ Provides a unified view of all dispatch detail types
 from app.models.core.user_created_base import UserCreatedBase
 from app import db
 
-class AllDispatchDetail(UserCreatedBase, db.Model):
+class AllDispatchDetail(UserCreatedBase):
     """
     Master table that tracks all dispatch detail records
     Provides a unified view of all dispatch detail types

@@ -1,2 +1,2 @@
 # Models package 
-from . import core, assets, dispatching 
+from . import core, assets, dispatching, supply 

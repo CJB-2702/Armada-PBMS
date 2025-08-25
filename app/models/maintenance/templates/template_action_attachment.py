@@ -17,7 +17,8 @@ class TemplateActionAttachment(VirtualAttachmentRefrence):
     attached_to_type = db.Column(db.String(20), nullable=False, default='TemplateActionItem')
     
     # Relationships
-    template_action_item = db.relationship('TemplateActionItem', backref='template_action_attachments')
+    template_action_item = db.relationship('TemplateActionItem', 
+                                         foreign_keys=[template_action_item_id])
     
     def __init__(self, *args, **kwargs):
         # Set attached_to_id from template_action_item_id if not provided
@@ -27,23 +28,3 @@ class TemplateActionAttachment(VirtualAttachmentRefrence):
     
     def __repr__(self):
         return f'<TemplateActionAttachment {self.attachment_type}: {self.description}>'
-    
-    @property
-    def is_manual(self):
-        return self.attachment_type == 'Manual'
-    
-    @property
-    def is_diagram(self):
-        return self.attachment_type == 'Diagram'
-    
-    @property
-    def is_photo(self):
-        return self.attachment_type == 'Photo'
-    
-    @property
-    def is_video(self):
-        return self.attachment_type == 'Video'
-    
-    @property
-    def is_document(self):
-        return self.attachment_type == 'Document'

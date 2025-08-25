@@ -14,10 +14,10 @@ class TemplateActionSet(VirtualActionSet):
     maintenance_plan_id = db.Column(db.Integer, db.ForeignKey('maintenance_plans.id'), nullable=True)
     
     # Relationships
-    template_action_items = db.relationship('TemplateActionItem', backref='template_action_set', lazy='dynamic')
+    template_action_items = db.relationship('TemplateActionItem', lazy='dynamic')
     
     def __repr__(self):
-        return f'<TemplateActionSet {self.set_name}>'
+        return f'<TemplateActionSet {self.task_name}>'
     
     def get_required_tools_list(self):
         """Get required tools as a list"""

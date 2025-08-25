@@ -210,16 +210,19 @@
                         Manage inventory, parts, supplies, and procurement for maintenance operations.
                     </p>
                     <div class="mb-3">
-                        <span class="status-indicator status-planned"></span>
-                        <small class="text-muted">Planned</small>
+                        <span class="status-indicator status-active"></span>
+                        <small class="text-success">Active</small>
                     </div>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-danger btn-sm" disabled>
-                            <i class="bi bi-clock"></i> Coming Soon
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                            <i class="bi bi-info-circle"></i> Learn More
-                        </button>
+                        <a href="{{ url_for('supply.index') }}" class="btn btn-danger btn-sm">
+                            <i class="bi bi-box-seam"></i> Supply Dashboard
+                        </a>
+                        <a href="{{ url_for('supply.parts.list') }}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-list"></i> View Parts
+                        </a>
+                        <a href="{{ url_for('supply.tools.list') }}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-tools"></i> View Tools
+                        </a>
                     </div>
                 </div>
             </div>

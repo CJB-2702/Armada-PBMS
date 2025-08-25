@@ -12,7 +12,6 @@ class Action(VirtualActionItem):
     start_time = db.Column(db.DateTime, nullable=True)
     end_time = db.Column(db.DateTime, nullable=True)
     actual_billable_hours = db.Column(db.Float, nullable=True) 
-    notes = db.Column(db.Text, nullable=True)
     completion_notes = db.Column(db.Text, nullable=True)
     
     # Foreign Keys
@@ -21,7 +20,6 @@ class Action(VirtualActionItem):
     
     # Relationships
     template_action_item = db.relationship('TemplateActionItem', backref='actions')
-    part_demands = db.relationship('PartDemand', lazy='dynamic')
     
     def __repr__(self):
         return f'<Action {self.action_name}: {self.status}>'
@@ -55,7 +53,34 @@ class Action(VirtualActionItem):
     def get_total_part_cost(self):
         """Calculate total cost of parts used"""
         total = 0
-        for part_demand in self.part_demands:
-            if part_demand.total_cost:
-                total += part_demand.total_cost
+        for part_demand in self.get_part_demands():
+            if hasattr(part_demand, 'expected_cost') and part_demand.expected_cost:
+                total += part_demand.expected_cost
         return total
+    
+    def get_part_demands(self):
+        """Get all part demands for the action using composition"""
+        from app.models.maintenance.base.part_demand_to_action_references import PartDemandToActionReference
+        return PartDemandToActionReference.get_part_demands_for_action(self.id)
+    
+    def get_part_demands_by_sequence(self):
+        """Get all part demands for the action ordered by sequence order"""
+        from app.models.maintenance.base.part_demand_to_action_references import PartDemandToActionReference
+        references = PartDemandToActionReference.query.filter_by(action_id=self.id).order_by(PartDemandToActionReference.sequence_order).all()
+        return [ref.part_demand for ref in references]
+    
+    def add_part_demand(self, part_demand_id, user_id, sequence_order=1, notes=None):
+        """Add a part demand to this action"""
+        from app.models.maintenance.base.part_demand_to_action_references import PartDemandToActionReference
+        return PartDemandToActionReference.create_reference(
+            action_id=self.id,
+            part_demand_id=part_demand_id,
+            user_id=user_id,
+            sequence_order=sequence_order,
+            notes=notes
+        )
+    
+    def remove_part_demand(self, part_demand_id):
+        """Remove a part demand from this action"""
+        from app.models.maintenance.base.part_demand_to_action_references import PartDemandToActionReference
+        return PartDemandToActionReference.remove_reference(self.id, part_demand_id)

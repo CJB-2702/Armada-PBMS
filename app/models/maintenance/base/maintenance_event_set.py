@@ -18,7 +18,7 @@ class MaintenanceEventSet(EventDetailVirtual, VirtualActionSet):
     delay_notes = db.Column(db.Text, nullable=True)
     
     # Relationships
-    maintenance_plan = db.relationship('MaintenancePlan')
+    maintenance_plan = db.relationship('MaintenancePlan', overlaps="maintenance_event_sets")
     completed_by = db.relationship('User', foreign_keys=[completed_by_id], backref='completed_maintenance_event_sets')
     
     def __repr__(self):
@@ -139,3 +139,4 @@ class MaintenanceEventSet(EventDetailVirtual, VirtualActionSet):
                 event.description = description
                 event.updated_by_id = user_id
                 event.updated_at = datetime.utcnow()
+    

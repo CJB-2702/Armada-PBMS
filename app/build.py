@@ -98,24 +98,34 @@ def build_models(phase):
     Build database models based on the specified phase
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', or 'all'
     """
     logger.info(f"Building models for phase: {phase}")
     
-    if phase in ['phase1', 'phase2', 'phase3', 'all']:
+    if phase in ['phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'all']:
         logger.info("Building Phase 1 models (Core Foundation)")
         from app.models.core.build import build_models as build_core_models
         build_core_models()
     
-    if phase in ['phase2', 'phase3', 'all']:
+    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'all']:
         logger.info("Building Phase 2 models (Asset Details)")
         from app.models.assets.build import build_models as build_asset_models
         build_asset_models()
     
-    if phase in ['phase3', 'all']:
+    if phase in ['phase3', 'phase4', 'phase5', 'all']:
         logger.info("Building Phase 3 models (Dispatching)")
         from app.models.dispatching.build import build_dispatch_models
         build_dispatch_models()
+    
+    if phase in ['phase4', 'phase5', 'all']:
+        logger.info("Building Phase 4 models (Supply)")
+        from app.models.supply.build import build_models as build_supply_models
+        build_supply_models()
+    
+    if phase in ['phase5', 'all']:
+        logger.info("Building Phase 5 models (Maintenance)")
+        from app.models.maintenance.build import build_models as build_maintenance_models
+        build_maintenance_models()
     
     # Create all tables
     db.create_all()
@@ -126,24 +136,24 @@ def insert_data(phase):
     Insert initial data based on the specified phase
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', or 'all'
     """
     logger.info(f"Inserting data for phase: {phase}")
     
     # Load build data
     build_data = load_build_data()
     
-    if phase in ['phase1','phase2', 'phase3', 'phase4', 'all']:
+    if phase in ['phase1','phase2', 'phase3', 'phase4', 'phase5', 'all']:
         logger.info("Inserting Phase 1 data (Core Foundation)")
         from app.models.core.build import init_data
         init_data(build_data)
     
-    if phase in ['phase2', 'phase3', 'phase4', 'all']:
+    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'all']:
         logger.info("Inserting Phase 2 data (Asset Details)")
         from app.models.assets.build import phase_2_init_data
         phase_2_init_data(build_data)
     
-    if phase in ['phase3', 'phase4', 'all']:
+    if phase in ['phase3', 'phase4', 'phase5', 'all']:
         logger.info("Inserting Phase 3 data (Dispatching)")
         try:
             from app.models.core.asset import Asset
@@ -178,8 +188,26 @@ def insert_data(phase):
             logger.error(f"Phase 3 failed to insert data: {e}")
             raise
     
-    if phase in ['phase4', 'all']:
-        logger.info("Setting up Phase 4 data (User Interface)")
+    if phase in ['phase4', 'phase5', 'all']:
+        logger.info("Inserting Phase 4 data (Supply)")
+        try:
+            from app.models.supply.build import init_data as init_supply_data
+            init_supply_data(build_data)
+        except ImportError as e:
+            logger.error(f"Phase 4 failed to insert data: {e}")
+            raise
+    
+    if phase in ['phase5', 'all']:
+        logger.info("Inserting Phase 5 data (Maintenance)")
+        try:
+            from app.models.maintenance.build import init_data as init_maintenance_data
+            init_maintenance_data(build_data)
+        except ImportError as e:
+            logger.error(f"Phase 5 failed to insert data: {e}")
+            raise
+    
+    if phase in ['phase4', 'phase5', 'all']:
+        logger.info("Setting up User Interface data")
         create_default_admin_user()
 
 
@@ -203,7 +231,7 @@ def build_models_only(phase):
     Build only the models without inserting data
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', or 'all'
     """
     build_database(build_phase=phase, data_phase='none')
 
@@ -242,7 +270,7 @@ def insert_data_only(phase):
     Insert only data without building models
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', or 'all'
     """
     build_database(build_phase='none', data_phase=phase)
 

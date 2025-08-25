@@ -18,7 +18,7 @@ class VirtualActionSet(UserCreatedBase):
     safety_review_required = db.Column(db.Boolean, default=False)
     
     def __repr__(self):
-        return f'<VirtualActionSet {self.template_action_set.set_name if self.template_action_set else "Unknown"}: {self.status}>'
+        return f'<VirtualActionSet {getattr(self, "task_name", "Unknown")}: {getattr(self, "status", "Unknown")}>'
     
     @property
     def is_not_started(self):
@@ -54,12 +54,6 @@ class VirtualActionSet(UserCreatedBase):
     
     def calculate_progress_from_virtual_actions(self):
         """Calculate progress based on virtual action items"""
-        virtual_actions = self.maintenance_event.virtual_action_items.filter_by(
-            template_action_item_id=self.template_action_set.template_action_items
-        ).all()
-        
-        if not virtual_actions:
-            return 0.0
-        
-        completed_count = sum(1 for action in virtual_actions if action.is_completed)
-        return completed_count / len(virtual_actions)
+        # This method needs to be implemented in concrete classes
+        # as the relationships are not available in the virtual class
+        return 0.0

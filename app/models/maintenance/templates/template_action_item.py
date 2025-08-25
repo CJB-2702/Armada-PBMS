@@ -7,18 +7,24 @@ class TemplateActionItem(VirtualActionItem):
     __tablename__ = 'template_action_items'
     
     # Template-specific fields
-    sequence_order = db.Column(db.Integer, nullable=False, default=1)
-    is_required = db.Column(db.Boolean, default=True)
     
+    is_required = db.Column(db.Boolean, default=True)
+    minimum_staff_count = db.Column(db.Integer, nullable=False, default=1)
+    instructions = db.Column(db.Text, nullable=True)
+    instructions_type = db.Column(db.String(20), nullable=True)
+    required_skills = db.Column(db.Text, nullable=True)
+
     # Foreign Keys
     template_action_set_id = db.Column(db.Integer, db.ForeignKey('template_action_sets.id'), nullable=False)
     
     # Relationships
-    template_action_attachments = db.relationship('TemplateActionAttachment', backref='template_action_item', lazy='dynamic')
-    template_part_demands = db.relationship('TemplatePartDemand', backref='template_action_item', lazy='dynamic')
+    template_action_attachments = db.relationship('TemplateActionAttachment', 
+                                                foreign_keys='TemplateActionAttachment.template_action_item_id',
+                                                lazy='dynamic')
+    template_part_demands = db.relationship('TemplatePartDemand', lazy='dynamic')
     
     def __repr__(self):
-        return f'<TemplateActionItem {self.item_name}: {self.action_name}>'
+        return f'<TemplateActionItem {self.action_name}>'
     
     def get_required_skills_list(self):
         """Get required skills as a list"""

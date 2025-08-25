@@ -20,7 +20,7 @@ class Part(UserCreatedBase):
     status = db.Column(db.String(20), default='Active')  # Active/Inactive
     
     # Relationships
-    part_demands = db.relationship('PartDemand', backref='part', lazy='dynamic')
+    part_demands = db.relationship('PartDemand', lazy='dynamic')
     
     def __repr__(self):
         return f'<Part {self.part_number}: {self.part_name}>'

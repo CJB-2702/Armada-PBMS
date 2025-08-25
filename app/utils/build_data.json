@@ -290,10 +290,288 @@
       }
     }
   },
-  "Maintenance": {
+  
+  "Supply": {
+    "parts": [
+      {
+        "part_number": "OIL-001",
+        "part_name": "Engine Oil 5W-30",
+        "description": "Synthetic engine oil for modern vehicles",
+        "category": "Lubricants",
+        "manufacturer": "Mobil",
+        "supplier": "AutoZone",
+        "unit_cost": 8.99,
+        "current_stock_level": 50.0,
+        "minimum_stock_level": 10.0,
+        "maximum_stock_level": 100.0,
+        "unit_of_measure": "quarts",
+        "location": "Warehouse A - Shelf 1",
+        "status": "Active"
+      },
+      {
+        "part_number": "FIL-001",
+        "part_name": "Oil Filter",
+        "description": "High-quality oil filter for Toyota vehicles",
+        "category": "Filters",
+        "manufacturer": "Fram",
+        "supplier": "NAPA Auto Parts",
+        "unit_cost": 12.50,
+        "current_stock_level": 25.0,
+        "minimum_stock_level": 5.0,
+        "maximum_stock_level": 50.0,
+        "unit_of_measure": "each",
+        "location": "Warehouse A - Shelf 2",
+        "status": "Active"
+      },
+      {
+        "part_number": "BRAKE-001",
+        "part_name": "Brake Pads - Front",
+        "description": "Ceramic brake pads for front wheels",
+        "category": "Brakes",
+        "manufacturer": "Wagner",
+        "supplier": "O'Reilly Auto Parts",
+        "unit_cost": 45.00,
+        "current_stock_level": 8.0,
+        "minimum_stock_level": 4.0,
+        "maximum_stock_level": 20.0,
+        "unit_of_measure": "sets",
+        "location": "Warehouse B - Shelf 3",
+        "status": "Active"
+      },
+      {
+        "part_number": "BAT-001",
+        "part_name": "12V Car Battery",
+        "description": "Heavy-duty car battery with 3-year warranty",
+        "category": "Electrical",
+        "manufacturer": "DieHard",
+        "supplier": "Sears Auto Center",
+        "unit_cost": 89.99,
+        "current_stock_level": 3.0,
+        "minimum_stock_level": 2.0,
+        "maximum_stock_level": 10.0,
+        "unit_of_measure": "each",
+        "location": "Warehouse A - Battery Section",
+        "status": "Active"
+      },
+      {
+        "part_number": "TIRE-001",
+        "part_name": "All-Season Tires",
+        "description": "P205/55R16 all-season tires",
+        "category": "Tires",
+        "manufacturer": "Michelin",
+        "supplier": "Discount Tire",
+        "unit_cost": 125.00,
+        "current_stock_level": 12.0,
+        "minimum_stock_level": 8.0,
+        "maximum_stock_level": 24.0,
+        "unit_of_measure": "each",
+        "location": "Warehouse C - Tire Rack",
+        "status": "Active"
+      }
+    ],
+    "tools": [
+      {
+        "tool_name": "Socket Set",
+        "description": "Complete metric and standard socket set",
+        "tool_type": "Hand Tools",
+        "manufacturer": "Craftsman",
+        "model_number": "CS-123",
+        "serial_number": "TOOL-001",
+        "location": "Tool Room A",
+        "status": "Available",
+        "last_calibration_date": "2023-01-15",
+        "next_calibration_date": "2024-01-15"
+      },
+      {
+        "tool_name": "Torque Wrench",
+        "description": "Digital torque wrench 10-150 ft-lbs",
+        "tool_type": "Precision Tools",
+        "manufacturer": "Snap-on",
+        "model_number": "TW-456",
+        "serial_number": "TOOL-002",
+        "location": "Tool Room A",
+        "status": "In Use",
+        "last_calibration_date": "2023-03-20",
+        "next_calibration_date": "2024-03-20",
+        "assigned_to_id": 2
+      },
+      {
+        "tool_name": "OBD-II Scanner",
+        "description": "Professional diagnostic scanner",
+        "tool_type": "Diagnostic Tools",
+        "manufacturer": "Autel",
+        "model_number": "MS906",
+        "serial_number": "TOOL-003",
+        "location": "Tool Room B",
+        "status": "Available",
+        "last_calibration_date": "2023-06-10",
+        "next_calibration_date": "2024-06-10"
+      },
+      {
+        "tool_name": "Floor Jack",
+        "description": "3-ton hydraulic floor jack",
+        "tool_type": "Lifting Equipment",
+        "manufacturer": "Harbor Freight",
+        "model_number": "FJ-789",
+        "serial_number": "TOOL-004",
+        "location": "Bay 1",
+        "status": "Available",
+        "last_calibration_date": "2023-02-28",
+        "next_calibration_date": "2024-02-28"
+      },
+      {
+        "tool_name": "Air Compressor",
+        "description": "Portable air compressor 6-gallon",
+        "tool_type": "Air Tools",
+        "manufacturer": "DeWalt",
+        "model_number": "AC-101",
+        "serial_number": "TOOL-005",
+        "location": "Tool Room C",
+        "status": "Out for Repair",
+        "last_calibration_date": "2023-04-15",
+        "next_calibration_date": "2024-04-15"
+      }
+    ],
+    "part_demands": [
+      {
+        "part_number": "OIL-001",
+        "quantity_required": 2.0,
+        "unit_cost": 8.99,
+        "expected_cost": 17.98,
+        "notes": "Oil change for VTC-001",
+        "issued_by_id": 2
+      },
+      {
+        "part_number": "FIL-001",
+        "quantity_required": 1.0,
+        "unit_cost": 12.50,
+        "expected_cost": 12.50,
+        "notes": "Oil filter replacement for VTC-001",
+        "issued_by_id": 2
+      },
+      {
+        "part_number": "BRAKE-001",
+        "quantity_required": 1.0,
+        "unit_cost": 45.00,
+        "expected_cost": 45.00,
+        "notes": "Brake pad replacement for FTK-001",
+        "issued_by_id": null
+      }
+    ]
 
   },
-  "Supply": {
-
-    }
+  "Maintenance": {
+    "maintenance_plans": [
+      {
+        "name": "Vehicle Oil Change",
+        "description": "Regular oil change maintenance for all vehicles",
+        "asset_type_name": "Vehicle",
+        "status": "Active",
+        "frequency_type": "Time-based",
+        "frequency_value": 90.0
+      },
+      {
+        "name": "Truck Brake Inspection",
+        "description": "Brake system inspection for trucks",
+        "asset_type_name": "Vehicle",
+        "status": "Active",
+        "frequency_type": "Time-based",
+        "frequency_value": 180.0
+      }
+    ],
+    "template_action_sets": [
+      {
+        "task_name": "Oil Change Procedure",
+        "description": "Standard oil change procedure for vehicles",
+        "maintenance_plan_name": "Vehicle Oil Change",
+        "status": "Active"
+      },
+      {
+        "task_name": "Brake Inspection Procedure",
+        "description": "Standard brake inspection procedure",
+        "maintenance_plan_name": "Truck Brake Inspection",
+        "status": "Active"
+      }
+    ],
+    "template_action_items": [
+      {
+        "action_name": "Drain Oil",
+        "description": "Drain old oil from engine",
+        "sequence_order": 1,
+        "estimated_duration_minutes": 15,
+        "template_action_set_task_name": "Oil Change Procedure",
+        "status": "Active"
+      },
+      {
+        "action_name": "Replace Oil Filter",
+        "description": "Remove old filter and install new one",
+        "sequence_order": 2,
+        "estimated_duration_minutes": 10,
+        "template_action_set_task_name": "Oil Change Procedure",
+        "status": "Active"
+      },
+      {
+        "action_name": "Add New Oil",
+        "description": "Add fresh oil to engine",
+        "sequence_order": 3,
+        "estimated_duration_minutes": 5,
+        "template_action_set_task_name": "Oil Change Procedure",
+        "status": "Active"
+      },
+      {
+        "action_name": "Check Brake Pads",
+        "description": "Inspect brake pad thickness",
+        "sequence_order": 1,
+        "estimated_duration_minutes": 20,
+        "template_action_set_task_name": "Brake Inspection Procedure",
+        "status": "Active"
+      },
+      {
+        "action_name": "Test Brake System",
+        "description": "Test brake pedal feel and response",
+        "sequence_order": 2,
+        "estimated_duration_minutes": 15,
+        "template_action_set_task_name": "Brake Inspection Procedure",
+        "status": "Active"
+      }
+    ],
+    "template_part_demands": [
+      {
+        "part_number": "OIL-001",
+        "quantity_required": 5.0,
+        "template_action_item_name": "Add New Oil",
+        "status": "Active"
+      },
+      {
+        "part_number": "FIL-001",
+        "quantity_required": 1.0,
+        "template_action_item_name": "Replace Oil Filter",
+        "status": "Active"
+      },
+      {
+        "part_number": "BRAKE-001",
+        "quantity_required": 1.0,
+        "template_action_item_name": "Check Brake Pads",
+        "status": "Active"
+      }
+    ],
+    "maintenance_event_sets": [
+      {
+        "task_name": "Oil Change for VTC-001",
+        "maintenance_plan_name": "Vehicle Oil Change",
+        "asset_name": "VTC-001",
+        "scheduled_date": "2023-09-15",
+        "description": "Scheduled oil change for VTC-001",
+        "status": "Scheduled"
+      },
+      {
+        "task_name": "Brake Inspection for FTK-001",
+        "maintenance_plan_name": "Truck Brake Inspection",
+        "asset_name": "FTK-001",
+        "scheduled_date": "2023-09-20",
+        "description": "Scheduled brake inspection for FTK-001",
+        "status": "Scheduled"
+      }
+    ]
+  }
 } 

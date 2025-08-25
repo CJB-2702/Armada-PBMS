@@ -43,4 +43,12 @@ def init_app(app):
     
     app.register_blueprint(dispatches.dispatching_bp, url_prefix='/dispatching')
     
+    # Register supply blueprints
+    from .supply import parts, tools, part_demands, supply_main
+    
+    app.register_blueprint(parts.bp, url_prefix='/supply', name='supply.parts')
+    app.register_blueprint(tools.bp, url_prefix='/supply', name='supply.tools')
+    app.register_blueprint(part_demands.bp, url_prefix='/supply', name='supply.part_demands')
+    app.register_blueprint(supply_main.bp, url_prefix='/supply', name='supply')
+    
     logger.info("All route blueprints registered successfully") 

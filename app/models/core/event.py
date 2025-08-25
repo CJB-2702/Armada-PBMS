@@ -1,7 +1,10 @@
 from app import db
 from datetime import datetime
+from abc import abstractmethod
 from app.models.core.data_insertion_mixin import DataInsertionMixin
 from app.models.core.user_created_base import UserCreatedBase
+from app.models.core.virtual_sequence_generator import VirtualSequenceGenerator
+from sqlalchemy.ext.declarative import declared_attr
 
 class Event(UserCreatedBase, DataInsertionMixin):
     __tablename__ = 'events'
@@ -29,3 +32,68 @@ class Event(UserCreatedBase, DataInsertionMixin):
     
     def __repr__(self):
         return f'<Event {self.event_type}: {self.description}>' 
+
+
+class EventDetailIDManager(VirtualSequenceGenerator):
+    """
+    Manages all_event_detail_id sequence for EventDetailVirtual tables
+    Ensures unique IDs across all event detail tables
+    """
+    
+    @classmethod
+    def get_sequence_table_name(cls):
+        """
+        Return the table name for the event detail sequence counter
+        """
+        return "event_detail_id_counter"
+    
+    @classmethod
+    def get_next_event_detail_id(cls):
+        """
+        Get the next available event detail ID
+        Uses the base class method for thread safety
+        """
+        return cls.get_next_id()
+
+
+class EventDetailVirtual(UserCreatedBase):
+    """
+    Base class for all event-specific detail tables
+    Provides common functionality for event detail tables
+    Uses shared global row ID sequence across all detail tables
+    """
+    __abstract__ = True
+    
+    # Common field for all event detail tables
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    all_details_id = db.Column(db.Integer, nullable=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=True)
+    
+    # Relationship to Event
+    @declared_attr
+    def event(cls):
+        # Use the class name to create a unique backref
+        backref_name = f'{cls.__name__.lower()}_details'
+        return db.relationship('Event', backref=backref_name)
+    
+    def __repr__(self):
+        """String representation of the event detail table"""
+        return f'<{self.__class__.__name__} Event:{self.event_id} GlobalID:{self.all_details_id}>'
+    
+    def __init__(self, *args, **kwargs):
+        """Initialize the event detail record with global row ID assignment"""
+        if 'all_details_id' not in kwargs:
+            self.all_details_id = EventDetailIDManager.get_next_event_detail_id()
+
+        if 'event_id' not in kwargs:
+            self.create_event()
+
+        super().__init__(*args, **kwargs)
+
+    @abstractmethod
+    def create_event(self):
+        # Assign global row ID before calling parent constructor
+        if self.asset_id:
+            self.event_id = Event.add_event(event_type=self.event_type, description=self.description, user_id=self.user_id, asset_id=self.asset_id)
+        else:
+            self.event_id = Event.add_event(event_type=self.event_type, description=self.description, user_id=self.user_id)

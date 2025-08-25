@@ -4,12 +4,12 @@ Core Dispatch Model
 Represents work orders and dispatch assignments
 """
 
-from app.models.core.user_created_base import UserCreatedBase
+from app.models.core.event import EventDetailVirtual
 from app import db
 from datetime import datetime
 from sqlalchemy import event
 
-class Dispatch(UserCreatedBase):
+class Dispatch(EventDetailVirtual):
     """
     Core dispatch entity representing work orders and assignments
     """
@@ -33,7 +33,6 @@ class Dispatch(UserCreatedBase):
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=True)
     assigned_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     major_location_id = db.Column(db.Integer, db.ForeignKey('major_locations.id'), nullable=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True)
     
     # Location tracking (copied from asset for historical reference)
     dispatch_location_id = db.Column(db.Integer, db.ForeignKey('major_locations.id'), nullable=True)
@@ -43,14 +42,18 @@ class Dispatch(UserCreatedBase):
     assigned_user = db.relationship('User', foreign_keys=[assigned_user_id], backref='assigned_dispatches')
     major_location = db.relationship('MajorLocation', foreign_keys=[major_location_id], backref='dispatches')
     dispatch_location = db.relationship('MajorLocation', foreign_keys=[dispatch_location_id], backref='dispatch_locations')
-    event = db.relationship('Event', foreign_keys=[event_id], backref='dispatch')
     
     def __repr__(self):
         """String representation of the dispatch"""
         return f'<Dispatch {self.dispatch_number}: {self.title}>'
     
+    @property
+    def event_type(self):
+        """Event type for this dispatch"""
+        return "Dispatch"
+    
     def __init__(self, **kwargs):
-        """Initialize dispatch with automatic event creation and location copying"""
+        """Initialize dispatch with automatic location copying"""
         super().__init__(**kwargs)
         
         # Auto-set dispatch_location_id from asset if not provided
@@ -60,20 +63,19 @@ class Dispatch(UserCreatedBase):
             if asset and asset.major_location_id:
                 self.dispatch_location_id = asset.major_location_id
     
-    def create_initial_event(self):
+    def create_event(self):
         """Create an initial event for this dispatch"""
-        if not self.event_id:
-            from app.models.core.event import Event
-            event = Event(
-                event_type="Dispatch Created",
-                description=f"Dispatch '{self.title}' ({self.dispatch_number}) was created",
-                user_id=self.created_by_id,
-                asset_id=self.asset_id,
-                major_location_id=self.major_location_id
-            )
-            db.session.add(event)
-            db.session.flush()  # Get the event ID
-            self.event_id = event.id
+        from app.models.core.event import Event
+        event = Event(
+            event_type="Dispatch Created",
+            description=f"Dispatch '{self.title}' ({self.dispatch_number}) was created",
+            user_id=self.created_by_id,
+            asset_id=self.asset_id,
+            major_location_id=self.major_location_id
+        )
+        db.session.add(event)
+        db.session.flush()  # Get the event ID
+        self.event_id = event.id
     
     def update_status(self, new_status, changed_by_id, reason=None):
         """Update dispatch status and create status history record"""

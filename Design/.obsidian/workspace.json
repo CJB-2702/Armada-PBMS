@@ -13,36 +13,18 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Obsidian/Asset Management Data model.canvas",
+                "file": "Obsidian/Maintenance Model.canvas",
                 "viewState": {
-                  "x": 800,
-                  "y": 439,
-                  "zoom": -1.3151372172324403
+                  "x": 1772.7253895873723,
+                  "y": 1113.4747309009797,
+                  "zoom": -1.0095136760753713
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "Asset Management Data model"
-            }
-          },
-          {
-            "id": "773974e7518ff203",
-            "type": "leaf",
-            "state": {
-              "type": "canvas",
-              "state": {
-                "file": "Obsidian/Maintance Model.canvas",
-                "viewState": {
-                  "x": 1089.260721393087,
-                  "y": 984.8656590704015,
-                  "zoom": -1.2490490038821251
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "Maintance Model"
+              "title": "Maintenance Model"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -99,7 +81,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "e82d8063302467cb",
@@ -190,14 +172,20 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "773974e7518ff203",
+  "active": "00dd6c7040ddd811",
   "lastOpenFiles": [
-    "Phase4_Maintnence/datamodel.md",
-    "Obsidian/Maintnence Planning Model.canvas",
-    "Obsidian/Maintance Model.canvas",
-    "Obsidian/Dispatch Model.canvas",
-    "Obsidian/Asset Management Data model.canvas",
     "Obsidian/Supply Model.canvas",
+    "Obsidian/Maintenance Model.canvas",
+    "Obsidian/Dispatch Model.canvas",
+    "phase1_Core/ApplicationDesign.md",
+    "Obsidian/Asset Management Data model.canvas",
+    "Phase4_Maintnence/dataModel.md",
+    "Phase4_Maintnence",
+    "Obsidian/Maintance Model.canvas",
+    "Phase4_Maintenance/dataModel.md",
+    "Phase4_Maintenance",
+    "Obsidian/Maintnence Planning Model.canvas",
+    "Phase4_Maintnence/datamodel.md",
     "DataModelDesign.md",
     "Dispatch model.md",
     "Obsidian/CoreDataModel.canvas",

@@ -7,7 +7,7 @@ from .major_location import MajorLocation
 from .asset_type import AssetType
 from .make_model import MakeModel
 from .asset import Asset
-from .event import Event
+from .event import Event, EventDetailVirtual, EventDetailIDManager
 from .attachment import Attachment, AttachmentIDManager
 from .comment import Comment, CommentAttachment
 from .virtual_sequence_generator import VirtualSequenceGenerator
@@ -19,6 +19,8 @@ __all__ = [
     'MakeModel',
     'Asset',
     'Event',
+    'EventDetailVirtual',
+    'EventDetailIDManager',
     'Attachment',
     'AttachmentIDManager',
     'Comment',

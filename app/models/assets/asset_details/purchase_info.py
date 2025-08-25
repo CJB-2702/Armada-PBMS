@@ -24,30 +24,14 @@ class PurchaseInfo(AssetDetailVirtual):
     warranty_start_date = db.Column(db.Date, nullable=True)
     warranty_end_date = db.Column(db.Date, nullable=True)
     purchase_notes = db.Column(db.Text, nullable=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True)
     
-    # Relationships
-    @declared_attr
-    def event(cls):
-        return db.relationship('Event', backref='purchase_info')
+ 
     
     def __repr__(self):
         """String representation of the purchase info"""
         return f'<PurchaseInfo Asset:{self.asset_id} Vendor:{self.purchase_vendor}>'
     
-    def create_event(self):
-        """Create an event for this purchase info record"""
-        if not self.event_id:
-            event = Event(
-                event_type="Purchase",
-                description=f"Purchase info created for asset {self.asset.name}",
-                user_id=self.created_by_id,
-                asset_id=self.asset_id
-            )
-            db.session.add(event)
-            db.session.flush()  # Get the event ID
-            self.event_id = event.id
-            db.session.commit()
+ 
     
     @property
     def warranty_days_remaining(self):

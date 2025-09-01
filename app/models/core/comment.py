@@ -1,5 +1,5 @@
 from app.models.core.user_created_base import UserCreatedBase
-from app.models.core.attachment import VirtualAttachmentRefrence
+from app.models.core.attachment import VirtualAttachmentReference
 from app import db
 from datetime import datetime
 from sqlalchemy.orm import foreign
@@ -40,7 +40,7 @@ class Comment(UserCreatedBase):
         return f'<Comment {self.id}: {preview}>'
 
 
-class CommentAttachment(VirtualAttachmentRefrence):
+class CommentAttachment(VirtualAttachmentReference):
     __tablename__ = 'comment_attachments'
     
     # Define attached_to_id with proper foreign key for comments

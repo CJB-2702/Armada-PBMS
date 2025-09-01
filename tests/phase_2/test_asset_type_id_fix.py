@@ -102,15 +102,15 @@ def test_asset_type_id_in_event_listener():
         
         # Test 3: Verify the asset type ID is correct
         expected_asset_type_id = vehicle_type.id
-        actual_asset_type_id = test_asset.asset_type_id
+        asset_type_id = test_asset.asset_type_id
         method_asset_type_id = test_asset.get_asset_type_id()
         
         logger.info(f"\n3. Verification:")
         logger.info(f"   Expected asset_type_id: {expected_asset_type_id}")
-        logger.info(f"   Actual asset_type_id (property): {actual_asset_type_id}")
+        logger.info(f"   Actual asset_type_id (property): {asset_type_id}")
         logger.info(f"   Actual asset_type_id (method): {method_asset_type_id}")
         
-        if actual_asset_type_id == expected_asset_type_id:
+        if asset_type_id == expected_asset_type_id:
             logger.info("   ✓ Property returns correct asset_type_id")
         else:
             logger.error("   ✗ Property returns incorrect asset_type_id")

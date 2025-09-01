@@ -26,26 +26,3 @@ class TemplateActionTool(UserCreatedBase):
     def tool_name(self):
         """Get the tool name for convenience"""
         return self.tool.tool_name if self.tool else "Unknown Tool"
-    
-    @property
-    def tool_status(self):
-        """Get the tool status for convenience"""
-        return self.tool.status if self.tool else "Unknown"
-    
-    def is_tool_available(self):
-        """Check if the required tool is available"""
-        if not self.tool:
-            return False
-        return self.tool.is_available
-    
-    def get_quantity_display(self):
-        """Get quantity display string"""
-        if self.quantity_required == 1:
-            return "1"
-        return f"{self.quantity_required}"
-    
-    def get_requirement_display(self):
-        """Get requirement display string"""
-        if self.is_required:
-            return "Required"
-        return "Optional"

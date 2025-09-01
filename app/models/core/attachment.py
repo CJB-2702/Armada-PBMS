@@ -215,12 +215,12 @@ class Attachment(UserCreatedBase):
         return f'<Attachment {self.filename} ({self.get_file_size_display()})>' 
 
 
-class VirtualAttachmentRefrence(UserCreatedBase):
+class VirtualAttachmentReference(UserCreatedBase):
     __abstract__ = True
 
     # Relationships
     attachment_id = db.Column(db.Integer, db.ForeignKey('attachments.id'), nullable=False)
-    all_attachment_refrences_id = db.Column(db.Integer, nullable=False) 
+    all_attachment_references_id = db.Column(db.Integer, nullable=False) 
     #attached_to_id = db.Column(db.Integer, nullable=False) # this is defined in each child class with proper foreign key
     attached_to_type = db.Column(db.String(20), nullable=False)
     display_order = db.Column(db.Integer, nullable=False)
@@ -234,6 +234,10 @@ class VirtualAttachmentRefrence(UserCreatedBase):
     def __init__(self, *args, **kwargs):
         """Initialize the attachment reference record with global ID assignment"""
         # Assign global ID before calling parent constructor
-        if 'all_attachment_refrences_id' not in kwargs:
-            kwargs['all_attachment_refrences_id'] = AttachmentIDManager.get_next_attachment_id()
+        if 'all_attachment_references_id' not in kwargs:
+            kwargs['all_attachment_references_id'] = AttachmentIDManager.get_next_attachment_id()
         super().__init__(*args, **kwargs) 
+    
+    def get_attachment(self):
+        """Get attachment"""
+        return Attachment.query.get(self.attachment_id)

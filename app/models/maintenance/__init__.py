@@ -2,7 +2,9 @@
 from .base import (
     MaintenancePlan,
     MaintenanceEventSet,
-    Action
+    Action,
+    PartDemandToActionReference,
+    MaintenanceDelay
 )
 
 # Template models
@@ -10,11 +12,12 @@ from .templates import (
     TemplateActionSet,
     TemplateActionItem,
     TemplateActionAttachment,
-    TemplatePartDemand
+    TemplatePartDemand,
+    TemplateActionTool
 )
 
 # Core models
-from app.models.core.attachment import VirtualAttachmentRefrence
+from app.models.core.attachment import VirtualAttachmentReference
 
 # Virtual models
 from .virtual_action_item import VirtualActionItem
@@ -25,6 +28,8 @@ __all__ = [
     'MaintenancePlan',
     'MaintenanceEventSet',
     'Action',
+    'PartDemandToActionReference',
+    'MaintenanceDelay',
     
     # Template models
     'TemplateActionSet',
@@ -34,7 +39,7 @@ __all__ = [
     'TemplateActionTool',
     
     # Core models
-    'VirtualAttachmentRefrence',
+    'VirtualAttachmentReference',
     
     # Virtual models
     'VirtualActionItem',

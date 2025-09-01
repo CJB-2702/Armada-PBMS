@@ -21,18 +21,16 @@ class MaintenanceDelay(UserCreatedBase):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Create a comment on the maintenance event header's event
-        self.create_delay_comment()
+        # Note: create_delay_comment() should be called manually with user_id when needed
     
-    def create_delay_comment(self):
+    def create_delay_comment(self, user_id):
         """Create a comment on the maintenance event set's event about this delay"""
-        if self.maintenance_event_set_id:
+        if self.maintenance_event_set:
             from app.models.maintenance.base.maintenance_event_set import MaintenanceEventSet
             from app.models.core.comment import Comment
             
-            # Get the maintenance event set
-            maintenance_event = MaintenanceEventSet.query.get(self.maintenance_event_set_id)
-            if maintenance_event and maintenance_event.event_id:
+            if self.maintenance_event_set.event_id:
+                event_id = self.maintenance_event_set.event_id
                 # Create comment content
                 comment_content = f"Maintenance Delay: {self.delay_type}"
                 if self.delay_reason:
@@ -49,8 +47,9 @@ class MaintenanceDelay(UserCreatedBase):
                 # Create the comment
                 comment = Comment(
                     content=comment_content,
-                    event_id=maintenance_event.event_id,
-                    created_by_id=self.created_by_id
+                    event_id=event_id,
+                    created_by_id=user_id
                 )
                 db.session.add(comment)
+                db.session.commit()
 

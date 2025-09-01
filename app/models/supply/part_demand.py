@@ -15,9 +15,10 @@ class PartDemand(VirtualPartDemand):
     status = db.Column(db.String(20), default='Requested') 
 
     # Relationships
-    part = db.relationship('Part')
+    part = db.relationship('Part', overlaps='part_demands')
     requested_by = db.relationship('User', foreign_keys=[requested_by_id])
     approved_by = db.relationship('User', foreign_keys=[approved_by_id])
+    # Note: action_references relationship will be added when maintenance module is integrated
 
     def __repr__(self):
         return f'<PartDemand {self.part.part_name if self.part else "Unknown"}: {self.quantity_required}>'

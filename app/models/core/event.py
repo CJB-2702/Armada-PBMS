@@ -15,6 +15,7 @@ class Event(UserCreatedBase, DataInsertionMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=True)
     major_location_id = db.Column(db.Integer, db.ForeignKey('major_locations.id'), nullable=True)
+    status = db.Column(db.String(20),nullable=True)
     
     # Relationships (no backrefs)
     user = db.relationship('User', foreign_keys=[user_id], overlaps="events")
@@ -32,6 +33,13 @@ class Event(UserCreatedBase, DataInsertionMixin):
     
     def __repr__(self):
         return f'<Event {self.event_type}: {self.description}>' 
+    
+    def add_comment(self, user_id, comment_content):
+        """Add a comment to the event"""
+        from app.models.core.comment import Comment
+        comment=Comment(content=comment_content, event_id=self.id, created_by_id=user_id)
+        db.session.add(comment)
+        db.session.commit()
 
 
 class EventDetailIDManager(VirtualSequenceGenerator):

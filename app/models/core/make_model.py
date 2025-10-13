@@ -64,8 +64,8 @@ class MakeModel(UserCreatedBase):
             return
         
         try:
-            from app.models.assets.detail_table_templates.model_detail_table_template import ModelDetailTableTemplate
-            ModelDetailTableTemplate.create_detail_table_rows(self.id, self.asset_type_id)
+            from app.models.assets.factories.model_detail_factory import ModelDetailFactory
+            ModelDetailFactory.create_detail_table_rows(self.id, self.asset_type_id)
         except Exception as e:
             logger.debug(f"Error creating detail table rows for model {self.id}: {e}")
 

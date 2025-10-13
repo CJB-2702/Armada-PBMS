@@ -43,37 +43,49 @@
                                         {{ field.replace('_', ' ').title() }}
                                     </label>
                                     <div class="form-control-plaintext">
-                                        {% if field == 'certification_date' %}
+                                        {% if field == 'emissions_test_date' or field == 'certification_date' %}
                                             {% if record[field] %}
                                                 <span class="badge bg-info">{{ record[field].strftime('%B %d, %Y') }}</span>
                                             {% else %}
                                                 <span class="text-muted">Not specified</span>
                                             {% endif %}
-                                        {% elif field == 'co2_emissions' or field == 'cargo_capacity' %}
+                                        {% elif field == 'mpg_city' or field == 'mpg_highway' or field == 'mpg_combined' %}
                                             {% if record[field] %}
-                                                <span class="badge bg-success">${{ "{:,.2f}".format(record[field]) }}</span>
+                                                <span class="badge bg-success">{{ "{:.1f}".format(record[field]) }} mpg</span>
                                             {% else %}
                                                 <span class="text-muted">Not specified</span>
                                             {% endif %}
-                                        {% elif field == 'fuel_economy_city' or field == 'fuel_economy_highway' %}
+                                        {% elif field == 'co2_emissions' %}
                                             {% if record[field] %}
-                                                <span class="badge bg-warning">{{ "{:.1f} mpg".format(record[field]) }}</span>
+                                                <span class="badge bg-warning text-dark">{{ "{:.1f}".format(record[field]) }} g/mi</span>
                                             {% else %}
                                                 <span class="text-muted">Not specified</span>
                                             {% endif %}
-                                        {% elif field == 'seating_capacity' %}
+                                        {% elif field == 'cargo_capacity' %}
+                                            {% if record[field] %}
+                                                <span class="badge bg-info">{{ "{:.1f}".format(record[field]) }} cu ft</span>
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        {% elif field == 'towing_capacity' %}
+                                            {% if record[field] %}
+                                                <span class="badge bg-primary">{{ "{:,}".format(record[field]) }} lbs</span>
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        {% elif field == 'seating_capacity' or field == 'model_year' %}
                                             {% if record[field] %}
                                                 <span class="badge bg-primary">{{ record[field] }}</span>
                                             {% else %}
                                                 <span class="text-muted">Not specified</span>
                                             {% endif %}
-                                        {% elif field == 'emissions_standard' %}
+                                        {% elif field == 'emissions_standard' or field == 'emissions_rating' %}
                                             {% if record[field] %}
                                                 <span class="badge bg-secondary">{{ record[field] }}</span>
                                             {% else %}
                                                 <span class="text-muted">Not specified</span>
                                             {% endif %}
-                                        {% elif field == 'body_style' or field == 'transmission_type' %}
+                                        {% elif field == 'fuel_type' or field == 'body_style' or field == 'transmission_type' or field == 'drivetrain' %}
                                             {% if record[field] %}
                                                 <span class="badge bg-dark">{{ record[field] }}</span>
                                             {% else %}
@@ -147,7 +159,7 @@
                             <p class="mb-1 text-muted">
                                 {{ record.make_model.year if record.make_model.year else 'Unknown Year' }}
                             </p>
-                            <a href="{{ url_for('make_models.detail', id=record.make_model.id) }}" 
+                            <a href="{{ url_for('make_models.detail', make_model_id=record.make_model.id) }}" 
                                class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-eye"></i> View Model
                             </a>

@@ -21,13 +21,13 @@ MODEL_DETAIL_TABLES = {
         'model': EmissionsInfo,
         'name': 'Emissions Information',
         'icon': 'bi-cloud',
-        'fields': ['fuel_economy_city', 'fuel_economy_highway', 'emissions_standard', 'certification_date', 'co2_emissions']
+        'fields': ['emissions_standard', 'emissions_rating', 'fuel_type', 'mpg_city', 'mpg_highway', 'mpg_combined', 'co2_emissions']
     },
     'model_info': {
         'model': ModelInfo,
         'name': 'Model Information',
         'icon': 'bi-info-circle',
-        'fields': ['body_style', 'engine_size', 'transmission_type', 'seating_capacity', 'cargo_capacity']
+        'fields': ['model_year', 'body_style', 'engine_type', 'transmission_type', 'drivetrain', 'seating_capacity', 'cargo_capacity', 'towing_capacity']
     }
 }
 

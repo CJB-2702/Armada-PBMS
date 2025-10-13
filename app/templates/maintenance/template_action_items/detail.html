@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ template_action_item.action_name }} - Template Action Item{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ template_action_item.action_name }}</h1>
+            <div>
+                <a href="{{ url_for('template_action_items.list') }}" class="btn btn-secondary">Back to List</a>
+                <a href="{{ url_for('template_action_items.edit', template_action_item_id=template_action_item.id) }}" class="btn btn-warning">Edit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Template Action Item Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">ID:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.id }}</dd>
+
+                    <dt class="col-sm-4">Action Name:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.action_name }}</dd>
+
+                    <dt class="col-sm-4">Description:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.description or 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Required:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-{{ 'success' if template_action_item.is_required else 'secondary' }}">
+                            {{ 'Required' if template_action_item.is_required else 'Optional' }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-4">Minimum Staff:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.minimum_staff_count }}</dd>
+
+                    <dt class="col-sm-4">Instructions:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.instructions or 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Required Skills:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.required_skills or 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Estimated Hours:</dt>
+                    <dd class="col-sm-8">{{ template_action_item.estimated_duration_hours or 'N/A' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

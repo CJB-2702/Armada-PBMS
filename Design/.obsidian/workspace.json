@@ -13,15 +13,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Obsidian/Supply Model.canvas",
+                "file": "Obsidian/Supply Model 1.canvas",
                 "viewState": {
-                  "x": -233,
-                  "y": -1047,
-                  "zoom": -1.3779298679166445
+                  "x": 80,
+                  "y": -1063.1237735849056,
+                  "zoom": -1.0267443922960404
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "Supply Model"
+              "title": "Supply Model 1"
             }
           }
         ]
@@ -174,6 +174,9 @@
   },
   "active": "00dd6c7040ddd811",
   "lastOpenFiles": [
+    "Obsidian/Maintenance_Model_Current.canvas",
+    "Obsidian/Supply Model 1.canvas",
+    "Obsidian/Supply Model.canvas",
     "Phase7_Planning/ApplicationPlan.md",
     "Phase7_Planning",
     "Phase6_inventory and purchasing/ApplicationPlan.md",
@@ -189,11 +192,9 @@
     "Phase5_S/ApplicationDesign copy.md",
     "Phase5_S",
     "phase4_basic_supply",
-    "Obsidian/Maintenance_Model_Current.canvas",
     "Obsidian/Maintenance Model.canvas",
     "Phase4_Maintenance/DataModelComparison.md",
     "Phase4_Maintenance/dataModel.md",
-    "Obsidian/Supply Model.canvas",
     "Obsidian/Dispatch Model.canvas",
     "phase1_Core/ApplicationDesign.md",
     "Obsidian/Asset Management Data model.canvas",

@@ -32,7 +32,38 @@ class Event(UserCreatedBase, DataInsertionMixin):
                 self.major_location_id = asset.major_location_id
     
     def __repr__(self):
-        return f'<Event {self.event_type}: {self.description}>' 
+        return f'<Event {self.event_type}: {self.description}>'
+    
+    @classmethod
+    def add_event(cls, event_type, description, user_id=None, asset_id=None, major_location_id=None, status=None):
+        """
+        Create and save a new event
+        
+        Args:
+            event_type (str): Type of event
+            description (str): Event description
+            user_id (int, optional): User ID who triggered the event
+            asset_id (int, optional): Related asset ID
+            major_location_id (int, optional): Related location ID
+            status (str, optional): Event status
+            
+        Returns:
+            int: The ID of the created event
+        """
+        from app import db
+        
+        event = cls(
+            event_type=event_type,
+            description=description,
+            user_id=user_id,
+            asset_id=asset_id,
+            major_location_id=major_location_id,
+            status=status
+        )
+        
+        db.session.add(event)
+        db.session.flush()  # Get the ID without committing
+        return event.id 
     
     def add_comment(self, user_id, comment_content):
         """Add a comment to the event"""

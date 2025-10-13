@@ -11,7 +11,7 @@ from app import create_app, db
 from app.models.maintenance.templates.template_action_tool import TemplateActionTool
 from app.models.maintenance.templates.template_action_item import TemplateActionItem
 from app.models.maintenance.templates.template_action_set import TemplateActionSet
-from app.models.supply.tool import Tool
+from app.models.supply_items.tool import Tool
 from app.models.core.user import User
 from app.models.core.asset_type import AssetType
 from app.models.core.make_model import MakeModel

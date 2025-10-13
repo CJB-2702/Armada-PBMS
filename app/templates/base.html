@@ -63,13 +63,27 @@
                     </li>
                     
                     <!-- Maintenance -->
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#" title="Coming Soon">Maintenance</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Maintenance
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance.index') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance_plans.list') }}">Maintenance Plans</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('actions.list') }}">Actions</a></li>
+                        </ul>
                     </li>
                     
                     <!-- Supply -->
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#" title="Coming Soon">Supply</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Supply
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('supply.index') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('supply.new_parts.list') }}">Parts</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('supply.new_tools.list') }}">Tools</a></li>
+                        </ul>
                     </li>
                     
                     <!-- System/Admin -->

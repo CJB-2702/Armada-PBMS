@@ -92,20 +92,9 @@ class Asset(UserCreatedBase):
         """Create detail table rows for this asset after it has been committed"""
         logger.info(f"DEBUG: Creating detail table rows for asset {self.id} \n\n\n\n")
         
-        
         try:
-            from app.models.assets.detail_table_templates.asset_details_from_asset_type import AssetDetailTemplateByAssetType
-            from app.models.assets.detail_table_templates.asset_details_from_model_type import AssetDetailTemplateByModelType
-            
-            # Create asset detail rows based on asset type - use method for reliability in event listeners
-            asset_type_id = self.get_asset_type_id(force_reload=True)
-            logger.debug(f"DEBUG: Creating asset type detail rows base off of asset type: {asset_type_id} \n\n\n\n")
-            if asset_type_id:
-                AssetDetailTemplateByAssetType.create_detail_table_rows(self)
-            
-            # Create asset detail rows based on model type
-            if self.make_model_id:
-                AssetDetailTemplateByModelType.create_detail_table_rows(self)
+            from app.models.assets.factories.asset_detail_factory import AssetDetailFactory
+            AssetDetailFactory.create_detail_table_rows(self)
                 
         except Exception as e:
             logger.debug(f"Error creating detail table rows for asset {self.id}: {e}")
@@ -115,19 +104,8 @@ class Asset(UserCreatedBase):
         """Create detail table rows for a specific asset"""
         logger.warning(f"DEBUG: _create_detail_tables_for_asset called for asset {asset.id}")
         try:
-            from app.models.assets.detail_table_templates.asset_details_from_asset_type import AssetDetailTemplateByAssetType
-            from app.models.assets.detail_table_templates.asset_details_from_model_type import AssetDetailTemplateByModelType
-            
-            # Create asset detail rows based on asset type - use method for reliability
-            asset_type_id = asset.get_asset_type_id(force_reload=True)
-            if asset_type_id:
-                AssetDetailTemplateByAssetType.create_detail_table_rows(asset)
-            else:
-                logger.warning(f"DEBUG: No asset type found for asset {asset.id}")
-            
-            # Create asset detail rows based on model type
-            if asset.make_model_id:
-                AssetDetailTemplateByModelType.create_detail_table_rows(asset)
+            from app.models.assets.factories.asset_detail_factory import AssetDetailFactory
+            AssetDetailFactory.create_detail_table_rows(asset)
                 
         except Exception as e:
             logger.debug(f"Error creating detail table rows for asset {asset.id}: {e}")

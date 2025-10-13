@@ -14,6 +14,10 @@ from app.models.core.event import Event
 from app import db
 from app.logger import get_logger
 
+# Import new route blueprints
+from .maintenance.main import maintenance_bp
+from .supply.main import supply_bp
+
 logger = get_logger("asset_management.routes.main")
 main = Blueprint('main', __name__)
 

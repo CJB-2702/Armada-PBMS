@@ -48,6 +48,8 @@ def clear_data():
             pyc_file.unlink()
             print(f"   ✓ Removed: {pyc_file}")
             pyc_count += 1
+
+            
         except Exception as e:
             print(f"   ✗ Failed to remove {pyc_file}: {e}")
     

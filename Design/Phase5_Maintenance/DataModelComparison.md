@@ -34,7 +34,7 @@ This document compares the original maintenance data model diagram with the new,
 - **Virtual Classes**: Properly represented as abstract base classes
 
 ### Relationship Corrections
-- **PartDemand**: Now correctly shows relationships to both Action and MaintenanceEventSet
+- **PartDemand**: Now correctly shows relationships to both Action and MaintenanceEvent
 - **Template Relationships**: Fixed the template hierarchy to match actual implementation
 - **User Relationships**: Properly shows user creation relationships
 

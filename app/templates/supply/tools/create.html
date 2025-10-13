@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Add Tool - Supply Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-plus-circle text-success"></i>
+                        Add New Tool
+                    </h1>
+                    <p class="text-muted mb-0">Create a new tool in the inventory system</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('supply.tools.list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Tools
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tool Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row g-3">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <label for="tool_name" class="form-label">
+                                    Tool Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="tool_name" name="tool_name" 
+                                       value="{{ request.form.get('tool_name', '') }}" required>
+                                <div class="form-text">Descriptive name for the tool</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="tool_type" class="form-label">Tool Type</label>
+                                <input type="text" class="form-control" id="tool_type" name="tool_type" 
+                                       value="{{ request.form.get('tool_type', '') }}" placeholder="e.g., Wrench, Drill, Meter">
+                                <div class="form-text">Type or category of tool</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">{{ request.form.get('description', '') }}</textarea>
+                                <div class="form-text">Detailed description of the tool</div>
+                            </div>
+
+                            <!-- Manufacturer Information -->
+                            <div class="col-md-6">
+                                <label for="manufacturer" class="form-label">Manufacturer</label>
+                                <input type="text" class="form-control" id="manufacturer" name="manufacturer" 
+                                       value="{{ request.form.get('manufacturer', '') }}">
+                                <div class="form-text">Tool manufacturer</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="model_number" class="form-label">Model Number</label>
+                                <input type="text" class="form-control" id="model_number" name="model_number" 
+                                       value="{{ request.form.get('model_number', '') }}">
+                                <div class="form-text">Manufacturer's model number</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="serial_number" class="form-label">Serial Number</label>
+                                <input type="text" class="form-control" id="serial_number" name="serial_number" 
+                                       value="{{ request.form.get('serial_number', '') }}">
+                                <div class="form-text">Unique serial number</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="{{ request.form.get('location', '') }}">
+                                <div class="form-text">Where the tool is stored</div>
+                            </div>
+
+                            <!-- Status and Assignment -->
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="Available" {% if request.form.get('status', 'Available') == 'Available' %}selected{% endif %}>Available</option>
+                                    <option value="In Use" {% if request.form.get('status') == 'In Use' %}selected{% endif %}>In Use</option>
+                                    <option value="Out for Repair" {% if request.form.get('status') == 'Out for Repair' %}selected{% endif %}>Out for Repair</option>
+                                    <option value="Retired" {% if request.form.get('status') == 'Retired' %}selected{% endif %}>Retired</option>
+                                </select>
+                                <div class="form-text">Current status of the tool</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="assigned_to_id" class="form-label">Assigned To</label>
+                                <select class="form-select" id="assigned_to_id" name="assigned_to_id">
+                                    <option value="">Unassigned</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if request.form.get('assigned_to_id')|int == user.id %}selected{% endif %}>
+                                        {{ user.username }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">User currently assigned to this tool</div>
+                            </div>
+
+                            <!-- Calibration Information -->
+                            <div class="col-md-6">
+                                <label for="last_calibration_date" class="form-label">Last Calibration Date</label>
+                                <input type="date" class="form-control" id="last_calibration_date" name="last_calibration_date" 
+                                       value="{{ request.form.get('last_calibration_date', '') }}">
+                                <div class="form-text">Date of last calibration</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="next_calibration_date" class="form-label">Next Calibration Date</label>
+                                <input type="date" class="form-control" id="next_calibration_date" name="next_calibration_date" 
+                                       value="{{ request.form.get('next_calibration_date', '') }}">
+                                <div class="form-text">Scheduled next calibration date</div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('supply.tools.list') }}" class="btn btn-secondary">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle"></i> Create Tool
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const toolNameInput = document.getElementById('tool_name');
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Clear previous error states
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        
+        // Validate required fields
+        if (!toolNameInput.value.trim()) {
+            toolNameInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
+

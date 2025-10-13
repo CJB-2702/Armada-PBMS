@@ -70,6 +70,14 @@
         "description": "Toyota Corolla 2023 model",
         "asset_type_name": "Vehicle",
         "is_active": true
+      },
+      "Ford_F250": {
+        "make": "Ford",
+        "model": "F-250",
+        "year": 2023,
+        "description": "Ford F-250 2023 model",
+        "asset_type_name": "Vehicle",
+        "is_active": true
       }
     },
     "Assets": {
@@ -154,6 +162,68 @@
         "major_location_name": "SanDiegoHQ"
       }
     ],
+    "Model_Details": {
+      "Toyota_Corolla_Emissions": {
+        "make": "Toyota",
+        "model": "Corolla",
+        "detail_type": "emissions_info",
+        "emissions_standard": "EPA",
+        "emissions_rating": "ULEV",
+        "fuel_type": "gasoline",
+        "mpg_city": 32.0,
+        "mpg_highway": 41.0,
+        "mpg_combined": 35.0,
+        "co2_emissions": 250.0,
+        "emissions_test_date": "2022-12-01",
+        "emissions_certification": "EPA-2023-COROLLA-001"
+      },
+      "Toyota_Corolla_Model_Info": {
+        "make": "Toyota",
+        "model": "Corolla",
+        "detail_type": "model_info",
+        "model_year": 2023,
+        "body_style": "sedan",
+        "engine_type": "2.0L 4-Cylinder",
+        "engine_displacement": "2.0L",
+        "transmission_type": "CVT",
+        "drivetrain": "FWD",
+        "seating_capacity": 5,
+        "cargo_capacity": 13.1,
+        "towing_capacity": 1500,
+        "manufacturer_website": "https://www.toyota.com/corolla",
+        "technical_specifications": "2.0L Dynamic Force 4-Cylinder engine with 169 hp, CVT transmission"
+      },
+      "Ford_F250_Emissions": {
+        "make": "Ford",
+        "model": "F-250",
+        "detail_type": "emissions_info",
+        "emissions_standard": "EPA",
+        "emissions_rating": "Tier 3",
+        "fuel_type": "diesel",
+        "mpg_city": 15.0,
+        "mpg_highway": 20.0,
+        "mpg_combined": 17.0,
+        "co2_emissions": 650.0,
+        "emissions_test_date": "2022-11-15",
+        "emissions_certification": "EPA-2023-F250-001"
+      },
+      "Ford_F250_Model_Info": {
+        "make": "Ford",
+        "model": "F-250",
+        "detail_type": "model_info",
+        "model_year": 2023,
+        "body_style": "pickup truck",
+        "engine_type": "6.7L Power Stroke V8 Turbo Diesel",
+        "engine_displacement": "6.7L",
+        "transmission_type": "10-speed automatic",
+        "drivetrain": "4WD",
+        "seating_capacity": 6,
+        "cargo_capacity": 52.8,
+        "towing_capacity": 20000,
+        "manufacturer_website": "https://www.ford.com/trucks/super-duty/f250/",
+        "technical_specifications": "6.7L Power Stroke V8 Turbo Diesel with 475 hp and 1,050 lb-ft torque"
+      }
+    },
     "Sample_Data": {
       "Purchase_Info": {
         "purchase_date": "2023-01-15",
@@ -461,36 +531,24 @@
 
   },
   "Maintenance": {
-    "maintenance_plans": [
-      {
-        "name": "Vehicle Oil Change",
-        "description": "Regular oil change maintenance for all vehicles",
-        "asset_type_name": "Vehicle",
-        "status": "Active",
-        "frequency_type": "Time-based",
-        "frequency_value": 90.0
-      },
-      {
-        "name": "Truck Brake Inspection",
-        "description": "Brake system inspection for trucks",
-        "asset_type_name": "Vehicle",
-        "status": "Active",
-        "frequency_type": "Time-based",
-        "frequency_value": 180.0
-      }
-    ],
     "template_action_sets": [
       {
         "task_name": "Oil Change Procedure",
         "description": "Standard oil change procedure for vehicles",
-        "maintenance_plan_name": "Vehicle Oil Change",
-        "status": "Active"
+        "estimated_duration": 0.5,
+        "staff_count": 1,
+        "labor_hours": 0.5,
+        "safety_review_required": false,
+        "revision": "1.0"
       },
       {
-        "task_name": "Brake Inspection Procedure",
-        "description": "Standard brake inspection procedure",
-        "maintenance_plan_name": "Truck Brake Inspection",
-        "status": "Active"
+        "task_name": "Brake Inspection Procedure", 
+        "description": "Standard brake inspection procedure for trucks",
+        "estimated_duration": 0.75,
+        "staff_count": 1,
+        "labor_hours": 0.75,
+        "safety_review_required": true,
+        "revision": "1.0"
       }
     ],
     "template_action_items": [
@@ -498,79 +556,141 @@
         "action_name": "Drain Oil",
         "description": "Drain old oil from engine",
         "sequence_order": 1,
-        "estimated_duration_minutes": 15,
+        "estimated_duration": 0.25,
+        "expected_billable_hours": 0.25,
+        "safety_notes": "Use proper oil pan and dispose of oil safely",
         "template_action_set_task_name": "Oil Change Procedure",
-        "status": "Active"
+        "is_required": true,
+        "minimum_staff_count": 1
       },
       {
         "action_name": "Replace Oil Filter",
         "description": "Remove old filter and install new one",
         "sequence_order": 2,
-        "estimated_duration_minutes": 10,
+        "estimated_duration": 0.17,
+        "expected_billable_hours": 0.17,
+        "safety_notes": "Ensure filter is properly sealed",
         "template_action_set_task_name": "Oil Change Procedure",
-        "status": "Active"
+        "is_required": true,
+        "minimum_staff_count": 1
       },
       {
         "action_name": "Add New Oil",
         "description": "Add fresh oil to engine",
         "sequence_order": 3,
-        "estimated_duration_minutes": 5,
+        "estimated_duration": 0.08,
+        "expected_billable_hours": 0.08,
         "template_action_set_task_name": "Oil Change Procedure",
-        "status": "Active"
+        "is_required": true,
+        "minimum_staff_count": 1
       },
       {
         "action_name": "Check Brake Pads",
-        "description": "Inspect brake pad thickness",
+        "description": "Inspect brake pad thickness and condition",
         "sequence_order": 1,
-        "estimated_duration_minutes": 20,
+        "estimated_duration": 0.33,
+        "expected_billable_hours": 0.33,
+        "safety_notes": "Use proper jack stands and safety equipment",
         "template_action_set_task_name": "Brake Inspection Procedure",
-        "status": "Active"
+        "is_required": true,
+        "minimum_staff_count": 1
       },
       {
         "action_name": "Test Brake System",
         "description": "Test brake pedal feel and response",
         "sequence_order": 2,
-        "estimated_duration_minutes": 15,
+        "estimated_duration": 0.25,
+        "expected_billable_hours": 0.25,
+        "safety_notes": "Test in safe environment at low speeds",
         "template_action_set_task_name": "Brake Inspection Procedure",
-        "status": "Active"
+        "is_required": true,
+        "minimum_staff_count": 1
       }
     ],
     "template_part_demands": [
       {
         "part_number": "OIL-001",
         "quantity_required": 5.0,
-        "template_action_item_name": "Add New Oil",
-        "status": "Active"
+        "template_action_item_action_name": "Add New Oil",
+        "is_optional": false,
+        "sequence_order": 1
       },
       {
-        "part_number": "FIL-001",
+        "part_number": "FIL-001", 
         "quantity_required": 1.0,
-        "template_action_item_name": "Replace Oil Filter",
-        "status": "Active"
-      },
-      {
-        "part_number": "BRAKE-001",
-        "quantity_required": 1.0,
-        "template_action_item_name": "Check Brake Pads",
-        "status": "Active"
+        "template_action_item_action_name": "Replace Oil Filter",
+        "is_optional": false,
+        "sequence_order": 1
       }
     ],
-    "maintenance_event_sets": [
+    "template_action_tools": [
       {
-        "task_name": "Oil Change for VTC-001",
-        "maintenance_plan_name": "Vehicle Oil Change",
-        "asset_name": "VTC-001",
-        "scheduled_date": "2023-09-15",
-        "description": "Scheduled oil change for VTC-001",
-        "status": "Scheduled"
+        "tool_name": "Oil Drain Pan",
+        "template_action_item_action_name": "Drain Oil",
+        "is_required": true,
+        "quantity_required": 1,
+        "sequence_order": 1
       },
       {
-        "task_name": "Brake Inspection for FTK-001",
+        "tool_name": "Oil Filter Wrench",
+        "template_action_item_action_name": "Replace Oil Filter",
+        "is_required": true,
+        "quantity_required": 1,
+        "sequence_order": 1
+      },
+      {
+        "tool_name": "Jack",
+        "template_action_item_action_name": "Check Brake Pads",
+        "is_required": true,
+        "quantity_required": 1,
+        "sequence_order": 1
+      },
+      {
+        "tool_name": "Jack Stands",
+        "template_action_item_action_name": "Check Brake Pads",
+        "is_required": true,
+        "quantity_required": 2,
+        "sequence_order": 2
+      }
+    ],
+    "maintenance_plans": [
+      {
+        "name": "Vehicle Oil Change",
+        "description": "Regular oil change maintenance for all vehicles",
+        "asset_type_name": "Vehicle",
+        "status": "Active",
+        "frequency_type": "Time-based",
+        "delta_hours": 2160.0,
+        "template_action_set_task_name": "Oil Change Procedure"
+      },
+      {
+        "name": "Truck Brake Inspection",
+        "description": "Brake system inspection for trucks",
+        "asset_type_name": "Vehicle", 
+        "status": "Active",
+        "frequency_type": "Time-based",
+        "delta_hours": 4320.0,
+        "template_action_set_task_name": "Brake Inspection Procedure"
+      }
+    ],
+    "maintenance_events": [
+      {
+        "task_name": "Oil Change for VTC-001",
+        "description": "Scheduled oil change for VTC-001",
+        "maintenance_plan_name": "Vehicle Oil Change",
+        "asset_name": "VTC-001",
+        "scheduled_date": "2024-01-15",
+        "status": "Planned",
+        "priority": "Medium"
+      },
+      {
+        "task_name": "Brake Inspection for VTC-001",
+        "description": "Scheduled brake inspection for VTC-001", 
         "maintenance_plan_name": "Truck Brake Inspection",
-        "asset_name": "FTK-001",
-        "scheduled_date": "2023-09-20",
-        "description": "Scheduled brake inspection for FTK-001",
-        "status": "Scheduled"
+        "asset_name": "VTC-001",
+        "scheduled_date": "2024-02-01",
+        "status": "Planned",
+        "priority": "High"
       }
     ]
   }

@@ -16,7 +16,7 @@ class TemplateActionTool(UserCreatedBase):
     notes = db.Column(db.Text, nullable=True)
     
     # Relationships
-    template_action_item = db.relationship('TemplateActionItem')
+    template_action_item = db.relationship('TemplateActionItem', back_populates='template_action_tools')
     tool = db.relationship('Tool')
     
     def __repr__(self):

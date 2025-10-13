@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action_set.task_name }} - Maintenance Action Set{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ action_set.task_name }}</h1>
+            <div>
+                <a href="{{ url_for('maintenance_action_sets.list') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <a href="{{ url_for('maintenance_action_sets.edit', action_set_id=action_set.id) }}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Details -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Action Set Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">ID:</dt>
+                    <dd class="col-sm-9">{{ action_set.id }}</dd>
+
+                    <dt class="col-sm-3">Task Name:</dt>
+                    <dd class="col-sm-9">{{ action_set.task_name }}</dd>
+
+                    <dt class="col-sm-3">Description:</dt>
+                    <dd class="col-sm-9">{{ action_set.task_description or 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Status:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge 
+                            {% if action_set.status == 'Completed' %}bg-success
+                            {% elif action_set.status == 'In Progress' %}bg-primary
+                            {% elif action_set.status == 'Planned' %}bg-info
+                            {% else %}bg-secondary{% endif %}">
+                            {{ action_set.status }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-3">Priority:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge 
+                            {% if action_set.priority == 'Critical' %}bg-danger
+                            {% elif action_set.priority == 'High' %}bg-warning
+                            {% elif action_set.priority == 'Medium' %}bg-info
+                            {% else %}bg-secondary{% endif %}">
+                            {{ action_set.priority }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-3">Scheduled Date:</dt>
+                    <dd class="col-sm-9">{{ action_set.scheduled_date.strftime('%Y-%m-%d %H:%M') if action_set.scheduled_date else 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Start Date:</dt>
+                    <dd class="col-sm-9">{{ action_set.start_date.strftime('%Y-%m-%d %H:%M') if action_set.start_date else 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">End Date:</dt>
+                    <dd class="col-sm-9">{{ action_set.end_date.strftime('%Y-%m-%d %H:%M') if action_set.end_date else 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Asset:</dt>
+                    <dd class="col-sm-9">
+                        {% if asset %}
+                        <a href="{{ url_for('assets.detail', asset_id=asset.id) }}">{{ asset.name }}</a>
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-3">Maintenance Plan:</dt>
+                    <dd class="col-sm-9">
+                        {% if maintenance_plan %}
+                        <a href="{{ url_for('maintenance_plans.detail', plan_id=maintenance_plan.id) }}">{{ maintenance_plan.name }}</a>
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Actions List -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Actions ({{ actions|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if actions %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Action Name</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for action in actions %}
+                            <tr>
+                                <td>{{ action.sequence_order }}</td>
+                                <td>
+                                    <a href="{{ url_for('actions.detail', action_id=action.id) }}">
+                                        {{ action.action_name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if action.status == 'Completed' else 'secondary' }}">
+                                        {{ action.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('actions.detail', action_id=action.id) }}" class="btn btn-sm btn-info">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No actions found for this maintenance action set.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if action_set.status == 'Planned' %}
+                <form method="POST" action="{{ url_for('maintenance_action_sets.start', action_set_id=action_set.id) }}" class="mb-2">
+                    <button type="submit" class="btn btn-success w-100">Start Work</button>
+                </form>
+                {% endif %}
+
+                {% if action_set.status == 'In Progress' %}
+                <form method="POST" action="{{ url_for('maintenance_action_sets.complete', action_set_id=action_set.id) }}" class="mb-2">
+                    <button type="submit" class="btn btn-primary w-100">Complete</button>
+                </form>
+                {% endif %}
+
+                {% if action_set.status != 'Cancelled' and action_set.status != 'Completed' %}
+                <form method="POST" action="{{ url_for('maintenance_action_sets.cancel', action_set_id=action_set.id) }}">
+                    <button type="submit" class="btn btn-danger w-100" 
+                            onclick="return confirm('Are you sure you want to cancel this maintenance action set?')">
+                        Cancel
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Metadata</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Created:</dt>
+                    <dd class="col-sm-7">{{ action_set.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+                    <dt class="col-sm-5">Updated:</dt>
+                    <dd class="col-sm-7">{{ action_set.updated_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+                    <dt class="col-sm-5">Created By:</dt>
+                    <dd class="col-sm-7">{{ action_set.created_by.username if action_set.created_by else 'N/A' }}</dd>
+
+                    <dt class="col-sm-5">Updated By:</dt>
+                    <dd class="col-sm-7">{{ action_set.updated_by.username if action_set.updated_by else 'N/A' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

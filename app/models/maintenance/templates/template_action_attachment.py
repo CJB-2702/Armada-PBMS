@@ -17,7 +17,8 @@ class TemplateActionAttachment(VirtualAttachmentReference):
     
     # Relationships
     template_action_item = db.relationship('TemplateActionItem', 
-                                         foreign_keys=[attached_to_id])
+                                         foreign_keys=[attached_to_id],
+                                         back_populates='template_action_attachments')
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

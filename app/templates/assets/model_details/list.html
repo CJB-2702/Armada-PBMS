@@ -38,13 +38,17 @@
                                     <td>{{ record.id }}</td>
                                     {% for field in config.fields %}
                                     <td>
-                                        {% if field == 'certification_date' %}
+                                        {% if field == 'emissions_test_date' or field == 'certification_date' %}
                                             {{ record[field].strftime('%Y-%m-%d') if record[field] else '-' }}
-                                        {% elif field == 'co2_emissions' or field == 'cargo_capacity' %}
-                                            {{ "${:,.2f}".format(record[field]) if record[field] else '-' }}
-                                        {% elif field == 'fuel_economy_city' or field == 'fuel_economy_highway' %}
+                                        {% elif field == 'mpg_city' or field == 'mpg_highway' or field == 'mpg_combined' %}
                                             {{ "{:.1f} mpg".format(record[field]) if record[field] else '-' }}
-                                        {% elif field == 'seating_capacity' %}
+                                        {% elif field == 'co2_emissions' %}
+                                            {{ "{:.1f} g/mi".format(record[field]) if record[field] else '-' }}
+                                        {% elif field == 'cargo_capacity' %}
+                                            {{ "{:.1f} cu ft".format(record[field]) if record[field] else '-' }}
+                                        {% elif field == 'towing_capacity' %}
+                                            {{ "{:,} lbs".format(record[field]) if record[field] else '-' }}
+                                        {% elif field == 'seating_capacity' or field == 'model_year' %}
                                             {{ record[field] if record[field] else '-' }}
                                         {% else %}
                                             {{ record[field] if record[field] else '-' }}

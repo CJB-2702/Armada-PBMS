@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.tool_name }} - Tool Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('supply.tools.list') }}">Tools</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ tool.tool_name }}</li>
+                    </ol>
+                </nav>
+                <h1>{{ tool.tool_name }}</h1>
+                {% if tool.description %}
+                <p class="text-muted">{{ tool.description }}</p>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('supply.tools.edit', tool_id=tool.id) }}" class="btn btn-secondary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="{{ url_for('supply.tools.list') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Tools
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Tool Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Tool Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Tool Name:</strong></td>
+                                <td>{{ tool.tool_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Type:</strong></td>
+                                <td>
+                                    {% if tool.tool_type %}
+                                        <span class="badge bg-secondary">{{ tool.tool_type }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if tool.status == 'Available' %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% elif tool.status == 'In Use' %}
+                                        <span class="badge bg-warning">In Use</span>
+                                    {% elif tool.status == 'Out for Repair' %}
+                                        <span class="badge bg-danger">Out for Repair</span>
+                                    {% elif tool.status == 'Retired' %}
+                                        <span class="badge bg-secondary">Retired</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ tool.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Location:</strong></td>
+                                <td>{{ tool.location or 'Not specified' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Manufacturer Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Manufacturer:</strong></td>
+                                <td>{{ tool.manufacturer or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Model Number:</strong></td>
+                                <td>{{ tool.model_number or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Serial Number:</strong></td>
+                                <td>{{ tool.serial_number or 'Not specified' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if tool.description %}
+                <hr>
+                <h6>Description</h6>
+                <p>{{ tool.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assignment Information -->
+        {% if tool.assigned_to %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Assignment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Assigned To</h6>
+                        <p>
+                            <strong>{{ tool.assigned_to.username }}</strong>
+                            {% if tool.assigned_to.email %}
+                            <br>
+                            <small class="text-muted">{{ tool.assigned_to.email }}</small>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Assignment Actions</h6>
+                        <form method="POST" action="{{ url_for('supply.tools.unassign_tool', tool_id=tool.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-person-x"></i> Unassign
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Calibration Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Calibration Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Calibration Status</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Last Calibration:</strong></td>
+                                <td>
+                                    {% if tool.last_calibration_date %}
+                                        {{ tool.last_calibration_date.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                        <span class="text-muted">Never calibrated</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Next Calibration:</strong></td>
+                                <td>
+                                    {% if tool.next_calibration_date %}
+                                        {{ tool.next_calibration_date.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                        <span class="text-muted">Not scheduled</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if tool.calibration_overdue %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                    {% elif tool.needs_calibration %}
+                                        <span class="badge bg-warning">Due</span>
+                                    {% elif tool.next_calibration_date %}
+                                        <span class="badge bg-success">OK</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Not set</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Update Calibration</h6>
+                        <form method="POST" action="{{ url_for('supply.tools.update_calibration', tool_id=tool.id) }}">
+                            <div class="mb-3">
+                                <label for="calibration_date" class="form-label">Calibration Date</label>
+                                <input type="date" class="form-control" id="calibration_date" name="calibration_date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="next_calibration_date" class="form-label">Next Calibration Date</label>
+                                <input type="date" class="form-control" id="next_calibration_date" name="next_calibration_date">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-calendar-check"></i> Update Calibration
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tool Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Tool Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Assignment Actions</h6>
+                        {% if tool.is_available %}
+                        <form method="POST" action="{{ url_for('supply.tools.assign_tool', tool_id=tool.id) }}">
+                            <div class="mb-3">
+                                <label for="user_id" class="form-label">Assign to User</label>
+                                <select class="form-select" id="user_id" name="user_id" required>
+                                    <option value="">Select User</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-person-plus"></i> Assign Tool
+                            </button>
+                        </form>
+                        {% else %}
+                        <p class="text-muted">Tool is not available for assignment</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Status Actions</h6>
+                        <div class="d-grid gap-2">
+                            {% if tool.is_available %}
+                            <button class="btn btn-outline-warning btn-sm" onclick="markForRepair()">
+                                <i class="bi bi-tools"></i> Mark for Repair
+                            </button>
+                            {% endif %}
+                            {% if not tool.is_retired %}
+                            <button class="btn btn-outline-danger btn-sm" onclick="retireTool()">
+                                <i class="bi bi-archive"></i> Retire Tool
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Tool Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Tool Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-success">
+                            {% if tool.is_available %}
+                                Available
+                            {% elif tool.is_in_use %}
+                                In Use
+                            {% elif tool.is_out_for_repair %}
+                                Repair
+                            {% else %}
+                                Retired
+                            {% endif %}
+                        </h4>
+                        <small class="text-muted">Status</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-info">
+                            {% if tool.assigned_to %}
+                                {{ tool.assigned_to.username }}
+                            {% else %}
+                                Unassigned
+                            {% endif %}
+                        </h4>
+                        <small class="text-muted">Assignment</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tool Properties -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Tool Properties</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Available:</span>
+                    {% if tool.is_available %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>In Use:</span>
+                    {% if tool.is_in_use %}
+                        <span class="badge bg-warning">Yes</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Needs Calibration:</span>
+                    {% if tool.needs_calibration %}
+                        <span class="badge bg-warning">Yes</span>
+                    {% else %}
+                        <span class="badge bg-success">No</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Calibration Overdue:</span>
+                    {% if tool.calibration_overdue %}
+                        <span class="badge bg-danger">Yes</span>
+                    {% else %}
+                        <span class="badge bg-success">No</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Create Similar Tool
+                    </button>
+                    <button class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-copy"></i> Duplicate Tool
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-archive"></i> Archive Tool
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden forms for actions -->
+<form id="markForRepairForm" method="POST" action="{{ url_for('supply.tools.mark_for_repair', tool_id=tool.id) }}" style="display: none;">
+</form>
+
+<form id="retireToolForm" method="POST" action="{{ url_for('supply.tools.retire_tool', tool_id=tool.id) }}" style="display: none;">
+</form>
+
+<script>
+function markForRepair() {
+    if (confirm('Are you sure you want to mark this tool for repair?')) {
+        document.getElementById('markForRepairForm').submit();
+    }
+}
+
+function retireTool() {
+    if (confirm('Are you sure you want to retire this tool?')) {
+        document.getElementById('retireToolForm').submit();
+    }
+}
+</script>
+{% endblock %}
+

@@ -119,14 +119,13 @@ def build_models(phase):
     
     if phase in ['phase4', 'phase5', 'all']:
         logger.info("Building Phase 4 models (Supply)")
-        from app.models.supply.build import build_models as build_supply_models
+        from app.models.supply_items.build import build_models as build_supply_models
         build_supply_models()
     
-    # Phase 5 (Maintenance) - Not yet implemented
-    # if phase in ['phase5', 'all']:
-    #     logger.info("Building Phase 5 models (Maintenance)")
-    #     from app.models.maintenance.build import build_models as build_maintenance_models
-    #     build_maintenance_models()
+    if phase in ['phase5', 'all']:
+        logger.info("Building Phase 5 models (Maintenance)")
+        from app.models.maintenance.build import build_models as build_maintenance_models
+        build_maintenance_models()
     
     # Create all tables
     db.create_all()
@@ -192,21 +191,20 @@ def insert_data(phase):
     if phase in ['phase4', 'phase5', 'all']:
         logger.info("Inserting Phase 4 data (Supply)")
         try:
-            from app.models.supply.build import init_data as init_supply_data
+            from app.models.supply_items.build import init_data as init_supply_data
             init_supply_data(build_data)
         except ImportError as e:
             logger.error(f"Phase 4 failed to insert data: {e}")
             raise
     
-    # Phase 5 (Maintenance) - Not yet implemented
-    # if phase in ['phase5', 'all']:
-    #     logger.info("Inserting Phase 5 data (Maintenance)")
-    #     try:
-    #         from app.models.maintenance.build import init_data as init_maintenance_data
-    #         init_maintenance_data(build_data)
-    #     except ImportError as e:
-    #         logger.error(f"Phase 5 failed to insert data: {e}")
-    #         raise
+    if phase in ['phase5', 'all']:
+        logger.info("Inserting Phase 5 data (Maintenance)")
+        try:
+            from app.models.maintenance.build import init_data as init_maintenance_data
+            init_maintenance_data(build_data)
+        except ImportError as e:
+            logger.error(f"Phase 5 failed to insert data: {e}")
+            raise
     
     if phase in ['phase4', 'phase5', 'all']:
         logger.info("Setting up User Interface data")

@@ -43,12 +43,37 @@ def init_app(app):
     
     app.register_blueprint(dispatches.dispatching_bp, url_prefix='/dispatching')
     
-    # Register supply blueprints
-    from .supply import parts, tools, part_demands, supply_main
+    # Register maintenance blueprints
+    from .maintenance.main import maintenance_bp
+    from .maintenance import (
+        maintenance_plans, 
+        maintenance_action_sets,
+        actions, 
+        part_demands, 
+        delays,
+        template_action_sets,
+        template_action_items,
+        template_part_demands,
+        template_action_tools
+    )
     
-    app.register_blueprint(parts.bp, url_prefix='/supply', name='supply.parts')
-    app.register_blueprint(tools.bp, url_prefix='/supply', name='supply.tools')
-    app.register_blueprint(part_demands.bp, url_prefix='/supply', name='supply.part_demands')
-    app.register_blueprint(supply_main.bp, url_prefix='/supply', name='supply')
+    app.register_blueprint(maintenance_bp)
+    app.register_blueprint(maintenance_plans.bp, url_prefix='/maintenance', name='maintenance_plans')
+    app.register_blueprint(maintenance_action_sets.bp, url_prefix='/maintenance', name='maintenance_action_sets')
+    app.register_blueprint(actions.bp, url_prefix='/maintenance', name='actions')
+    app.register_blueprint(part_demands.bp, url_prefix='/maintenance', name='part_demands')
+    app.register_blueprint(delays.bp, url_prefix='/maintenance', name='delays')
+    app.register_blueprint(template_action_sets.bp, url_prefix='/maintenance', name='template_action_sets')
+    app.register_blueprint(template_action_items.bp, url_prefix='/maintenance', name='template_action_items')
+    app.register_blueprint(template_part_demands.bp, url_prefix='/maintenance', name='template_part_demands')
+    app.register_blueprint(template_action_tools.bp, url_prefix='/maintenance', name='template_action_tools')
+    
+    # Register supply blueprints (using new implementations)
+    from .supply.main import supply_bp
+    from .supply import parts as new_parts, tools as new_tools
+    
+    app.register_blueprint(supply_bp)
+    app.register_blueprint(new_parts.bp, url_prefix='/supply', name='supply.new_parts')
+    app.register_blueprint(new_tools.bp, url_prefix='/supply', name='supply.new_tools')
     
     logger.info("All route blueprints registered successfully") 

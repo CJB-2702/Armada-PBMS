@@ -175,7 +175,7 @@ Maintenance Event Set
 ### VirtualActionSet
 - **Purpose**: Common interface for action sets (templates and actual events)
 - **Key Fields**: Task name, description, duration, labor requirements
-- **Usage**: Inherited by TemplateActionSet and MaintenanceEventSet
+- **Usage**: Inherited by TemplateActionSet and MaintenanceEvent
 
 ### VirtualActionItem
 - **Purpose**: Common interface for action items (templates and actual actions)
@@ -190,7 +190,7 @@ Maintenance Event Set
 ### EventDetailVirtual
 - **Purpose**: Common interface for event detail records
 - **Key Fields**: Event reference, global detail ID, asset reference
-- **Usage**: Inherited by MaintenanceEventSet
+- **Usage**: Inherited by MaintenanceEvent
 
 ## Workflow Process
 

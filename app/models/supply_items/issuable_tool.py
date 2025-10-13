@@ -2,14 +2,17 @@ from app.models.core.user_created_base import UserCreatedBase
 from app import db
 from datetime import datetime
 
-class Tool(UserCreatedBase):
-    __tablename__ = 'tools'
+class IssuableTool(UserCreatedBase):
+    """
+    Issuable Tool class - represents a tool that can be issued/assigned to users
+    This extends the base Tool with issuance-specific functionality
+    """
+    __tablename__ = 'issuable_tools'
     
-    tool_name = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    tool_type = db.Column(db.String(100), nullable=True)
-    manufacturer = db.Column(db.String(200), nullable=True)
-    model_number = db.Column(db.String(100), nullable=True)
+    # Foreign key to the base Tool
+    tool_id = db.Column(db.Integer, db.ForeignKey('tools.id'), nullable=False)
+    
+    # Issuance-specific columns (moved from base Tool class)
     serial_number = db.Column(db.String(100), nullable=True)
     location = db.Column(db.String(200), nullable=True)
     status = db.Column(db.String(20), default='Available')  # Available, In Use, Out for Repair, Retired
@@ -18,10 +21,11 @@ class Tool(UserCreatedBase):
     assigned_to_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # Relationships
+    tool = db.relationship('Tool', backref='issuable_instances')
     assigned_to = db.relationship('User', foreign_keys=[assigned_to_id], overlaps="assigned_tools")
     
     def __repr__(self):
-        return f'<Tool {self.tool_name}: {self.status}>'
+        return f'<IssuableTool {self.tool.tool_name if self.tool else "Unknown"}: {self.status}>'
     
     @property
     def is_available(self):
@@ -78,3 +82,4 @@ class Tool(UserCreatedBase):
         self.last_calibration_date = calibration_date
         if next_calibration_date:
             self.next_calibration_date = next_calibration_date
+

@@ -35,7 +35,7 @@ def create_app():
     logger.debug("Extensions initialized")
     
     # Import and register blueprints
-    from app.models import core, assets, dispatching, supply
+    from app.models import core, assets, dispatching, supply_items
     
     # Import models to ensure they're registered with SQLAlchemy
     from app.models.core.user import User
@@ -57,9 +57,19 @@ def create_app():
     from app.models.dispatching.dispatch_details.truck_dispatch_checklist import TruckDispatchChecklist
     
     # Import supply models to ensure they're registered
-    from app.models.supply.part import Part
-    from app.models.supply.tool import Tool
-    from app.models.supply.part_demand import PartDemand
+    from app.models.supply_items.part import Part
+    from app.models.supply_items.tool import Tool
+    from app.models.supply_items.issuable_tool import IssuableTool
+    
+    # Import maintenance models to ensure they're registered
+    from app.models.maintenance.templates.template_action_set import TemplateActionSet
+    from app.models.maintenance.templates.template_action_item import TemplateActionItem
+    from app.models.maintenance.base.maintenance_plan import MaintenancePlan
+    from app.models.maintenance.base.maintenance_action_set import MaintenanceActionSet
+    from app.models.maintenance.maintenance_event import MaintenanceEvent
+    from app.models.maintenance.template_maintenance_event import TemplateMaintenanceEvent
+    from app.models.maintenance.base.action import Action
+    from app.models.maintenance.base.part_demand import PartDemand
     
     logger.debug("Models imported and registered")
     

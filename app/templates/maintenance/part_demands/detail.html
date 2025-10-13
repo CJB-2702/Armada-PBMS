@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Part Demand - {{ part.part_name if part else 'N/A' }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Part Demand: {{ part.part_name if part else 'N/A' }}</h1>
+            <div>
+                <a href="{{ url_for('part_demands.list') }}" class="btn btn-secondary">Back to List</a>
+                <a href="{{ url_for('part_demands.edit', part_demand_id=part_demand.id) }}" class="btn btn-warning">Edit</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Part Demand Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">ID:</dt>
+                    <dd class="col-sm-8">{{ part_demand.id }}</dd>
+
+                    <dt class="col-sm-4">Part:</dt>
+                    <dd class="col-sm-8">{{ part.part_name if part else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Quantity Required:</dt>
+                    <dd class="col-sm-8">{{ part_demand.quantity_required }}</dd>
+
+                    <dt class="col-sm-4">Quantity Issued:</dt>
+                    <dd class="col-sm-8">{{ part_demand.quantity_issued or 0 }}</dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-{{ 'success' if part_demand.status == 'Issued' else 'warning' }}">
+                            {{ part_demand.status or 'Pending' }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-4">Notes:</dt>
+                    <dd class="col-sm-8">{{ part_demand.notes or 'N/A' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -9,6 +9,7 @@ from flask_login import login_required, current_user
 from app.models.core.make_model import MakeModel
 from app.models.core.asset_type import AssetType
 from app.models.core.asset import Asset
+from app.models.assets.factories.make_model_factory import MakeModelFactory
 from app import db
 
 bp = Blueprint('make_models', __name__)
@@ -73,46 +74,38 @@ def detail(make_model_id):
 @bp.route('/make-models/create', methods=['GET', 'POST'])
 @login_required
 def create():
-    """Create new make/model"""
+    """Create new make/model using MakeModelFactory"""
     if request.method == 'POST':
-        # Validate form data
-        make = request.form.get('make')
-        model = request.form.get('model')
-        year = request.form.get('year', type=int)
-        revision = request.form.get('revision')
-        description = request.form.get('description')
-        asset_type_id = request.form.get('asset_type_id', type=int)
-        is_active = request.form.get('is_active') == 'on'
-        
-        # Check if make/model/year combination already exists
-        existing = MakeModel.query.filter_by(
-            make=make, 
-            model=model, 
-            year=year
-        ).first()
-        
-        if existing:
-            flash('Make/Model/Year combination already exists', 'error')
-            return render_template('core/make_models/create.html')
-        
-        # Create new make/model
-        make_model = MakeModel(
-            make=make,
-            model=model,
-            year=year,
-            revision=revision,
-            description=description,
-            asset_type_id=asset_type_id,
-            is_active=is_active,
-            created_by_id=current_user.id,
-            updated_by_id=current_user.id
-        )
-        
-        db.session.add(make_model)
-        db.session.commit()
-        
-        flash('Make/Model created successfully', 'success')
-        return redirect(url_for('make_models.detail', make_model_id=make_model.id))
+        try:
+            # Gather form data
+            make_model_data = {
+                'make': request.form.get('make'),
+                'model': request.form.get('model'),
+                'year': request.form.get('year', type=int),
+                'revision': request.form.get('revision'),
+                'description': request.form.get('description'),
+                'asset_type_id': request.form.get('asset_type_id', type=int),
+                'is_active': request.form.get('is_active') == 'on'
+            }
+            
+            # Use MakeModelFactory to create the make/model
+            make_model = MakeModelFactory.create_make_model(
+                created_by_id=current_user.id,
+                commit=True,
+                **make_model_data
+            )
+            
+            flash('Make/Model created successfully', 'success')
+            logger.info(f"User {current_user.username} created make/model: {make_model.make} {make_model.model} (ID: {make_model.id})")
+            return redirect(url_for('make_models.detail', make_model_id=make_model.id))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+            logger.warning(f"Make/Model creation failed: {e}")
+        except Exception as e:
+            flash(f'Error creating make/model: {str(e)}', 'error')
+            logger.error(f"Unexpected error creating make/model: {e}")
+            db.session.rollback()
     
     # Get asset types for form
     asset_types = AssetType.query.all()
@@ -121,44 +114,41 @@ def create():
 @bp.route('/make-models/<int:make_model_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(make_model_id):
-    """Edit make/model"""
+    """Edit make/model using MakeModelFactory"""
     make_model = MakeModel.query.get_or_404(make_model_id)
     
     if request.method == 'POST':
-        # Validate form data
-        make = request.form.get('make')
-        model = request.form.get('model')
-        year = request.form.get('year', type=int)
-        revision = request.form.get('revision')
-        description = request.form.get('description')
-        asset_type_id = request.form.get('asset_type_id', type=int)
-        is_active = request.form.get('is_active') == 'on'
-        
-        # Check if make/model/year combination already exists (excluding current)
-        existing = MakeModel.query.filter_by(
-            make=make, 
-            model=model, 
-            year=year
-        ).first()
-        
-        if existing and existing.id != make_model.id:
-            flash('Make/Model/Year combination already exists', 'error')
-            return render_template('core/make_models/edit.html', make_model=make_model)
-        
-        # Update make/model
-        make_model.make = make
-        make_model.model = model
-        make_model.year = year
-        make_model.revision = revision
-        make_model.description = description
-        make_model.asset_type_id = asset_type_id
-        make_model.is_active = is_active
-        make_model.updated_by_id = current_user.id
-        
-        db.session.commit()
-        
-        flash('Make/Model updated successfully', 'success')
-        return redirect(url_for('make_models.detail', make_model_id=make_model.id))
+        try:
+            # Gather update data
+            update_data = {
+                'make': request.form.get('make'),
+                'model': request.form.get('model'),
+                'year': request.form.get('year', type=int),
+                'revision': request.form.get('revision'),
+                'description': request.form.get('description'),
+                'asset_type_id': request.form.get('asset_type_id', type=int),
+                'is_active': request.form.get('is_active') == 'on'
+            }
+            
+            # Use MakeModelFactory to update the make/model
+            MakeModelFactory.update_make_model(
+                make_model=make_model,
+                updated_by_id=current_user.id,
+                commit=True,
+                **update_data
+            )
+            
+            flash('Make/Model updated successfully', 'success')
+            logger.info(f"User {current_user.username} updated make/model: {make_model.make} {make_model.model} (ID: {make_model.id})")
+            return redirect(url_for('make_models.detail', make_model_id=make_model.id))
+            
+        except ValueError as e:
+            flash(str(e), 'error')
+            logger.warning(f"Make/Model update failed: {e}")
+        except Exception as e:
+            flash(f'Error updating make/model: {str(e)}', 'error')
+            logger.error(f"Unexpected error updating make/model: {e}")
+            db.session.rollback()
     
     # Get asset types for form
     asset_types = AssetType.query.all()

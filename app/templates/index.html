@@ -183,16 +183,19 @@
                         Plan and track maintenance schedules, service records, and repair history.
                     </p>
                     <div class="mb-3">
-                        <span class="status-indicator status-development"></span>
-                        <small class="text-warning">In Development</small>
+                        <span class="status-indicator status-active"></span>
+                        <small class="text-success">Active</small>
                     </div>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-info btn-sm" disabled>
-                            <i class="bi bi-clock"></i> Coming Soon
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                            <i class="bi bi-info-circle"></i> Learn More
-                        </button>
+                        <a href="{{ url_for('maintenance.index') }}" class="btn btn-info btn-sm">
+                            <i class="bi bi-arrow-right"></i> Maintenance Dashboard
+                        </a>
+                        <a href="{{ url_for('maintenance_plans.list') }}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-list"></i> View Plans
+                        </a>
+                        <a href="{{ url_for('actions.list') }}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-tools"></i> View Actions
+                        </a>
                     </div>
                 </div>
             </div>
@@ -217,10 +220,10 @@
                         <a href="{{ url_for('supply.index') }}" class="btn btn-danger btn-sm">
                             <i class="bi bi-box-seam"></i> Supply Dashboard
                         </a>
-                        <a href="{{ url_for('supply.parts.list') }}" class="btn btn-outline-danger btn-sm">
+                        <a href="{{ url_for('supply.new_parts.list') }}" class="btn btn-outline-danger btn-sm">
                             <i class="bi bi-list"></i> View Parts
                         </a>
-                        <a href="{{ url_for('supply.tools.list') }}" class="btn btn-outline-danger btn-sm">
+                        <a href="{{ url_for('supply.new_tools.list') }}" class="btn btn-outline-danger btn-sm">
                             <i class="bi bi-tools"></i> View Tools
                         </a>
                     </div>

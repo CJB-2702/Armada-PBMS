@@ -147,6 +147,25 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Model Details -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Model Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('assets.model_details.list', detail_type='emissions_info') }}" 
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-cloud"></i> View Emissions Information
+                    </a>
+                    <a href="{{ url_for('assets.model_details.list', detail_type='model_info') }}" 
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-info-circle"></i> View Model Information
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -1,6 +1,5 @@
 from app.models.core.user_created_base import UserCreatedBase
 from app import db
-from datetime import datetime
 
 class VirtualActionItem(UserCreatedBase):
     """Virtual action items created from templates"""

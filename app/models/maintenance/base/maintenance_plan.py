@@ -6,11 +6,11 @@ class MaintenancePlan(UserCreatedBase):
     __tablename__ = 'maintenance_plans'
     
     #header fields
-    name = db.Column(db.String(200), nullable=False, index=True)
+    name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    asset_type_id = db.Column(db.Integer, db.ForeignKey('asset_types.id'), nullable=False, index=True)
+    asset_type_id = db.Column(db.Integer, db.ForeignKey('asset_types.id'), nullable=False)
     model_id = db.Column(db.Integer, db.ForeignKey('make_models.id'), nullable=True)
-    status = db.Column(db.String(20), default='Active', nullable=False, index=True)
+    status = db.Column(db.String(20), default='Active', nullable=False)
 
     #task to be assigned
     template_action_set_id = db.Column(db.Integer, db.ForeignKey('template_action_sets.id'), nullable=False)
@@ -31,31 +31,57 @@ class MaintenancePlan(UserCreatedBase):
         foreign_keys=[template_action_set_id],
         back_populates='maintenance_plans'
     )
-    maintenance_event_sets = relationship(
-        'MaintenanceEventSet', 
-        back_populates='maintenance_plan',
-        lazy='dynamic'
-    )
+    maintenance_action_sets = relationship('MaintenanceActionSet', back_populates='maintenance_plan')
 
     def __repr__(self):
         return f'<MaintenancePlan {self.name}>'
-
-    def schedule_maintenance(self, asset_id, scheduled_date=None, user_id=None):
-        #todo make class managers based off frequency type and delta fields to handle logic and scheduling
-        pass
     
+    #-------------------------------- Getters and Setters --------------------------------
     
-    def create_maintenance_event(self, asset_id, scheduled_date=None, user_id=None):
-        """Create a maintenance event from this plan - using delegation pattern"""
-        from app.models.maintenance.base.maintenance_event_set import MaintenanceEventSet
-
-        maintenance_event_set = MaintenanceEventSet(
-            maintenance_plan_id=self.id,
-            template_action_set_id=self.template_action_set_id,
-            asset_id=asset_id,
-            scheduled_date=scheduled_date,
-            created_by_id=user_id
-        )
-        db.session.add(maintenance_event_set)
-        db.session.commit()
+    def _set_status(self, value, user_id=None):
+        """Set status with comment tracking"""
+        old_value = self.status
+        self.status = value
+        if user_id and old_value != value:
+            # Note: MaintenancePlan doesn't have direct comment access, 
+            # but could be logged to system events
+            pass
+    
+    def _set_frequency_type(self, value, user_id=None):
+        """Set frequency type with comment tracking"""
+        old_value = self.frequency_type
+        self.frequency_type = value
+        if user_id and old_value != value:
+            # Note: MaintenancePlan doesn't have direct comment access
+            pass
+    
+    # Properties for getters
+    @property
+    def is_active(self):
+        return self.status == 'Active'
+    
+    @property
+    def is_inactive(self):
+        return self.status == 'Inactive'
+    
+    @property
+    def is_archived(self):
+        return self.status == 'Archived'
+    
+    @property
+    def has_model_specificity(self):
+        """Check if plan is specific to a model"""
+        return self.model_id is not None
+    
+    @property
+    def is_time_based(self):
+        """Check if plan is time-based"""
+        return self.frequency_type == 'Time-based'
+    
+    @property
+    def is_mileage_based(self):
+        """Check if plan is mileage-based"""
+        return self.frequency_type == 'Mileage-based'
+    
+    # Note: Creation logic moved to MaintenancePlanFactory
         

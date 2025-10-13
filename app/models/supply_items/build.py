@@ -13,10 +13,9 @@ def build_models():
     Build supply models - this is a no-op since models are imported
     when the app is created, which registers them with SQLAlchemy
     """
-    import app.models.supply.part
-    import app.models.supply.tool
-    import app.models.supply.part_demand
-    import app.models.supply.virtual_part_demand
+    import app.models.supply_items.part
+    import app.models.supply_items.tool
+    import app.models.supply_items.issuable_tool
     
     logger.info("Supply models build completed")
 
@@ -27,9 +26,10 @@ def init_data(build_data):
     Args:
         build_data (dict): Build data from JSON file
     """
-    from app.models.supply.part import Part
-    from app.models.supply.tool import Tool
-    from app.models.supply.part_demand import PartDemand
+    from app.models.supply_items.part import Part
+    from app.models.supply_items.tool import Tool
+    from app.models.supply_items.issuable_tool import IssuableTool
+    from app.models.maintenance.base.part_demand import PartDemand
     from app.models.core.user import User
     
     # Get system user for audit fields
@@ -77,37 +77,9 @@ def init_data(build_data):
             Tool.find_or_create_from_dict(
                 tool_data,
                 user_id=system_user_id,
-                lookup_fields=['serial_number']
+                lookup_fields=['tool_name']
             )
             logger.info(f"Created/updated tool: {tool_data.get('tool_name')}")
-    
-    # Create part demands from Supply section
-    if 'Supply' in build_data and 'part_demands' in build_data['Supply']:
-        logger.info("Creating part demands...")
-        for demand_data in build_data['Supply']['part_demands']:
-            # Handle part_number reference
-            if 'part_number' in demand_data:
-                part_number = demand_data.pop('part_number')
-                part = Part.query.filter_by(part_number=part_number).first()
-                if part:
-                    demand_data['part_id'] = part.id
-                else:
-                    logger.warning(f"Part '{part_number}' not found for part demand {demand_data.get('notes', 'Unknown')}")
-                    continue
-            
-            # Handle issued_by_id reference if it exists
-            if 'issued_by_id' in demand_data and demand_data['issued_by_id']:
-                issued_user = User.query.get(demand_data['issued_by_id'])
-                if not issued_user:
-                    logger.warning(f"Issued by user {demand_data['issued_by_id']} not found for part demand")
-                    demand_data['issued_by_id'] = None
-            
-            PartDemand.find_or_create_from_dict(
-                demand_data,
-                user_id=system_user_id,
-                lookup_fields=['notes']  # Using notes as lookup field
-            )
-            logger.info(f"Created/updated part demand: {demand_data.get('notes', 'Unknown')}")
     
     logger.info("Supply data initialization completed")
 
@@ -122,9 +94,10 @@ def test_supply_independence():
         logger.info("Testing supply independence...")
         
         # Test that supply models can be imported without maintenance
-        from app.models.supply.part import Part
-        from app.models.supply.tool import Tool
-        from app.models.supply.part_demand import PartDemand
+        from app.models.supply_items.part import Part
+        from app.models.supply_items.tool import Tool
+        from app.models.supply_items.issuable_tool import IssuableTool
+        from app.models.maintenance.base.part_demand import PartDemand
         
         # Test that we can query supply tables
         parts_count = Part.query.count()

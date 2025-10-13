@@ -1,11 +1,15 @@
 # Base models
 from .base import (
     MaintenancePlan,
-    MaintenanceEventSet,
+    MaintenanceActionSet,
     Action,
-    PartDemandToActionReference,
+    PartDemand,
     MaintenanceDelay
 )
+
+# High-level wrappers
+from .maintenance_event import MaintenanceEvent
+from .template_maintenance_event import TemplateMaintenanceEvent
 
 # Template models
 from .templates import (
@@ -26,10 +30,14 @@ from .virtual_action_set import VirtualActionSet
 __all__ = [
     # Base models
     'MaintenancePlan',
-    'MaintenanceEventSet',
+    'MaintenanceActionSet',
     'Action',
-    'PartDemandToActionReference',
+    'PartDemand',
     'MaintenanceDelay',
+    
+    # High-level wrappers
+    'MaintenanceEvent',
+    'TemplateMaintenanceEvent',
     
     # Template models
     'TemplateActionSet',

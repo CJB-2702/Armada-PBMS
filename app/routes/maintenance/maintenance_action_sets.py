@@ -92,6 +92,37 @@ def detail(action_set_id):
         maintenance_action_set_id=action_set.id
     ).order_by(Action.sequence_order).all()
     
+    # Phase 6: Get part demands with inventory availability
+    part_demand_info = []
+    total_parts_needed = 0
+    parts_available = 0
+    parts_need_purchase = 0
+    
+    try:
+        from app.models.inventory.managers import PartDemandManager
+        
+        for action in actions:
+            if hasattr(action, 'part_demands'):
+                for demand in action.part_demands:
+                    # Check inventory availability
+                    availability = PartDemandManager.check_inventory_availability(demand.id)
+                    
+                    part_demand_info.append({
+                        'demand': demand,
+                        'action': action,
+                        'availability': availability
+                    })
+                    
+                    total_parts_needed += 1
+                    if availability.get('can_fulfill_from_any'):
+                        parts_available += 1
+                    if availability.get('needs_purchase'):
+                        parts_need_purchase += 1
+    except ImportError:
+        # Phase 6 not available yet
+        logger.debug("Phase 6 inventory system not available")
+        pass
+    
     logger.info(f"Maintenance action set detail accessed - Set: {action_set.task_name} (ID: {action_set_id})")
     
     return render_template('maintenance/maintenance_action_sets/detail.html', 
@@ -99,7 +130,11 @@ def detail(action_set_id):
                          asset=asset,
                          maintenance_plan=maintenance_plan,
                          template_action_set=template_action_set,
-                         actions=actions)
+                         actions=actions,
+                         part_demand_info=part_demand_info,
+                         total_parts_needed=total_parts_needed,
+                         parts_available=parts_available,
+                         parts_need_purchase=parts_need_purchase)
 
 @bp.route('/maintenance-action-sets/create', methods=['GET', 'POST'])
 @login_required

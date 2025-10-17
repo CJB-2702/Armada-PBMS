@@ -18,6 +18,22 @@ class PartDemand(VirtualPartDemand):
     action = relationship('Action', back_populates='part_demands')
     part = relationship('Part', foreign_keys='PartDemand.part_id')
     
+    # Phase 6: Inventory integration relationships 
+    # NOTE: These are commented out to avoid circular import issues during build
+    # The relationships will be accessible via explicit queries when Phase 6 is active
+    # Uncomment these after Phase 6 tables are created:
+    # purchase_order_lines = relationship(
+    #     'PurchaseOrderLine',
+    #     secondary='part_demand_purchase_order_lines',
+    #     back_populates='part_demands',
+    #     lazy='dynamic'
+    # )
+    # inventory_movements = relationship(
+    #     'InventoryMovement',
+    #     back_populates='part_demand',
+    #     lazy='dynamic'
+    # )
+    
     def __repr__(self):
         return f'<PartDemand {self.part_id}: {self.quantity_required}>'
     

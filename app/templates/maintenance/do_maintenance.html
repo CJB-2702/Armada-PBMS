@@ -278,6 +278,119 @@
                 </div>
             </div>
 
+            <!-- Parts Required Section (Phase 6) -->
+            {% if part_demand_info %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam"></i>
+                        Parts Required ({{ part_demand_info|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if part_demand_info %}
+                        <div class="list-group list-group-flush">
+                            {% for info in part_demand_info %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            {{ info.demand.part.part_name }}
+                                            <small class="text-muted">({{ info.demand.part.part_number }})</small>
+                                        </h6>
+                                        <small class="text-muted">
+                                            For: {{ info.action.action_name }}
+                                        </small>
+                                    </div>
+                                    <span class="badge 
+                                        {% if info.demand.status == 'Received' %}bg-success
+                                        {% elif info.demand.status == 'Planned' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ info.demand.status }}
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <strong>Required:</strong> {{ info.demand.quantity_required }} {{ info.demand.part.unit_of_measure or 'units' }}
+                                </div>
+                                
+                                <!-- Inventory Availability Info -->
+                                {% if info.availability %}
+                                    <div class="alert alert-sm mb-2 
+                                        {% if info.availability.can_fulfill_from_preferred %}alert-success
+                                        {% elif info.availability.can_fulfill_from_any %}alert-info
+                                        {% elif info.availability.needs_purchase %}alert-warning
+                                        {% else %}alert-danger{% endif %}" 
+                                        style="padding: 0.5rem; margin-bottom: 0.5rem;">
+                                        
+                                        {% if info.availability.can_fulfill_from_preferred %}
+                                            <i class="bi bi-check-circle"></i>
+                                            <strong>Available at this location</strong><br>
+                                            <small>{{ info.availability.total_available }} units in stock</small>
+                                        {% elif info.availability.can_fulfill_from_any %}
+                                            <i class="bi bi-info-circle"></i>
+                                            <strong>Available at other location</strong><br>
+                                            <small>{{ info.availability.total_available }} units available (transfer needed)</small>
+                                        {% elif info.availability.needs_purchase %}
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Need to purchase</strong><br>
+                                            <small>Only {{ info.availability.total_available }} units available (need {{ info.demand.quantity_required - info.availability.total_available }})</small>
+                                        {% else %}
+                                            <i class="bi bi-x-circle"></i>
+                                            <strong>Out of stock</strong><br>
+                                            <small>Purchase order required</small>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Action Buttons -->
+                                    <div class="d-grid gap-1">
+                                        {% if info.availability.can_fulfill_from_preferred and info.demand.status != 'Received' %}
+                                            <button class="btn btn-sm btn-success" disabled title="Issue from inventory (coming soon)">
+                                                <i class="bi bi-box-arrow-right"></i> Issue from Inventory
+                                            </button>
+                                        {% elif info.availability.needs_purchase and info.demand.status != 'Received' %}
+                                            <button class="btn btn-sm btn-warning" disabled title="Create purchase order (coming soon)">
+                                                <i class="bi bi-cart-plus"></i> Create Purchase Order
+                                            </button>
+                                        {% endif %}
+                                        
+                                        <button class="btn btn-sm btn-outline-secondary" disabled title="View inventory details (coming soon)">
+                                            <i class="bi bi-eye"></i> View Inventory
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Location Details -->
+                                    {% if info.availability.location_inventory or info.availability.other_locations %}
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1"><strong>Inventory Locations:</strong></small>
+                                            {% for loc in info.availability.location_inventory %}
+                                                <small class="text-success d-block">
+                                                    <i class="bi bi-geo-alt"></i> Current location: {{ loc.quantity_available }} available
+                                                </small>
+                                            {% endfor %}
+                                            {% for loc in info.availability.other_locations %}
+                                                <small class="text-info d-block">
+                                                    <i class="bi bi-geo-alt"></i> Other location: {{ loc.quantity_available }} available
+                                                </small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-secondary alert-sm mb-0" style="padding: 0.5rem;">
+                                        <i class="bi bi-info-circle"></i>
+                                        <small>Inventory information not available</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No parts required</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Comments Section -->
             <div class="card mb-4">
                 <div class="card-header">

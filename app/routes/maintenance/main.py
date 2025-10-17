@@ -183,6 +183,27 @@ def do_maintenance(action_set_id):
     # Get asset if available
     asset = Asset.query.get(action_set.asset_id) if action_set.asset_id else None
     
+    # Phase 6: Get part demands with inventory availability
+    part_demand_info = []
+    try:
+        from app.models.inventory.managers import PartDemandManager
+        
+        for action in actions:
+            if hasattr(action, 'part_demands'):
+                for demand in action.part_demands:
+                    # Check inventory availability
+                    availability = PartDemandManager.check_inventory_availability(demand.id)
+                    
+                    part_demand_info.append({
+                        'demand': demand,
+                        'action': action,
+                        'availability': availability
+                    })
+    except ImportError:
+        # Phase 6 not available yet
+        logger.debug("Phase 6 inventory system not available")
+        pass
+    
     logger.info(f"Do maintenance page accessed for action set {action_set.id}")
     
     return render_template('maintenance/do_maintenance.html',
@@ -190,7 +211,8 @@ def do_maintenance(action_set_id):
                          event=event,
                          comments=comments,
                          actions=actions,
-                         asset=asset)
+                         asset=asset,
+                         part_demand_info=part_demand_info)
 
 @maintenance_bp.route('/do_maintenance/<int:action_set_id>/add_comment', methods=['POST'])
 @login_required

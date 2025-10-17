@@ -84,5 +84,61 @@
         </div>
     </div>
 </div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <!-- Part Demands Section -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Part Demands ({{ part_demands|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if part_demands %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Part</th>
+                                <th>Quantity Required</th>
+                                <th>Status</th>
+                                <th>Sequence</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for demand in part_demands %}
+                            <tr>
+                                <td>
+                                    {% if demand.part %}
+                                    {{ demand.part.part_name }}
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ demand.quantity_required }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if demand.status == 'Fulfilled' else 'secondary' }}">
+                                        {{ demand.status }}
+                                    </span>
+                                </td>
+                                <td>{{ demand.sequence_order }}</td>
+                                <td>{{ demand.notes[:50] + '...' if demand.notes and demand.notes|length > 50 else (demand.notes or '') }}</td>
+                                <td>
+                                    <a href="{{ url_for('part_demands.detail', part_demand_id=demand.id) }}" 
+                                       class="btn btn-sm btn-info">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No part demands defined for this action.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 

@@ -5,6 +5,7 @@ CRUD operations for TemplatePartDemand model
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
+from sqlalchemy.orm import joinedload
 from app.models.maintenance.templates.template_part_demand import TemplatePartDemand
 from app.models.maintenance.templates.template_action_item import TemplateActionItem
 from app.models.supply_items.part import Part
@@ -30,7 +31,10 @@ def list():
     
     logger.debug(f"Template part demands list filters - Action Item: {template_action_item_id}, Part: {part_id}")
     
-    query = TemplatePartDemand.query
+    query = TemplatePartDemand.query.options(
+        joinedload(TemplatePartDemand.template_action_item),
+        joinedload(TemplatePartDemand.part)
+    )
     
     if template_action_item_id:
         query = query.filter(TemplatePartDemand.template_action_item_id == template_action_item_id)

@@ -14,14 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    // Auto-hide alerts after 5 seconds
-    setTimeout(function() {
-        var alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function(alert) {
-            var bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        });
-    }, 5000);
+    // Auto-dismiss removed - alerts now require manual dismissal by clicking X button
+    // Users must click the close button to dismiss flash messages
 
     // HTMX event handlers
     document.body.addEventListener('htmx:beforeRequest', function(evt) {

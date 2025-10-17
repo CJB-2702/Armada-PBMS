@@ -56,8 +56,8 @@ def create():
             db.session.add(dispatch)
             db.session.commit()
             
-            # Create initial event
-            dispatch.create_initial_event()
+            # Note: create_event() is called automatically in Dispatch.__init__() via EventDetailVirtual
+            # No need to call it manually here
             
             # Create dispatch detail tables if asset is assigned
             if dispatch.asset_id:

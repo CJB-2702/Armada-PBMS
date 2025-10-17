@@ -69,7 +69,7 @@ def detail(asset_type_id):
     asset_type = AssetType.query.get_or_404(asset_type_id)
     
     # Get make/models of this type
-    make_models = asset_type.make_models.order_by(MakeModel.make, MakeModel.model).all()
+    make_models = MakeModel.query.filter_by(asset_type_id=asset_type_id).order_by(MakeModel.make, MakeModel.model).all()
     
     # Get assets of this type (through make/models)
     assets = []

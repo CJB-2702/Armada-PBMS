@@ -53,6 +53,66 @@
                 </dl>
             </div>
         </div>
+
+        <!-- Part Demands Section -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Part Demands ({{ template_part_demands|length }})</h5>
+                <a href="{{ url_for('template_part_demands.create', template_action_item_id=template_action_item.id) }}" 
+                   class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Part Demand
+                </a>
+            </div>
+            <div class="card-body">
+                {% if template_part_demands %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Part</th>
+                                <th>Quantity</th>
+                                <th>Expected Cost</th>
+                                <th>Optional</th>
+                                <th>Sequence</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for demand in template_part_demands %}
+                            <tr>
+                                <td>
+                                    {% if demand.part %}
+                                    {{ demand.part.part_name }}
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ demand.quantity_required }}</td>
+                                <td>{{ '${:.2f}'.format(demand.expected_cost) if demand.expected_cost else 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'secondary' if demand.is_optional else 'success' }}">
+                                        {{ 'Optional' if demand.is_optional else 'Required' }}
+                                    </span>
+                                </td>
+                                <td>{{ demand.sequence_order }}</td>
+                                <td>{{ demand.notes[:50] + '...' if demand.notes and demand.notes|length > 50 else (demand.notes or '') }}</td>
+                                <td>
+                                    <a href="{{ url_for('template_part_demands.detail', template_part_demand_id=demand.id) }}" 
+                                       class="btn btn-sm btn-info">View</a>
+                                    <a href="{{ url_for('template_part_demands.edit', template_part_demand_id=demand.id) }}" 
+                                       class="btn btn-sm btn-warning">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No part demands defined for this action item.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

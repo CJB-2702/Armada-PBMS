@@ -72,7 +72,7 @@ def detail(action_id):
     # Get related data through relationships
     maintenance_action_set = action.maintenance_action_set
     template_action_item = action.template_action_item
-    part_demands = action.part_demands.all()
+    part_demands = action.part_demands
     
     logger.info(f"Action detail accessed - Action: {action.action_name} (ID: {action_id})")
     

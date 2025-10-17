@@ -13,7 +13,7 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Obsidian/Supply Model 1.canvas",
+                "file": "Obsidian/Supply Model new.canvas",
                 "viewState": {
                   "x": 80,
                   "y": -1063.1237735849056,
@@ -21,10 +21,28 @@
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "Supply Model 1"
+              "title": "Supply Model new"
+            }
+          },
+          {
+            "id": "4d31699930b225b4",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "Obsidian/Supply Model new.canvas",
+                "viewState": {
+                  "x": 272.5,
+                  "y": -1247,
+                  "zoom": -1.0960835963699542
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Supply Model new"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -172,11 +190,17 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "00dd6c7040ddd811",
+  "active": "4d31699930b225b4",
   "lastOpenFiles": [
+    "Phase6_inventory and purchasing/README.md",
+    "Phase6_inventory and purchasing/QuickReference.md",
+    "Phase6_inventory and purchasing/ImplementationPlan.md",
+    "Phase6_inventory and purchasing/SystemDiagram.md",
+    "Phase6_inventory and purchasing/DataModel.md",
+    "Obsidian/Supply Model old.canvas",
+    "Obsidian/Supply Model new.canvas",
     "Obsidian/Maintenance_Model_Current.canvas",
-    "Obsidian/Supply Model 1.canvas",
-    "Obsidian/Supply Model.canvas",
+    "Obsidian/Dispatch Model.canvas",
     "Phase7_Planning/ApplicationPlan.md",
     "Phase7_Planning",
     "Phase6_inventory and purchasing/ApplicationPlan.md",
@@ -195,7 +219,6 @@
     "Obsidian/Maintenance Model.canvas",
     "Phase4_Maintenance/DataModelComparison.md",
     "Phase4_Maintenance/dataModel.md",
-    "Obsidian/Dispatch Model.canvas",
     "phase1_Core/ApplicationDesign.md",
     "Obsidian/Asset Management Data model.canvas",
     "Phase4_Maintnence/dataModel.md",

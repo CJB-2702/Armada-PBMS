@@ -1,0 +1,32 @@
+{
+	"nodes":[
+		{"id":"153227488103dd54","type":"text","text":"Purchase order Header","x":140,"y":-1150,"width":340,"height":70},
+		{"id":"6ad87fce3cc2c7de","type":"text","text":"Parts","x":-660,"y":-1720,"width":1540,"height":160},
+		{"id":"feadad7fa65e9776","type":"text","text":"Purchase order parts","x":140,"y":-980,"width":340,"height":140},
+		{"id":"1d77f1548c7f22c9","type":"text","text":"Part Arrivals","x":-645,"y":-1020,"width":405,"height":180},
+		{"id":"80cd9d621750a27b","type":"text","text":"Part Demand","x":760,"y":-1020,"width":280,"height":180},
+		{"id":"4ee729d6807490c5","type":"text","text":"Active Inventory","x":-645,"y":-680,"width":405,"height":80},
+		{"id":"66bb849243e860f3","type":"text","text":"Inventory Movements","x":-660,"y":-440,"width":1580,"height":120},
+		{"id":"a8e06f7b6f7e697b","type":"text","text":"Inventory movement Manager (not a table just a class that manages creating all the rows for the different tables and updating the active inventory)","x":440,"y":-680,"width":440,"height":120},
+		{"id":"4e64a875d93d763d","type":"text","text":"Package header","x":-695,"y":-1178,"width":250,"height":60},
+		{"id":"36aa85d5db91c270","type":"text","text":"event","x":900,"y":-1480,"width":240,"height":60},
+		{"id":"938da1f87318c939","type":"text","text":"comments","x":1040,"y":-1280,"width":200,"height":102},
+		{"id":"25e80782ad3c5a23","x":-1211,"y":-827,"width":250,"height":60,"type":"text","text":"major location"}
+	],
+	"edges":[
+		{"id":"1dc7659a51968080","fromNode":"153227488103dd54","fromSide":"top","toNode":"6ad87fce3cc2c7de","toSide":"bottom","label":"belongs to "},
+		{"id":"c328b6bccd358c96","fromNode":"feadad7fa65e9776","fromSide":"top","toNode":"153227488103dd54","toSide":"bottom","label":"belongs to "},
+		{"id":"e11ecebb21d28c76","fromNode":"80cd9d621750a27b","fromSide":"left","toNode":"feadad7fa65e9776","toSide":"right","label":"belongs to"},
+		{"id":"3f00b38f26d2adca","fromNode":"1d77f1548c7f22c9","fromSide":"right","toNode":"feadad7fa65e9776","toSide":"left","label":"belongs to "},
+		{"id":"5bcfce9c969fe09e","fromNode":"1d77f1548c7f22c9","fromSide":"top","toNode":"6ad87fce3cc2c7de","toSide":"bottom","label":"belongs to "},
+		{"id":"78a363c1ec83a93a","fromNode":"80cd9d621750a27b","fromSide":"top","toNode":"6ad87fce3cc2c7de","toSide":"bottom","label":"belongs to "},
+		{"id":"80ba22471472b0d0","fromNode":"66bb849243e860f3","fromSide":"right","toNode":"80cd9d621750a27b","toSide":"right","label":"can belong to"},
+		{"id":"39ac75aa86c4503d","fromNode":"66bb849243e860f3","fromSide":"left","toNode":"1d77f1548c7f22c9","toSide":"left","label":"can belong to"},
+		{"id":"45433c1696a11f39","fromNode":"4ee729d6807490c5","fromSide":"right","toNode":"6ad87fce3cc2c7de","toSide":"bottom","label":"belongs to "},
+		{"id":"934f73a7570d8b77","fromNode":"1d77f1548c7f22c9","fromSide":"top","toNode":"4e64a875d93d763d","toSide":"bottom","label":"belongs to "},
+		{"id":"8501d8e630c764d6","fromNode":"153227488103dd54","fromSide":"right","toNode":"36aa85d5db91c270","toSide":"left","color":"5","label":"belongs to"},
+		{"id":"8d2e4e03aff5490a","fromNode":"938da1f87318c939","fromSide":"top","toNode":"36aa85d5db91c270","toSide":"bottom"},
+		{"id":"3bc4ceae23de73af","fromNode":"4ee729d6807490c5","fromSide":"top","toNode":"25e80782ad3c5a23","toSide":"right","label":"belongs to "},
+		{"id":"414272ca3cf749a1","fromNode":"66bb849243e860f3","fromSide":"left","toNode":"25e80782ad3c5a23","toSide":"bottom","label":"belongs to "}
+	]
+}

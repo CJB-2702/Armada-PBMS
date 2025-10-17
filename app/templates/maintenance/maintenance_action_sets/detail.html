@@ -143,6 +143,11 @@
                 <h5 class="mb-0">Quick Actions</h5>
             </div>
             <div class="card-body">
+                <!-- Active Work View Button -->
+                <a href="{{ url_for('maintenance.do_maintenance', action_set_id=action_set.id) }}" class="btn btn-info w-100 mb-2">
+                    <i class="bi bi-tools"></i> Active Work View
+                </a>
+
                 {% if action_set.status == 'Planned' %}
                 <form method="POST" action="{{ url_for('maintenance_action_sets.start', action_set_id=action_set.id) }}" class="mb-2">
                     <button type="submit" class="btn btn-success w-100">Start Work</button>
@@ -165,6 +170,97 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Parts Required Section (Phase 6) -->
+        {% if part_demand_info %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam"></i>
+                    Parts Required
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Summary Stats -->
+                {% if total_parts_needed > 0 %}
+                <div class="row text-center mb-3 pb-3 border-bottom">
+                    <div class="col-4">
+                        <h6 class="text-primary mb-0">{{ total_parts_needed }}</h6>
+                        <small class="text-muted">Total</small>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-success mb-0">{{ parts_available }}</h6>
+                        <small class="text-muted">Available</small>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-warning mb-0">{{ parts_need_purchase }}</h6>
+                        <small class="text-muted">Need PO</small>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Parts List -->
+                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                    {% for info in part_demand_info %}
+                    <div class="list-group-item px-0 py-2">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0" style="font-size: 0.9rem;">
+                                    {{ info.demand.part.part_name }}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ info.demand.part.part_number }}
+                                </small>
+                            </div>
+                            <span class="badge badge-sm
+                                {% if info.demand.status == 'Received' %}bg-success
+                                {% elif info.demand.status == 'Planned' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ info.demand.status }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-1">
+                            <small><strong>Qty:</strong> {{ info.demand.quantity_required }} {{ info.demand.part.unit_of_measure or 'units' }}</small>
+                            <br>
+                            <small class="text-muted">For: {{ info.action.action_name }}</small>
+                        </div>
+                        
+                        <!-- Availability Status -->
+                        {% if info.availability %}
+                            {% if info.availability.can_fulfill_from_preferred %}
+                                <div class="alert alert-success py-1 px-2 mb-0" style="font-size: 0.85rem;">
+                                    <i class="bi bi-check-circle"></i> Available here
+                                </div>
+                            {% elif info.availability.can_fulfill_from_any %}
+                                <div class="alert alert-info py-1 px-2 mb-0" style="font-size: 0.85rem;">
+                                    <i class="bi bi-info-circle"></i> At other location
+                                </div>
+                            {% elif info.availability.needs_purchase %}
+                                <div class="alert alert-warning py-1 px-2 mb-0" style="font-size: 0.85rem;">
+                                    <i class="bi bi-exclamation-triangle"></i> Need to purchase
+                                </div>
+                            {% else %}
+                                <div class="alert alert-danger py-1 px-2 mb-0" style="font-size: 0.85rem;">
+                                    <i class="bi bi-x-circle"></i> Out of stock
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Action Button -->
+                {% if parts_need_purchase > 0 %}
+                <div class="mt-3 pt-3 border-top">
+                    <button class="btn btn-warning btn-sm w-100" disabled title="Create purchase orders (coming soon)">
+                        <i class="bi bi-cart-plus"></i> Create Purchase Orders
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Metadata -->
         <div class="card">

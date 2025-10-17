@@ -7,6 +7,39 @@ class ActionFactory:
     """Factory for creating Actions from TemplateActionItems"""
     
     @staticmethod
+    def create_from_dict(data_dict):
+        """
+        Create an Action from a dictionary, optionally creating part demands from template
+        
+        Args:
+            data_dict: Dictionary containing action data
+        
+        Returns:
+            Action: The created action
+        """
+        # Extract template_action_item_id if provided
+        template_action_item_id = data_dict.get('template_action_item_id')
+        user_id = data_dict.get('created_by_id')
+        
+        # Create the action using the model's method
+        action, created = Action.find_or_create_from_dict(
+            data_dict,
+            user_id=user_id,
+            lookup_fields=['id']
+        )
+        
+        # If action was created from a template, create part demands
+        if created and template_action_item_id and user_id:
+            template_action_item = TemplateActionItem.query.get(template_action_item_id)
+            if template_action_item:
+                from app.models.maintenance.factories.part_demand_factory import PartDemandFactory
+                PartDemandFactory.create_all_from_template_action_item(
+                    template_action_item, action.id, user_id
+                )
+        
+        return action
+    
+    @staticmethod
     def create_from_template(template_action_item: TemplateActionItem, maintenance_action_set_id: int, user_id: int, **kwargs):
         """
         Create an Action from a TemplateActionItem
@@ -47,7 +80,7 @@ class ActionFactory:
     @staticmethod
     def create_all_from_template_action_set(template_action_set: TemplateActionSet, maintenance_action_set_id: int, user_id: int):
         """
-        Create all Actions from a TemplateActionSet
+        Create all Actions from a TemplateActionSet with their associated PartDemands
         
         Args:
             template_action_set: The template action set to create from
@@ -66,10 +99,17 @@ class ActionFactory:
         
         for template_action_item in template_action_items:
             if template_action_item.is_required:
+                # Create the action
                 action = ActionFactory.create_from_template(
                     template_action_item, maintenance_action_set_id, user_id
                 )
                 actions.append(action)
+                
+                # Create part demands for this action
+                from app.models.maintenance.factories.part_demand_factory import PartDemandFactory
+                PartDemandFactory.create_all_from_template_action_item(
+                    template_action_item, action.id, user_id
+                )
         
         return actions
     

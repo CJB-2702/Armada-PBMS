@@ -27,6 +27,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Action</th>
                                 <th>Part</th>
                                 <th>Quantity Required</th>
                                 <th>Expected Cost</th>
@@ -38,6 +39,15 @@
                             {% for demand in template_part_demands.items %}
                             <tr>
                                 <td>{{ demand.id }}</td>
+                                <td>
+                                    {% if demand.template_action_item %}
+                                    <a href="{{ url_for('template_action_items.detail', template_action_item_id=demand.template_action_item.id) }}">
+                                        {{ demand.template_action_item.action_name }}
+                                    </a>
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if demand.part %}
                                     {{ demand.part.part_name }}

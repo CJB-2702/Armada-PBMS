@@ -98,34 +98,39 @@ def build_models(phase):
     Build database models based on the specified phase
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6', or 'all'
     """
     logger.info(f"Building models for phase: {phase}")
     
-    if phase in ['phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'all']:
+    if phase in ['phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 1 models (Core Foundation)")
         from app.models.core.build import build_models as build_core_models
         build_core_models()
     
-    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'all']:
+    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 2 models (Asset Details)")
         from app.models.assets.build import build_models as build_asset_models
         build_asset_models()
     
-    if phase in ['phase3', 'phase4', 'phase5', 'all']:
+    if phase in ['phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 3 models (Dispatching)")
         from app.models.dispatching.build import build_dispatch_models
         build_dispatch_models()
     
-    if phase in ['phase4', 'phase5', 'all']:
+    if phase in ['phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 4 models (Supply)")
         from app.models.supply_items.build import build_models as build_supply_models
         build_supply_models()
     
-    if phase in ['phase5', 'all']:
+    if phase in ['phase5', 'phase6', 'all']:
         logger.info("Building Phase 5 models (Maintenance)")
         from app.models.maintenance.build import build_models as build_maintenance_models
         build_maintenance_models()
+    
+    if phase in ['phase6', 'all']:
+        logger.info("Building Phase 6 models (Inventory & Purchasing)")
+        from app.models.inventory.build import build_models as build_inventory_models
+        build_inventory_models()
     
     # Create all tables
     db.create_all()
@@ -136,24 +141,24 @@ def insert_data(phase):
     Insert initial data based on the specified phase
     
     Args:
-        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', or 'all'
+        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6', or 'all'
     """
     logger.info(f"Inserting data for phase: {phase}")
     
     # Load build data
     build_data = load_build_data()
     
-    if phase in ['phase1','phase2', 'phase3', 'phase4', 'phase5', 'all']:
+    if phase in ['phase1','phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 1 data (Core Foundation)")
         from app.models.core.build import init_data
         init_data(build_data)
     
-    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'all']:
+    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 2 data (Asset Details)")
         from app.models.assets.build import phase_2_init_data
         phase_2_init_data(build_data)
     
-    if phase in ['phase3', 'phase4', 'phase5', 'all']:
+    if phase in ['phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 3 data (Dispatching)")
         try:
             from app.models.core.asset import Asset
@@ -188,7 +193,7 @@ def insert_data(phase):
             logger.error(f"Phase 3 failed to insert data: {e}")
             raise
     
-    if phase in ['phase4', 'phase5', 'all']:
+    if phase in ['phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 4 data (Supply)")
         try:
             from app.models.supply_items.build import init_data as init_supply_data
@@ -197,7 +202,7 @@ def insert_data(phase):
             logger.error(f"Phase 4 failed to insert data: {e}")
             raise
     
-    if phase in ['phase5', 'all']:
+    if phase in ['phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 5 data (Maintenance)")
         try:
             from app.models.maintenance.build import init_data as init_maintenance_data
@@ -206,7 +211,14 @@ def insert_data(phase):
             logger.error(f"Phase 5 failed to insert data: {e}")
             raise
     
-    if phase in ['phase4', 'phase5', 'all']:
+    if phase in ['phase6', 'all']:
+        logger.info("Phase 6 data (Inventory & Purchasing)")
+        logger.info("No sample data configured for Phase 6 yet")
+        # Future: Add Phase 6 sample data
+        # from app.models.inventory.build import init_sample_data
+        # init_sample_data()
+    
+    if phase in ['phase4', 'phase5', 'phase6', 'all']:
         logger.info("Setting up User Interface data")
         create_default_admin_user()
 

@@ -12,6 +12,7 @@ class AssetType(UserCreatedBase):
     # Relationships
     # Note: Assets now get their asset type through make_model relationship
     # No direct relationship to assets since asset_type_id was removed from Asset
+    make_models = db.relationship('MakeModel', foreign_keys='MakeModel.asset_type_id')
     
     def __repr__(self):
         return f'<AssetType {self.name}>' 

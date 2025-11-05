@@ -10,8 +10,10 @@ from app.models.maintenance.base.action import Action
 from app.models.maintenance.base.maintenance_plan import MaintenancePlan
 from app.models.maintenance.templates.template_action_set import TemplateActionSet
 from app.models.core.asset import Asset
+from app.models.core.major_location import MajorLocation
 from app import db
 from app.logger import get_logger
+from sqlalchemy.orm import joinedload
 
 logger = get_logger("asset_management.routes.maintenance.maintenance_action_sets")
 bp = Blueprint('maintenance_action_sets', __name__)
@@ -25,19 +27,33 @@ def list():
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
-    # Basic filtering
-    asset_id = request.args.get('asset_id', type=int)
+    # Basic filtering - asset_id is now a string for partial matching
+    asset_id_filter = request.args.get('asset_id')  # String for partial match
     maintenance_plan_id = request.args.get('maintenance_plan_id', type=int)
     status = request.args.get('status')
     priority = request.args.get('priority')
     task_name = request.args.get('task_name')
+    location = request.args.get('location')
     
-    logger.debug(f"Maintenance action sets list filters - Asset: {asset_id}, Plan: {maintenance_plan_id}, Status: {status}")
+    logger.debug(f"Maintenance action sets list filters - Asset ID: {asset_id_filter}, Plan: {maintenance_plan_id}, Status: {status}, Location: {location}")
     
     query = MaintenanceActionSet.query
     
-    if asset_id:
-        query = query.filter(MaintenanceActionSet.asset_id == asset_id)
+    # Filter by asset name (starts with) through asset relationship
+    if asset_id_filter:
+        query = query.join(Asset, MaintenanceActionSet.asset_id == Asset.id).filter(
+            Asset.name.ilike(f'{asset_id_filter}%')
+        )
+    
+    # Filter by location name through asset relationship
+    if location:
+        # Only join Asset if we haven't already
+        if not asset_id_filter:
+            query = query.join(Asset, MaintenanceActionSet.asset_id == Asset.id)
+        
+        query = query.join(
+            MajorLocation, Asset.major_location_id == MajorLocation.id
+        ).filter(MajorLocation.name.ilike(f'%{location}%'))
     
     if maintenance_plan_id:
         query = query.filter(MaintenanceActionSet.maintenance_plan_id == maintenance_plan_id)
@@ -54,6 +70,11 @@ def list():
     # Order by scheduled date (most recent first)
     query = query.order_by(MaintenanceActionSet.scheduled_date.desc())
     
+    # Eager load asset and major_location relationships to avoid N+1 queries
+    query = query.options(
+        joinedload(MaintenanceActionSet.asset).joinedload(Asset.major_location)
+    )
+    
     # Pagination
     maintenance_action_sets = query.paginate(page=page, per_page=per_page, error_out=False)
     
@@ -67,11 +88,12 @@ def list():
                          maintenance_action_sets=maintenance_action_sets,
                          assets=assets,
                          maintenance_plans=maintenance_plans,
-                         filters={'asset_id': asset_id,
+                         filters={'asset_id': asset_id_filter,
                                 'maintenance_plan_id': maintenance_plan_id,
                                 'status': status,
                                 'priority': priority,
-                                'task_name': task_name
+                                'task_name': task_name,
+                                'location': location
                          })
 
 @bp.route('/maintenance-action-sets/<int:action_set_id>')

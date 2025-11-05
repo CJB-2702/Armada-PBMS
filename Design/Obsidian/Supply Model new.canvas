@@ -11,7 +11,7 @@
 		{"id":"4e64a875d93d763d","type":"text","text":"Package header","x":-695,"y":-1178,"width":250,"height":60},
 		{"id":"36aa85d5db91c270","type":"text","text":"event","x":900,"y":-1480,"width":240,"height":60},
 		{"id":"938da1f87318c939","type":"text","text":"comments","x":1040,"y":-1280,"width":200,"height":102},
-		{"id":"25e80782ad3c5a23","x":-1211,"y":-827,"width":250,"height":60,"type":"text","text":"major location"}
+		{"id":"25e80782ad3c5a23","type":"text","text":"major location","x":-1211,"y":-827,"width":250,"height":60}
 	],
 	"edges":[
 		{"id":"1dc7659a51968080","fromNode":"153227488103dd54","fromSide":"top","toNode":"6ad87fce3cc2c7de","toSide":"bottom","label":"belongs to "},

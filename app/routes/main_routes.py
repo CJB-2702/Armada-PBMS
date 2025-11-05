@@ -12,6 +12,10 @@ from app.models.core.make_model import MakeModel
 from app.models.core.major_location import MajorLocation
 from app.models.core.user import User
 from app.models.core.event import Event
+from app.models.dispatching.request import DispatchRequest
+from app.models.dispatching.outcomes.standard_dispatch import StandardDispatch
+from app.models.dispatching.outcomes.contract import Contract
+from app.models.dispatching.outcomes.reimbursement import Reimbursement
 from app import db
 
 # Import the main blueprint from the package
@@ -20,18 +24,53 @@ from . import main
 @main.route('/')
 @login_required
 def index():
-    """New landing page with functional group navigation"""
-    # Get basic statistics for overview
-    stats = {
-        'total_assets': Asset.query.count(),
-        'total_asset_types': AssetType.query.count(),
-        'total_make_models': MakeModel.query.count(),
-        'total_locations': MajorLocation.query.count(),
-        'total_users': User.query.count(),
-        'total_events': Event.query.count()
-    }
+    """Home page with navigation and basic stats"""
+    # Get basic statistics
+    total_assets = Asset.query.count()
+    total_asset_types = AssetType.query.count()
+    total_make_models = MakeModel.query.count()
+    total_locations = MajorLocation.query.count()
+    total_users = User.query.count()
+    total_events = Event.query.count()
     
-    return render_template('index.html', **stats)
+    # Get recent assets
+    recent_assets = Asset.query.order_by(Asset.created_at.desc()).limit(5).all()
+    
+    # Get recent events
+    recent_events = Event.query.order_by(Event.timestamp.desc()).limit(5).all()
+    
+    # Get assets by location
+    locations_with_assets = []
+    for location in MajorLocation.query.all():
+        asset_count = Asset.query.filter_by(major_location_id=location.id).count()
+        if asset_count > 0:
+            locations_with_assets.append({
+                'location': location,
+                'asset_count': asset_count
+            })
+    
+    # Get assets by type (through make/models)
+    asset_types_with_counts = []
+    for asset_type in AssetType.query.all():
+        make_models = MakeModel.query.filter_by(asset_type_id=asset_type.id).all()
+        asset_count = sum(Asset.query.filter_by(make_model_id=make_model.id).count() for make_model in make_models)
+        if asset_count > 0:
+            asset_types_with_counts.append({
+                'asset_type': asset_type,
+                'asset_count': asset_count
+            })
+    
+    return render_template('index.html', 
+                         total_assets=total_assets,
+                         total_asset_types=total_asset_types,
+                         total_make_models=total_make_models,
+                         total_locations=total_locations,
+                         total_users=total_users,
+                         total_events=total_events,
+                         recent_assets=recent_assets,
+                         recent_events=recent_events,
+                         locations_with_assets=locations_with_assets,
+                         asset_types_with_counts=asset_types_with_counts)
 
 @main.route('/asset-management')
 @login_required

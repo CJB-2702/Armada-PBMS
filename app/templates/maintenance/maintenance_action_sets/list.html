@@ -23,13 +23,23 @@
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ url_for('maintenance_action_sets.list') }}">
-                    <div class="row">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="asset_id" class="form-label">Asset Name</label>
+                            <input type="text" class="form-control" id="asset_id" name="asset_id" 
+                                   value="{{ filters.asset_id or '' }}" placeholder="Starts with... (e.g., Truck)">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ filters.location or '' }}" placeholder="Contains... (e.g., Garage)">
+                        </div>
                         <div class="col-md-3">
                             <label for="task_name" class="form-label">Task Name</label>
                             <input type="text" class="form-control" id="task_name" name="task_name" 
                                    value="{{ filters.task_name or '' }}" placeholder="Filter by name">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status">
                                 <option value="">All Statuses</option>
@@ -39,7 +49,9 @@
                                 <option value="Cancelled" {% if filters.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
                             <label for="priority" class="form-label">Priority</label>
                             <select class="form-select" id="priority" name="priority">
                                 <option value="">All Priorities</option>
@@ -49,9 +61,13 @@
                                 <option value="Critical" {% if filters.priority == 'Critical' %}selected{% endif %}>Critical</option>
                             </select>
                         </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
-                            <a href="{{ url_for('maintenance_action_sets.list') }}" class="btn btn-secondary">Clear</a>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-funnel"></i> Apply Filters
+                            </button>
+                            <a href="{{ url_for('maintenance_action_sets.list') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -75,10 +91,11 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Task Name</th>
+                                <th>Asset Name</th>
+                                <th>Location</th>
                                 <th>Status</th>
                                 <th>Priority</th>
                                 <th>Scheduled Date</th>
-                                <th>Asset</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -90,6 +107,24 @@
                                     <a href="{{ url_for('maintenance_action_sets.detail', action_set_id=action_set.id) }}">
                                         {{ action_set.task_name }}
                                     </a>
+                                </td>
+                                <td>
+                                    {% if action_set.asset %}
+                                        <a href="{{ url_for('core_assets.detail', asset_id=action_set.asset.id) }}">
+                                            {{ action_set.asset.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if action_set.asset and action_set.asset.major_location %}
+                                        <a href="{{ url_for('locations.detail', location_id=action_set.asset.major_location.id) }}">
+                                            {{ action_set.asset.major_location.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <span class="badge 
@@ -110,7 +145,6 @@
                                     </span>
                                 </td>
                                 <td>{{ action_set.scheduled_date.strftime('%Y-%m-%d %H:%M') if action_set.scheduled_date else 'N/A' }}</td>
-                                <td>{{ action_set.asset.name if action_set.asset else 'N/A' }}</td>
                                 <td>
                                     <a href="{{ url_for('maintenance_action_sets.detail', action_set_id=action_set.id) }}" 
                                        class="btn btn-sm btn-info">View</a>

@@ -31,6 +31,7 @@ class MaintenanceActionSet(EventDetailVirtual, VirtualActionSet):
     delay_notes = db.Column(db.Text, nullable=True)
     
     # Improved relationships with proper loading strategies
+    asset = relationship('Asset', foreign_keys=[asset_id], lazy='select')
     maintenance_plan = relationship('MaintenancePlan', back_populates='maintenance_action_sets')
     completed_by = relationship('User', foreign_keys=[completed_by_id], backref='completed_maintenance_events')
     template_action_set = relationship('TemplateActionSet', foreign_keys=[template_action_set_id], lazy='select')

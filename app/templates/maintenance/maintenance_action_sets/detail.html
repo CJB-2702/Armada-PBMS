@@ -71,7 +71,16 @@
                     <dt class="col-sm-3">Asset:</dt>
                     <dd class="col-sm-9">
                         {% if asset %}
-                        <a href="{{ url_for('assets.detail', asset_id=asset.id) }}">{{ asset.name }}</a>
+                        <a href="{{ url_for('core_assets.detail', asset_id=asset.id) }}">{{ asset.name }}</a>
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-3">Location:</dt>
+                    <dd class="col-sm-9">
+                        {% if asset and asset.major_location %}
+                        <a href="{{ url_for('locations.detail', location_id=asset.major_location.id) }}">{{ asset.major_location.name }}</a>
                         {% else %}
                         N/A
                         {% endif %}

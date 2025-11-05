@@ -40,9 +40,26 @@
               "icon": "lucide-layout-dashboard",
               "title": "Supply Model new"
             }
+          },
+          {
+            "id": "07515c6055c28f41",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "phase3_Dispatching/Dispatch Model.canvas",
+                "viewState": {
+                  "x": -157.5,
+                  "y": -126,
+                  "zoom": 0
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Dispatch Model"
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -190,17 +207,27 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "4d31699930b225b4",
+  "active": "07515c6055c28f41",
   "lastOpenFiles": [
+    "phase3_Dispatching/datamodel.md",
+    "phase3_Dispatching/design.md",
+    "phase3_Dispatching/Dispatch Model.canvas",
+    "Obsidian/Dispatch Model.canvas",
+    "Obsidian/Asset Management Data model.canvas",
+    "Obsidian/Maintenance_Model_Current.canvas",
+    "Obsidian/Supply Model new.canvas",
+    "Obsidian/Maintenance Model.canvas",
+    "phase3_Dispatching/Dispatching.md",
+    "phase3_Dispatching/SystemDesign.md",
+    "phase3_Dispatching/DataModel.md",
+    "SystemDesign.md",
+    "DataModel.md",
+    "Obsidian/Supply Model old.canvas",
     "Phase6_inventory and purchasing/README.md",
     "Phase6_inventory and purchasing/QuickReference.md",
     "Phase6_inventory and purchasing/ImplementationPlan.md",
     "Phase6_inventory and purchasing/SystemDiagram.md",
     "Phase6_inventory and purchasing/DataModel.md",
-    "Obsidian/Supply Model old.canvas",
-    "Obsidian/Supply Model new.canvas",
-    "Obsidian/Maintenance_Model_Current.canvas",
-    "Obsidian/Dispatch Model.canvas",
     "Phase7_Planning/ApplicationPlan.md",
     "Phase7_Planning",
     "Phase6_inventory and purchasing/ApplicationPlan.md",
@@ -216,22 +243,14 @@
     "Phase5_S/ApplicationDesign copy.md",
     "Phase5_S",
     "phase4_basic_supply",
-    "Obsidian/Maintenance Model.canvas",
     "Phase4_Maintenance/DataModelComparison.md",
     "Phase4_Maintenance/dataModel.md",
     "phase1_Core/ApplicationDesign.md",
-    "Obsidian/Asset Management Data model.canvas",
     "Phase4_Maintnence/dataModel.md",
     "Phase4_Maintnence",
     "Obsidian/Maintance Model.canvas",
     "Phase4_Maintenance",
     "Obsidian/Maintnence Planning Model.canvas",
-    "Phase4_Maintnence/datamodel.md",
-    "DataModelDesign.md",
-    "Dispatch model.md",
-    "Obsidian/CoreDataModel.canvas",
-    "phase3_Dispatching/ModelDocument.md",
-    "phase3_Dispatching/DispatchERD.md",
-    "phase3_Dispatching/ApplicationPlan.md"
+    "Obsidian/CoreDataModel.canvas"
   ]
 }

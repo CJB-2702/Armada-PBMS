@@ -38,10 +38,9 @@ def init_app(app):
     app.register_blueprint(comments.bp, url_prefix='')
     app.register_blueprint(attachments.bp, url_prefix='')
     
-    # Register dispatching blueprint
-    from .dispatching import dispatches
-    
-    app.register_blueprint(dispatches.dispatching_bp, url_prefix='/dispatching')
+    # Register dispatching blueprint (new minimal rebuild)
+    from .dispatching import dispatching_bp
+    app.register_blueprint(dispatching_bp, url_prefix='/dispatching')
     
     # Register maintenance blueprints
     from .maintenance.main import maintenance_bp

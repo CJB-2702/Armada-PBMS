@@ -1,0 +1,17 @@
+{
+	"nodes":[
+		{"id":"338ec7a3d0345181","type":"text","text":"Dispatch check in / out","x":-575,"y":-60,"width":250,"height":120},
+		{"id":"adbe9b1afbae9ff1","type":"text","text":"Event","x":-575,"y":-312,"width":250,"height":60},
+		{"id":"a16d11261374e34a","type":"text","text":"Dispatch Request","x":-575,"y":-200,"width":250,"height":68},
+		{"id":"83647487b2f1703f","type":"text","text":"comments","x":-234,"y":-312,"width":250,"height":60},
+		{"id":"cbbf5b9b56923ece","type":"text","text":"Contracted Dispatch","x":-260,"y":-60,"width":220,"height":120},
+		{"id":"bef00d24f22a2e2c","type":"text","text":"Dispatch Reimbursment","x":16,"y":-60,"width":244,"height":120}
+	],
+	"edges":[
+		{"id":"1331151615446cfc","fromNode":"338ec7a3d0345181","fromSide":"top","toNode":"a16d11261374e34a","toSide":"bottom"},
+		{"id":"eb15520609a8bc3a","fromNode":"cbbf5b9b56923ece","fromSide":"top","toNode":"a16d11261374e34a","toSide":"right"},
+		{"id":"62f0b23b3ba8f4f3","fromNode":"bef00d24f22a2e2c","fromSide":"top","toNode":"a16d11261374e34a","toSide":"right"},
+		{"id":"b24966b030e16e20","fromNode":"a16d11261374e34a","fromSide":"top","toNode":"adbe9b1afbae9ff1","toSide":"bottom"},
+		{"id":"7345ba2243b74416","fromNode":"83647487b2f1703f","fromSide":"left","toNode":"adbe9b1afbae9ff1","toSide":"right"}
+	]
+}

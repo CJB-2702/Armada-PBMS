@@ -35,7 +35,7 @@ def create_app():
     logger.debug("Extensions initialized")
     
     # Import and register blueprints
-    from app.models import core, assets, dispatching, supply_items
+    from app.models import core, assets, supply_items
     
     # Import models to ensure they're registered with SQLAlchemy
     from app.models.core.user import User
@@ -46,15 +46,15 @@ def create_app():
     from app.models.core.asset import Asset
     from app.models.core.event import Event
     
-    # Import dispatching models to ensure they're registered
-    from app.models.dispatching.dispatch import Dispatch
-    from app.models.dispatching.dispatch_status_history import DispatchStatusHistory
-    from app.models.dispatching.all_dispatch_details import AllDispatchDetail
-    from app.models.dispatching.dispatch_detail_virtual import DispatchDetailVirtual
-    from app.models.dispatching.detail_table_sets.asset_type_dispatch_detail_table_set import AssetTypeDispatchDetailTableSet
-    from app.models.dispatching.detail_table_sets.model_additional_dispatch_detail_table_set import ModelAdditionalDispatchDetailTableSet
-    from app.models.dispatching.dispatch_details.vehicle_dispatch import VehicleDispatch
-    from app.models.dispatching.dispatch_details.truck_dispatch_checklist import TruckDispatchChecklist
+    # Import new dispatching models (rebuilt minimal set)
+    try:
+        from app.models.dispatching.request import DispatchRequest
+        from app.models.dispatching.outcomes.standard_dispatch import StandardDispatch
+        from app.models.dispatching.outcomes.contract import Contract
+        from app.models.dispatching.outcomes.reimbursement import Reimbursement
+    except Exception:
+        # Dispatching module may be unavailable during certain phases; skip registration
+        pass
     
     # Import supply models to ensure they're registered
     from app.models.supply_items.part import Part

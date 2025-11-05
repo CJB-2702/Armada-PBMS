@@ -1,5 +1,9 @@
-#!/usr/bin/env python3
-"""
-Dispatching Routes Package
-Contains all routes related to dispatch operations and work order management
-"""
+from flask import Blueprint
+
+dispatching_bp = Blueprint('dispatching', __name__)
+
+from . import views, api  # noqa: E402,F401
+
+
+
+

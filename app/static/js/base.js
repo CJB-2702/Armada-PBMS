@@ -76,6 +76,64 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Instant modal functionality for Maintenance Modal
+    var maintenanceModal = document.getElementById('maintenanceModal');
+    if (maintenanceModal) {
+        // Remove fade class to disable transitions
+        maintenanceModal.classList.remove('fade');
+        
+        // Override Bootstrap modal show/hide to be instant
+        maintenanceModal.addEventListener('show.bs.modal', function() {
+            this.style.display = 'block';
+            this.classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // Create backdrop instantly
+            var backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop show';
+            backdrop.id = 'maintenanceModalBackdrop';
+            document.body.appendChild(backdrop);
+        });
+        
+        maintenanceModal.addEventListener('hide.bs.modal', function() {
+            this.style.display = 'none';
+            this.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            
+            // Remove backdrop instantly
+            var backdrop = document.getElementById('maintenanceModalBackdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        });
+    }
+
+    // Handle maintenance search form
+    const maintenanceSearchForm = document.getElementById('maintenanceSearchForm');
+    if (maintenanceSearchForm) {
+        maintenanceSearchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const assetId = document.getElementById('searchAssetId').value.trim();
+            const location = document.getElementById('searchLocation').value.trim();
+            
+            // Build the URL with query parameters
+            const params = new URLSearchParams();
+            
+            if (assetId) {
+                params.append('asset_id', assetId);
+            }
+            
+            if (location) {
+                params.append('location', location);
+            }
+            
+            // Redirect to maintenance action sets list with filters
+            const url = `/maintenance/maintenance-action-sets${params.toString() ? '?' + params.toString() : ''}`;
+            window.location.href = url;
+        });
+    }
 });
 
 // Utility functions

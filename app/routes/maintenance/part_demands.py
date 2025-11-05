@@ -5,8 +5,10 @@ CRUD operations for PartDemand model
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
+from sqlalchemy.orm import joinedload
 from app.models.maintenance.base.part_demand import PartDemand
 from app.models.maintenance.base.action import Action
+from app.models.maintenance.base.maintenance_action_set import MaintenanceActionSet
 from app.models.maintenance.templates.template_part_demand import TemplatePartDemand
 from app.models.supply_items.part import Part
 from app import db
@@ -18,23 +20,32 @@ bp = Blueprint('part_demands', __name__)
 @bp.route('/part-demands')
 @login_required
 def list():
-    """List all part demands with basic filtering"""
+    """List all part demands with comprehensive filtering via request parameters"""
     logger.debug(f"User {current_user.username} accessing part demands list")
     
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
-    # Basic filtering
+    # Comprehensive filtering via request parameters
     action_id = request.args.get('action_id', type=int)
+    action_set_id = request.args.get('action_set_id', type=int)
     part_id = request.args.get('part_id', type=int)
     status = request.args.get('status')
     
-    logger.debug(f"Part demands list filters - Action: {action_id}, Part: {part_id}, Status: {status}")
+    logger.debug(f"Part demands list filters - Action: {action_id}, ActionSet: {action_set_id}, Part: {part_id}, Status: {status}")
     
-    query = PartDemand.query
+    # Build query with eager loading for better performance
+    query = PartDemand.query.options(
+        joinedload(PartDemand.action).joinedload(Action.maintenance_action_set),
+        joinedload(PartDemand.part)
+    )
     
+    # Apply filters
     if action_id:
         query = query.filter(PartDemand.action_id == action_id)
+    
+    if action_set_id:
+        query = query.join(Action).filter(Action.maintenance_action_set_id == action_set_id)
     
     if part_id:
         query = query.filter(PartDemand.part_id == part_id)
@@ -49,16 +60,24 @@ def list():
     part_demands = query.paginate(page=page, per_page=per_page, error_out=False)
     
     # Get filter options
-    actions = Action.query.all()
-    parts = Part.query.all()
+    actions = Action.query.order_by(Action.action_name).all()
+    action_sets = MaintenanceActionSet.query.order_by(MaintenanceActionSet.task_name).all()
+    parts = Part.query.order_by(Part.part_name).all()
+    
+    # Get all possible statuses from the database
+    statuses = db.session.query(PartDemand.status).distinct().all()
+    statuses = [s[0] for s in statuses if s[0]]
     
     logger.info(f"Part demands list returned {part_demands.total} items (page {page})")
     
     return render_template('maintenance/part_demands/list.html', 
                          part_demands=part_demands,
                          actions=actions,
+                         action_sets=action_sets,
                          parts=parts,
+                         statuses=statuses,
                          filters={'action_id': action_id,
+                                'action_set_id': action_set_id,
                                 'part_id': part_id,
                                 'status': status
                          })

@@ -162,6 +162,18 @@
 
     <!-- Sidebar -->
     <div class="col-md-4">
+        {% if action_set.event_id %}
+        <div class="card mb-4" id="event-widget-container-detail"
+             hx-get="{{ url_for('comments.event_widget', event_id=action_set.event_id) }}"
+             hx-trigger="load"
+             hx-target="#event-widget-container-detail"
+             hx-swap="outerHTML">
+            <div class="card-body text-center text-muted">
+                Loading event activity...
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Quick Actions -->
         <div class="card mb-4">
             <div class="card-header">

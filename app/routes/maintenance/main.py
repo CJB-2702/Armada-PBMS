@@ -262,16 +262,21 @@ def complete_action(action_set_id, action_id):
 def start_action(action_set_id, action_id):
     """Start an action"""
     action = Action.query.get_or_404(action_id)
-    
+
     if action.maintenance_action_set_id != action_set_id:
         flash('Invalid action for this maintenance event', 'error')
         return redirect(url_for('maintenance.do_maintenance', action_set_id=action_set_id))
-    
+
+    # If this is the first action being started, ensure the maintenance event itself is started
+    maintenance_action_set = action.maintenance_action_set
+    if maintenance_action_set and maintenance_action_set.is_planned:
+        maintenance_action_set.start_maintenance(current_user.id)
+
     action.start_action(current_user.id)
     db.session.commit()
-    
+
     flash(f'Action "{action.action_name}" started', 'success')
-    
+
     return redirect(url_for('maintenance.do_maintenance', action_set_id=action_set_id))
 
 # Register sub-blueprints

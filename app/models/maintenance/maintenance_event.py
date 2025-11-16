@@ -35,6 +35,7 @@ class MaintenanceEvent:
         self._event = None
         self._actions = None
         self._part_demands = None
+        self._non_template_actions = None
         self.build()
 
 
@@ -85,6 +86,27 @@ class MaintenanceEvent:
                 )
                 self._part_demands.extend(demands)
         return self._part_demands
+
+    # Template linkage diagnostics
+    @property
+    def non_template_actions(self) -> List[Action]:
+        """
+        Return all actions that are not linked to a TemplateActionItem.
+        These represent 'nonstandard' actions that may not follow defined templates.
+        """
+        if self._non_template_actions is None:
+            self._non_template_actions = [
+                a for a in self.actions if getattr(a, "template_action_item_id", None) is None
+            ]
+        return self._non_template_actions
+
+    @property
+    def has_non_template_actions(self) -> bool:
+        """
+        Flag indicating whether any actions in this maintenance event
+        are missing references to template actions.
+        """
+        return len(self.non_template_actions) > 0
     
     # Convenience properties from action_set
     @property
@@ -166,6 +188,7 @@ class MaintenanceEvent:
         self._event = None
         self._actions = None
         self._part_demands = None
+        self._non_template_actions = None
     
     def refresh(self):
         """Refresh all data from database"""

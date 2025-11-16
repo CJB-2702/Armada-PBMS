@@ -104,6 +104,22 @@
                 <h5 class="mb-0">Actions ({{ actions|length }})</h5>
             </div>
             <div class="card-body">
+                {% if maintenance_event and maintenance_event.has_non_template_actions %}
+                <div class="alert alert-warning mb-3">
+                    <strong>Warning:</strong> This maintenance action set contains actions that are
+                    <strong>not linked to any template action</strong>. These nonstandard actions may not
+                    follow defined work instructions or reporting rules.
+                    <br>
+                    <small>
+                        Affected actions:
+                        {% for a in maintenance_event.non_template_actions %}
+                            <span class="badge bg-light text-dark">
+                                #{{ a.sequence_order }} &mdash; {{ a.action_name or 'Unnamed Action' }}
+                            </span>
+                        {% endfor %}
+                    </small>
+                </div>
+                {% endif %}
                 {% if actions %}
                 <div class="table-responsive">
                     <table class="table table-sm">

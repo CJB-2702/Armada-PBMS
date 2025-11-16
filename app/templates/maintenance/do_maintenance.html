@@ -111,6 +111,53 @@
                 </div>
             </div>
 
+            <!-- Comments Section (moved under Progress Overview) -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-left-text"></i>
+                        Comments ({{ comments|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <details open>
+                        <summary class="mb-3" style="cursor: pointer;">
+                            <strong>Show / Hide Comments</strong>
+                        </summary>
+
+                        <!-- Add Comment Form -->
+                        <form method="POST" action="{{ url_for('maintenance.add_comment', action_set_id=action_set.id) }}" class="mb-3">
+                            <div class="mb-2">
+                                <textarea class="form-control" name="comment_content" rows="3" 
+                                          placeholder="Add a comment..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-plus-circle"></i> Add Comment
+                            </button>
+                        </form>
+
+                        <hr>
+
+                        <!-- Comments List -->
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            {% if comments %}
+                                {% for comment in comments %}
+                                <div class="comment-box">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <strong>{{ comment.created_by.username if comment.created_by else 'Unknown' }}</strong>
+                                        <small class="text-muted">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ comment.content }}</p>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center mb-0">No comments yet</p>
+                            {% endif %}
+                        </div>
+                    </details>
+                </div>
+            </div>
+
             <!-- Actions List -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -390,47 +437,6 @@
                 </div>
             </div>
             {% endif %}
-
-            <!-- Comments Section -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-chat-left-text"></i>
-                        Comments ({{ comments|length }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <!-- Add Comment Form -->
-                    <form method="POST" action="{{ url_for('maintenance.add_comment', action_set_id=action_set.id) }}" class="mb-3">
-                        <div class="mb-2">
-                            <textarea class="form-control" name="comment_content" rows="3" 
-                                      placeholder="Add a comment..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-sm w-100">
-                            <i class="bi bi-plus-circle"></i> Add Comment
-                        </button>
-                    </form>
-
-                    <hr>
-
-                    <!-- Comments List -->
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        {% if comments %}
-                            {% for comment in comments %}
-                            <div class="comment-box">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <strong>{{ comment.created_by.username if comment.created_by else 'Unknown' }}</strong>
-                                    <small class="text-muted">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
-                                </div>
-                                <p class="mb-0">{{ comment.content }}</p>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted text-center mb-0">No comments yet</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
 
             <!-- Quick Links -->
             <div class="card">

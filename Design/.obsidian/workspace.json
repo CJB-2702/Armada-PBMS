@@ -1,79 +1,39 @@
 {
   "main": {
-    "id": "4cb9d177549d124c",
+    "id": "07478e1a1f823dec",
     "type": "split",
     "children": [
       {
-        "id": "66365fe2c797130f",
+        "id": "aedfba54e32c7c40",
         "type": "tabs",
         "children": [
           {
-            "id": "00dd6c7040ddd811",
+            "id": "f2486673d2aa2507",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "release-notes",
               "state": {
-                "file": "Obsidian/Supply Model new.canvas",
-                "viewState": {
-                  "x": 80,
-                  "y": -1063.1237735849056,
-                  "zoom": -1.0267443922960404
-                }
+                "currentVersion": "1.10.3"
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "Supply Model new"
-            }
-          },
-          {
-            "id": "4d31699930b225b4",
-            "type": "leaf",
-            "state": {
-              "type": "canvas",
-              "state": {
-                "file": "Obsidian/Supply Model new.canvas",
-                "viewState": {
-                  "x": 272.5,
-                  "y": -1247,
-                  "zoom": -1.0960835963699542
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "Supply Model new"
-            }
-          },
-          {
-            "id": "07515c6055c28f41",
-            "type": "leaf",
-            "state": {
-              "type": "canvas",
-              "state": {
-                "file": "phase3_Dispatching/Dispatch Model.canvas",
-                "viewState": {
-                  "x": -157.5,
-                  "y": -126,
-                  "zoom": 0
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "Dispatch Model"
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.10.3"
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
   },
   "left": {
-    "id": "ee676bf594f87b22",
+    "id": "fbdfd75402a61ea0",
     "type": "split",
     "children": [
       {
-        "id": "3982313005b856b1",
+        "id": "5c759807c72267bd",
         "type": "tabs",
         "children": [
           {
-            "id": "de53b74506f65d16",
+            "id": "e14c3c379f256ed0",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -86,7 +46,7 @@
             }
           },
           {
-            "id": "1a4b944b2ad471e1",
+            "id": "6472e3976113e689",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -103,7 +63,7 @@
             }
           },
           {
-            "id": "86c8b48d7d0b79c9",
+            "id": "2734eb14d240de50",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -116,23 +76,22 @@
       }
     ],
     "direction": "horizontal",
-    "width": 372.5
+    "width": 300
   },
   "right": {
-    "id": "e82d8063302467cb",
+    "id": "b517f073d7c45241",
     "type": "split",
     "children": [
       {
-        "id": "a4236c375531467b",
+        "id": "5b2242960d1de6c4",
         "type": "tabs",
         "children": [
           {
-            "id": "4d0c134096e9c73f",
+            "id": "fbe5a0a6308a7812",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "phase3_Dispatching/DispatchERD.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -142,25 +101,24 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for DispatchERD"
+              "title": "Backlinks"
             }
           },
           {
-            "id": "0c591fffc30d7ed3",
+            "id": "6f6b8bdd4e37ba3c",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "phase3_Dispatching/DispatchERD.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from DispatchERD"
+              "title": "Outgoing links"
             }
           },
           {
-            "id": "82e317054212ed09",
+            "id": "ebaf2f6ca5405329",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -175,18 +133,31 @@
             }
           },
           {
-            "id": "abdea4143eec87e2",
+            "id": "f50d1a7a098bf54d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "8b56ec942bb36b52",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "phase3_Dispatching/DispatchERD.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of DispatchERD"
+              "title": "Outline"
             }
           }
         ]
@@ -198,59 +169,15 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "bases:Create new base": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
     }
   },
-  "active": "de53b74506f65d16",
-  "lastOpenFiles": [
-    "phase3_Dispatching/datamodel.md",
-    "phase3_Dispatching/design.md",
-    "phase3_Dispatching/Dispatch Model.canvas",
-    "Obsidian/Dispatch Model.canvas",
-    "Obsidian/Asset Management Data model.canvas",
-    "Obsidian/Maintenance_Model_Current.canvas",
-    "Obsidian/Supply Model new.canvas",
-    "Obsidian/Maintenance Model.canvas",
-    "phase3_Dispatching/Dispatching.md",
-    "phase3_Dispatching/SystemDesign.md",
-    "phase3_Dispatching/DataModel.md",
-    "SystemDesign.md",
-    "DataModel.md",
-    "Obsidian/Supply Model old.canvas",
-    "Phase6_inventory and purchasing/README.md",
-    "Phase6_inventory and purchasing/QuickReference.md",
-    "Phase6_inventory and purchasing/ImplementationPlan.md",
-    "Phase6_inventory and purchasing/SystemDiagram.md",
-    "Phase6_inventory and purchasing/DataModel.md",
-    "Phase7_Planning/ApplicationPlan.md",
-    "Phase7_Planning",
-    "Phase6_inventory and purchasing/ApplicationPlan.md",
-    "Phase6_inventory and purchasing/ApplicationDesign copy.md",
-    "Phase6_inventory and purchasing",
-    "Phase5_Maintenance/dataModel.md",
-    "Phase5_Maintenance/DataModelComparison.md",
-    "Phase5_Maintenance",
-    "Phase5_inventory and purchasing/ApplicationPlan.md",
-    "Phase5_inventory and purchasing/ApplicationDesign copy.md",
-    "Phase5_inventory and purchasing",
-    "Phase5_S/ApplicationPlan.md",
-    "Phase5_S/ApplicationDesign copy.md",
-    "Phase5_S",
-    "phase4_basic_supply",
-    "Phase4_Maintenance/DataModelComparison.md",
-    "Phase4_Maintenance/dataModel.md",
-    "phase1_Core/ApplicationDesign.md",
-    "Phase4_Maintnence/dataModel.md",
-    "Phase4_Maintnence",
-    "Obsidian/Maintance Model.canvas",
-    "Phase4_Maintenance",
-    "Obsidian/Maintnence Planning Model.canvas",
-    "Obsidian/CoreDataModel.canvas"
-  ]
+  "active": "f2486673d2aa2507",
+  "lastOpenFiles": []
 }

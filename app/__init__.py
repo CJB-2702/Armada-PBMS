@@ -11,7 +11,19 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 def create_app():
-    app = Flask(__name__)
+    import os
+    from pathlib import Path
+    
+    # Get the base directory (app's parent)
+    base_dir = Path(__file__).parent.parent
+    
+    # Set template and static folders to new presentation folder structure
+    template_folder = str(base_dir / 'app' / 'presentation' / 'templates')
+    static_folder = str(base_dir / 'app' / 'presentation' / 'static')
+    
+    app = Flask(__name__, 
+                template_folder=template_folder,
+                static_folder=static_folder)
     
     # Get singleton logger
     logger = get_logger("asset_management")
@@ -35,48 +47,48 @@ def create_app():
     logger.debug("Extensions initialized")
     
     # Import and register blueprints
-    from app.models import core, assets, supply_items
+    from app.data import core, assets, supply_items
     
     # Import models to ensure they're registered with SQLAlchemy
-    from app.models.core.user import User
-    from app.models.core.user_created_base import UserCreatedBase
-    from app.models.core.major_location import MajorLocation
-    from app.models.core.asset_type import AssetType
-    from app.models.core.make_model import MakeModel
-    from app.models.core.asset import Asset
-    from app.models.core.event import Event
+    from app.data.core.user_info.user import User
+    from app.data.core.user_created_base import UserCreatedBase
+    from app.data.core.major_location import MajorLocation
+    from app.data.core.asset_info.asset_type import AssetType
+    from app.data.core.asset_info.make_model import MakeModel
+    from app.data.core.asset_info.asset import Asset
+    from app.data.core.event_info.event import Event
     
     # Import new dispatching models (rebuilt minimal set)
     try:
-        from app.models.dispatching.request import DispatchRequest
-        from app.models.dispatching.outcomes.standard_dispatch import StandardDispatch
-        from app.models.dispatching.outcomes.contract import Contract
-        from app.models.dispatching.outcomes.reimbursement import Reimbursement
+        from app.data.dispatching.request import DispatchRequest
+        from app.data.dispatching.outcomes.standard_dispatch import StandardDispatch
+        from app.data.dispatching.outcomes.contract import Contract
+        from app.data.dispatching.outcomes.reimbursement import Reimbursement
     except Exception:
         # Dispatching module may be unavailable during certain phases; skip registration
         pass
     
     # Import supply models to ensure they're registered
-    from app.models.supply_items.part import Part
-    from app.models.supply_items.tool import Tool
-    from app.models.supply_items.issuable_tool import IssuableTool
+    from app.data.supply_items.part import Part
+    from app.data.supply_items.tool import Tool
+    from app.data.supply_items.issuable_tool import IssuableTool
     
     # Import maintenance models to ensure they're registered
-    from app.models.maintenance.templates.template_action_set import TemplateActionSet
-    from app.models.maintenance.templates.template_action_item import TemplateActionItem
-    from app.models.maintenance.base.maintenance_plan import MaintenancePlan
-    from app.models.maintenance.base.maintenance_action_set import MaintenanceActionSet
-    from app.models.maintenance.maintenance_event import MaintenanceEvent
-    from app.models.maintenance.template_maintenance_event import TemplateMaintenanceEvent
-    from app.models.maintenance.base.action import Action
-    from app.models.maintenance.base.part_demand import PartDemand
+    from app.data.maintenance.templates.template_action_set import TemplateActionSet
+    from app.data.maintenance.templates.template_action_item import TemplateActionItem
+    from app.data.maintenance.base.maintenance_plan import MaintenancePlan
+    from app.data.maintenance.base.maintenance_action_set import MaintenanceActionSet
+    from app.buisness.maintenance.maintenance_event import MaintenanceEvent
+    from app.buisness.maintenance.template_maintenance_event import TemplateMaintenanceEvent
+    from app.data.maintenance.base.action import Action
+    from app.data.maintenance.base.part_demand import PartDemand
     
     logger.debug("Models imported and registered")
     
     # Register blueprints
     from app.auth import auth
-    from app.routes import main
-    from app.routes import init_app as init_routes
+    from app.presentation.routes import main
+    from app.presentation.routes import init_app as init_routes
     
     app.register_blueprint(auth)
     app.register_blueprint(main)

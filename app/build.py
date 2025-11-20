@@ -18,8 +18,8 @@ def check_system_initialization():
     Returns:
         bool: True if system is properly initialized, False otherwise
     """
-    from app.models.core.event import Event
-    from app.models.core.user import User
+    from app.data.core.event_info.event import Event
+    from app.data.core.user_info.user import User
     
     try:
         # Check if system initialization event exists
@@ -32,7 +32,7 @@ def check_system_initialization():
         system_user = User.query.filter_by(username='system').first()
         
         # Check if essential data exists
-        from app.models.core.asset_type import AssetType
+        from app.data.core.asset_info.asset_type import AssetType
         asset_types = AssetType.query.first()
         
         return system_event is not None and system_user is not None and asset_types is not None
@@ -69,8 +69,8 @@ def build_database(build_phase='all', data_phase='all'):
                 # If this is the first time or system failed to init properly, force create system event
                 if not system_initialized:
                     logger.info("System not properly initialized, forcing system initialization event creation")
-                    from app.models.core.build import create_system_initialization_event
-                    from app.models.core.user import User
+                    from app.data.core.build import create_system_initialization_event
+                    from app.data.core.user_info.user import User
                     
                     system_user = User.query.filter_by(username='system').first()
                     system_user_id = system_user.id if system_user else None
@@ -82,8 +82,8 @@ def build_database(build_phase='all', data_phase='all'):
                 logger.info("System initialization failed, creating system failure event")
                 
                 # Force create system failure event to indicate system failure
-                from app.models.core.build import create_system_failure_event
-                from app.models.core.user import User
+                from app.data.core.build import create_system_failure_event
+                from app.data.core.user_info.user import User
                 
                 system_user = User.query.filter_by(username='system').first()
                 system_user_id = system_user.id if system_user else None
@@ -104,32 +104,32 @@ def build_models(phase):
     
     if phase in ['phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 1 models (Core Foundation)")
-        from app.models.core.build import build_models as build_core_models
+        from app.data.core.build import build_models as build_core_models
         build_core_models()
     
     if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 2 models (Asset Details)")
-        from app.models.assets.build import build_models as build_asset_models
+        from app.data.assets.build import build_models as build_asset_models
         build_asset_models()
     
     if phase in ['phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 3 models (Dispatching)")
-        from app.models.dispatching.build import build_dispatch_models
+        from app.data.dispatching.build import build_dispatch_models
         build_dispatch_models()
     
     if phase in ['phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 4 models (Supply)")
-        from app.models.supply_items.build import build_models as build_supply_models
+        from app.data.supply_items.build import build_models as build_supply_models
         build_supply_models()
     
     if phase in ['phase5', 'phase6', 'all']:
         logger.info("Building Phase 5 models (Maintenance)")
-        from app.models.maintenance.build import build_models as build_maintenance_models
+        from app.data.maintenance.build import build_models as build_maintenance_models
         build_maintenance_models()
     
     if phase in ['phase6', 'all']:
         logger.info("Building Phase 6 models (Inventory & Purchasing)")
-        from app.models.inventory.build import build_models as build_inventory_models
+        from app.data.inventory.build import build_models as build_inventory_models
         build_inventory_models()
     
     # Create all tables
@@ -150,20 +150,20 @@ def insert_data(phase):
     
     if phase in ['phase1','phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 1 data (Core Foundation)")
-        from app.models.core.build import init_data
+        from app.data.core.build import init_data
         init_data(build_data)
     
     if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 2 data (Asset Details)")
-        from app.models.assets.build import phase_2_init_data
+        from app.data.assets.build import phase_2_init_data
         phase_2_init_data(build_data)
     
     if phase in ['phase3', 'phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 3 data (Dispatching)")
         try:
-            from app.models.core.asset import Asset
-            from app.models.core.build import init_essential_data
-            from app.models.assets.build import phase3_insert_data, phase3_update_data
+            from app.data.core.asset_info.asset import Asset
+            from app.data.core.build import init_essential_data
+            from app.data.assets.build import phase3_insert_data, phase3_update_data
             
             # Automatic detail insertion is now enabled by default in assets build
             init_essential_data(build_data)
@@ -173,7 +173,7 @@ def insert_data(phase):
             # Create dispatching users (after core users are created)
             if 'Dispatching' in build_data and 'Users' in build_data['Dispatching']:
                 logger.info("Creating dispatching users...")
-                from app.models.core.user import User
+                from app.data.core.user_info.user import User
                 system_user = User.query.filter_by(username='system').first()
                 system_user_id = system_user.id if system_user else None
                 
@@ -186,7 +186,7 @@ def insert_data(phase):
                     logger.info(f"Created dispatching user: {user_data.get('username')}")
             
             # Setup dispatching configurations
-            from app.models.dispatching.build import create_sample_dispatch_configurations, create_example_dispatch_records
+            from app.data.dispatching.build import create_sample_dispatch_configurations, create_example_dispatch_records
             create_sample_dispatch_configurations()
             create_example_dispatch_records()
         except ImportError as e:
@@ -196,7 +196,7 @@ def insert_data(phase):
     if phase in ['phase4', 'phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 4 data (Supply)")
         try:
-            from app.models.supply_items.build import init_data as init_supply_data
+            from app.data.supply_items.build import init_data as init_supply_data
             init_supply_data(build_data)
         except ImportError as e:
             logger.error(f"Phase 4 failed to insert data: {e}")
@@ -205,7 +205,7 @@ def insert_data(phase):
     if phase in ['phase5', 'phase6', 'all']:
         logger.info("Inserting Phase 5 data (Maintenance)")
         try:
-            from app.models.maintenance.build import init_data as init_maintenance_data
+            from app.data.maintenance.build import init_data as init_maintenance_data
             init_maintenance_data(build_data)
         except ImportError as e:
             logger.error(f"Phase 5 failed to insert data: {e}")
@@ -251,7 +251,7 @@ def create_default_admin_user():
     """
     Create a default admin user for Phase 4 authentication
     """
-    from app.models.core.user import User
+    from app.data.core.user_info.user import User
     
     # Check if admin user already exists
     admin_user = User.query.filter_by(username='admin').first()

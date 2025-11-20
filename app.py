@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#USE VENV: source venv/bin/activate
 """
 Run script for the Asset Management System
 """

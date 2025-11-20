@@ -6,12 +6,12 @@ Dashboard and main navigation routes
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from app.logger import get_logger
 from flask_login import login_required, current_user
-from app.models.core.asset import Asset
-from app.models.core.asset_type import AssetType
-from app.models.core.make_model import MakeModel
-from app.models.core.major_location import MajorLocation
-from app.models.core.user import User
-from app.models.core.event import Event
+from app.data.core.asset_info.asset import Asset
+from app.data.core.asset_info.asset_type import AssetType
+from app.data.core.asset_info.make_model import MakeModel
+from app.data.core.major_location import MajorLocation
+from app.data.core.user_info.user import User
+from app.data.core.event_info.event import Event
 from app import db
 
 main = Blueprint('main', __name__)

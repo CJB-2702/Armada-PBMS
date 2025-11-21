@@ -1,4 +1,5 @@
-- **Assigned user and assigned by columns need to be added to datamodel for both actions and action sets**
+Notes to change this doc from dev
+**Assigned user and assigned by columns need to be added to datamodel for both actions and action sets**
 maintnence delays need to be incorperated into this design document
 datamodel Part demand and maintnence delays need priority statuses
 datamodel part demand needs five new columns requested_by "maintnence approval by" and "maintnence approval date"  and "supply approval by" and "supply approval date"
@@ -8,7 +9,7 @@ template maintnence events have a set of template action set rows which link the
  a template maintnence set is a set of refrences to template actions
  a regular maintnence set has actions directly linked to the event header
 
-
+document start
 # Maintenance Portal Implementation Plan
 
 ## Overview
@@ -39,11 +40,150 @@ Portal routes:
 ### Shared Components
 
 All portals share:
-- Core data models (MaintenanceEvent, MaintenanceActionSet, Action, PartDemand, etc.)
+- Core data models (MaintenanceEvent, MaintenanceActionSet, Action, PartDemand, MaintenanceDelay, etc.)
 - Business layer context managers and factories
 - Event system (comments, attachments)
 - Asset and location data
 - User authentication and authorization
+
+## Data Model Requirements
+
+### Required Data Model Changes
+
+The following changes are required to the data model to fully support the portal system:
+
+#### 1. Assignment Tracking (Actions and Action Sets)
+
+**Action Model** (`app/data/maintenance/base/action.py`):
+- Add `assigned_user_id` column (Integer, ForeignKey('users.id'), nullable=True)
+- Add `assigned_by_id` column (Integer, ForeignKey('users.id'), nullable=True)
+- Add relationships:
+  - `assigned_user` → relationship('User', foreign_keys=[assigned_user_id])
+  - `assigned_by` → relationship('User', foreign_keys=[assigned_by_id])
+
+**MaintenanceActionSet Model** (`app/data/maintenance/base/maintenance_action_set.py`):
+- Add `assigned_user_id` column (Integer, ForeignKey('users.id'), nullable=True)
+- Add `assigned_by_id` column (Integer, ForeignKey('users.id'), nullable=True)
+- Add relationships:
+  - `assigned_user` → relationship('User', foreign_keys=[assigned_user_id])
+  - `assigned_by` → relationship('User', foreign_keys=[assigned_by_id])
+
+**Use Cases**:
+- Managers assign maintenance work to technicians
+- Track who assigned work and when
+- Filter work by assigned technician
+- Display assignment history
+
+#### 2. Priority Statuses
+
+**PartDemand Model** (`app/data/maintenance/base/part_demand.py`):
+- Add `priority` column (String(20), nullable=False, default='Medium')
+  - Values: 'Low', 'Medium', 'High', 'Critical'
+  - Used for prioritizing part approval workflows
+
+**MaintenanceDelay Model** (`app/data/maintenance/base/maintenance_delays.py`):
+- Add `priority` column (String(20), nullable=False, default='Medium')
+  - Values: 'Low', 'Medium', 'High', 'Critical'
+  - Used for prioritizing delay resolution and reporting
+
+**Use Cases**:
+- Managers prioritize part demands for approval
+- Technicians can request high-priority parts
+- Track high-priority delays requiring immediate attention
+- Analytics and reporting by priority level
+
+#### 3. Part Demand Approval Workflow
+
+**PartDemand Model** (`app/data/maintenance/base/part_demand.py`):
+- Add `requested_by_id` column (Integer, ForeignKey('users.id'), nullable=True)
+  - Tracks which technician requested the part
+- Add `maintenance_approval_by_id` column (Integer, ForeignKey('users.id'), nullable=True)
+  - Tracks which manager approved the part request
+- Add `maintenance_approval_date` column (DateTime, nullable=True)
+  - When the maintenance manager approved the request
+- Add `supply_approval_by_id` column (Integer, ForeignKey('users.id'), nullable=True)
+  - Tracks which supply/inventory manager approved the purchase
+- Add `supply_approval_date` column (DateTime, nullable=True)
+  - When the supply manager approved the purchase
+
+**Relationships**:
+- `requested_by` → relationship('User', foreign_keys=[requested_by_id])
+- `maintenance_approval_by` → relationship('User', foreign_keys=[maintenance_approval_by_id])
+- `supply_approval_by` → relationship('User', foreign_keys=[supply_approval_by_id])
+
+**Approval Workflow States**:
+1. **Requested**: Technician requests part (`requested_by_id` set)
+2. **Maintenance Approved**: Manager approves (`maintenance_approval_by_id` and `maintenance_approval_date` set)
+3. **Supply Approved**: Supply manager approves (`supply_approval_by_id` and `supply_approval_date` set)
+4. **Ordered**: Part added to purchase order
+5. **Received**: Part received in inventory
+6. **Used**: Part used in maintenance
+
+**Use Cases**:
+- Two-tier approval process (maintenance manager → supply manager)
+- Audit trail of who approved what and when
+- Filter pending approvals by approver
+- Track approval timelines for analytics
+
+### Data Model Structure Clarifications
+
+#### Template Maintenance Events Structure
+
+**Template Maintenance Event Hierarchy**:
+```
+TemplateMaintenanceEvent (wrapper class)
+└── TemplateActions (template maintenance sets)
+    └── ProtoActionItems (template actions)
+        ├── TemplatePartDemands (template part requirements)
+        └── TemplateActionTools (template tool requirements)
+```
+
+**Key Points**:
+- **Template Maintenance Events** (`TemplateMaintenanceEvent`) have a set of **TemplateActions** rows
+- A **TemplateActions** links the template maintenance event to **ProtoActionItems ** (template actions)
+- A **TemplateActions** is a set of references to **ProtoActionItems ** (not direct actions, but templates)
+- A **TemplateActions** row should copy the information from the **ProtoActionItems ** row its refrencing
+- **TemplateActions** rows are ordered by `sequence_order` within the TemplateActions
+- **ProtoActionItems ** do not have order
+
+#### Regular Maintenance Events Structure
+
+**Regular Maintenance Event Hierarchy**:
+```
+MaintenanceActionSet (maintenance event header - extends EventDetailVirtual)
+└── Actions (directly linked to the maintenance event header)
+    └── PartDemands (linked to actions)
+```
+
+**Key Points**:
+- A regular **MaintenanceActionSet** has **Actions** directly linked to the event header via `maintenance_action_set_id` foreign key and a row 
+- Actions are NOT linked through an intermediate table - they are directly linked to the MaintenanceActionSet
+- Each Action can have multiple PartDemands
+- Actions are ordered by `sequence_order` within the MaintenanceActionSet
+
+**Comparison**:
+- **Templates**: TemplateActions → ProtoActionItems (template references, reusable)
+- **Regular Maintenance**: MaintenanceActionSet → Actions (actual work instances, asset-specific)
+
+### Maintenance Delays Integration
+
+**MaintenanceDelay Model** (`app/data/maintenance/base/maintenance_delays.py`):
+- Linked to MaintenanceActionSet via `maintenance_action_set_id`
+- Tracks delay information: type, reason, dates, billable hours
+- Supports multiple delays per maintenance action set
+- Priority status (as noted above)
+
+**Use Cases**:
+- Track why maintenance was delayed (parts, weather, other work, etc.)
+- Calculate delay costs (billable hours)
+- Analytics on common delay reasons
+- Technician and Manager portals display active delays
+- Admin portal shows delay statistics and trends
+
+**Portal Integration**:
+- **Technician Portal**: View delays affecting assigned work, add delay notes
+- **Manager Portal**: Approve delays, review delay reasons, prioritize delayed work
+- **Admin Portal**: Delay analytics, common delay patterns, cost analysis
 
 ## Technician Portal
 
@@ -142,10 +282,29 @@ use /maintenance/do_maintenance/<Action_set_id> as refrence
 
 **Components**:
 - List of completed action sets (paginated)
-- Filterable by: Date range, Asset, Maintenance type
+- Filterable by: Date range, Asset, Maintenance type, Status
 - Search functionality
 - View details of past work
 - Export history (if needed)
+
+#### 6. Maintenance Delays (`/maintenance/technician/delays`)
+**Purpose**: View and manage delays affecting assigned work
+
+**Components**:
+- **Active Delays** - List of delays affecting assigned work
+  - Delay type and reason
+  - Start and end dates
+  - Billable hours
+  - Priority status
+- **Add Delay** - Form to record new delays
+  - Delay type selection
+  - Reason text field
+  - Billable hours (if applicable)
+  - Priority selection
+- **Resolve Delay** - Mark delay as resolved
+  - End date selection
+  - Update billable hours
+- **Delay History** - View all delays for assigned work
 
 ### Technical Implementation
 
@@ -369,12 +528,42 @@ a template maintnence event is a set of refrences to template action items and t
 - **Pending Requests List** - All part demands awaiting approval
   - Sortable by: Priority, Request date, Technician, Asset
   - Request details: Part, Quantity, Urgency, Reason
+  - Requested by technician (`requested_by_id`)
   - Inventory availability check
+  - Maintenance approval status (first tier)
 - **Request Detail** - Full request information
   - Part information and inventory levels
-  - Requesting technician and asset
-  - Approve/Reject actions
+  - Requesting technician (`requested_by`) and asset
+  - Maintenance approval section:
+    - Approve/Reject button
+    - Set `maintenance_approval_by_id` and `maintenance_approval_date` on approval
+    - Add approval notes
+  - Supply approval status (second tier - handled by inventory system)
+  - View approval history (`maintenance_approval_by`, `maintenance_approval_date`, `supply_approval_by`, `supply_approval_date`)
+
+**Approval Workflow**:
+1. Technician requests part → `requested_by_id` set, status = 'Requested'
+2. Manager approves → `maintenance_approval_by_id` and `maintenance_approval_date` set, status = 'Maintenance Approved'
+3. Supply manager approves → `supply_approval_by_id` and `supply_approval_date` set (handled by inventory system), status = 'Supply Approved'
+4. Part ordered → status = 'Ordered'
+5. Part received → status = 'Received'
+6. Part used → status = 'Used'
+
+#### 8. Maintenance Delays (`/maintenance/manager/delays`)
+**Purpose**: View and manage maintenance delays
+
+**Components**:
+- **Active Delays List** - All active delays
+  - Filterable by: Priority, Delay type, Asset, Technician, Date range
+  - Sortable by: Priority, Start date, Duration
+  - Delay details: Type, Reason, Dates, Billable hours, Priority
+- **Delay Detail** - Full delay information
+  - Related maintenance action set and asset
+  - Technician who reported delay
+  - Approve delay resolution
+  - Update priority
   - Add notes
+- **Delay Analytics** - Common delay reasons, cost analysis
 
 **Workflow**:
 1. Manager views pending part demands
@@ -410,7 +599,7 @@ def dashboard():
     """Manager dashboard"""
 
 @manager_bp.route('/templates/action-sets')
-def template_action_sets():
+def template_actions():
     """Manage action set templates"""
 
 @manager_bp.route('/templates/actions')
@@ -476,7 +665,19 @@ class ManagerService:
     
     @staticmethod
     def approve_part_demand(demand_id, approved_by_id):
-        """Approve part demand"""
+        """Approve part demand (maintenance approval tier)"""
+    
+    @staticmethod
+    def get_active_delays(filters=None):
+        """Get active maintenance delays"""
+    
+    @staticmethod
+    def get_delay_analytics(filters=None):
+        """Get delay analytics and statistics"""
+    
+    @staticmethod
+    def approve_delay_resolution(delay_id, approved_by_id):
+        """Approve delay resolution"""
 ```
 
 ### User Workflows
@@ -739,12 +940,9 @@ class AdminService:
 3. Navigates to specific area → Drills down into details
 4. Takes corrective action if needed → Edits events, reassigns work
 
-#### Workflow 2: Filter and Edit Maintenance Data
-1. Leader/Admin navigates to Fleet Maintenance Table
-2. Applies filters → Views specific subset of data
-3. Identifies items needing update → Clicks to edit inline or detail view
-4. Makes changes → Saves updates
-5. System validates and updates → Audit trail recorded
+#### Workflow 2: Admin Filter and Edit Maintenance Data
+1. admin has simple CRUD and filter access to the rows of each table directly
+5. System warns and updates 
 
 #### Workflow 3: Generate Reports
 1. Leader/Admin navigates to Analytics
@@ -922,12 +1120,6 @@ class AdminService:
 - Protect sensitive data from unauthorized access
 - Input validation and sanitization
 
-### Testing
-- Unit tests for business logic and services
-- Integration tests for workflows
-- User acceptance testing with each user type
-- Performance testing for large data sets
-- Security testing for access control
 
 ## Success Metrics
 

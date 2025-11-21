@@ -158,3 +158,5 @@ class InventoryService:
             'location_count': len(by_location)
         }
 
+
+

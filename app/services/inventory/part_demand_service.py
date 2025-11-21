@@ -4,7 +4,7 @@ Presentation service for part demand inventory availability and fulfillment quer
 """
 
 from typing import Dict, List, Optional, Any
-from app.data.maintenance.base.part_demand import PartDemand
+from app.data.maintenance.base.part_demands import PartDemand
 from app.data.inventory.base import ActiveInventory, InventoryMovement
 from app.data.core.asset_info.asset import Asset
 
@@ -225,4 +225,6 @@ class PartDemandInventoryService:
                 demands_needing_purchase.append(demand)
         
         return demands_needing_purchase
+
+
 

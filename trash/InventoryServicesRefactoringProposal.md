@@ -420,3 +420,5 @@ class PartDemandInventoryService:
 - Services will only handle read-only queries and data retrieval
 - Managers may use services internally for read operations if needed
 
+
+

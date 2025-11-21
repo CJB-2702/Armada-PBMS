@@ -388,3 +388,5 @@ class ModelDetailUnionService:
         
         return stats
 
+
+

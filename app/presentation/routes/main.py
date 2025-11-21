@@ -14,9 +14,18 @@ from app.data.core.event_info.event import Event
 from app import db
 from app.logger import get_logger
 
-# Import new route blueprints
-from .maintenance.main import maintenance_bp
-from .supply.main import supply_bp
+# Import new route blueprints - handle gracefully if not available
+try:
+    from .maintenance.main import maintenance_bp
+except ImportError:
+    maintenance_bp = None
+    logger.warning("Maintenance routes not available")
+
+try:
+    from .supply.main import supply_bp
+except ImportError:
+    supply_bp = None
+    logger.warning("Supply routes not available")
 
 logger = get_logger("asset_management.routes.main")
 main = Blueprint('main', __name__)

@@ -320,3 +320,5 @@ class AssetDetailUnionService:
         
         return stats
 
+
+

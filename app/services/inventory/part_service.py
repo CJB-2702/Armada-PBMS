@@ -4,7 +4,7 @@ Presentation service for part-related queries (stock status, demands).
 """
 
 from typing import Dict, List, Optional, Any
-from app.data.maintenance.base.part_demand import PartDemand
+from app.data.maintenance.base.part_demands import PartDemand
 from app.data.supply_items.part import Part
 from app.services.inventory.inventory_service import InventoryService
 
@@ -124,4 +124,6 @@ class PartService:
             Count of part demands
         """
         return PartDemand.query.filter_by(part_id=part_id).count()
+
+
 

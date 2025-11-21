@@ -102,7 +102,7 @@
                                 <label for="template_action_set_id" class="form-label">Template Action Set *</label>
                                 <select class="form-select" id="template_action_set_id" name="template_action_set_id" required>
                                     <option value="">Select Template Action Set</option>
-                                    {% for template_action_set in template_action_sets %}
+                                    {% for template_action_set in template_actions %}
                                     <option value="{{ template_action_set.id }}" {% if plan.template_action_set_id == template_action_set.id %}selected{% endif %}>
                                         {{ template_action_set.name }}
                                     </option>

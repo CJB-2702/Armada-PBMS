@@ -1,98 +1,129 @@
-from app.data.maintenance.base.maintenance_action_set import MaintenanceActionSet
-from app.data.maintenance.templates.template_action_set import TemplateActionSet
-from app import db
+"""
+Maintenance Action Set Factory
+Factory for creating MaintenanceActionSet from TemplateActionSet.
+Handles Event creation, metadata copying, and relationship setup.
+"""
+
+from typing import Optional
 from datetime import datetime
+from app import db
+from app.logger import get_logger
+from app.data.maintenance.base.maintenance_action_sets import MaintenanceActionSet
+from app.data.maintenance.templates.template_action_sets import TemplateActionSet
+from app.data.core.event_info.event import Event
+
+logger = get_logger("asset_management.buisness.maintenance.factories")
+
 
 class MaintenanceActionSetFactory:
-    """Factory for creating MaintenanceActionSet from TemplateActionSet"""
+    """
+    Factory for creating MaintenanceActionSet from TemplateActionSet.
     
-    @staticmethod
-    def create_from_template(template_action_set: TemplateActionSet, **kwargs):
+    Responsibilities:
+    - Copy metadata from template
+    - Create and link Event (ONE-TO-ONE relationship)
+    - Set up relationships (asset, plan)
+    - Initialize status and planned_start_datetime
+    - Ensure only one MaintenanceActionSet per Event
+    """
+    
+    @classmethod
+    def create_from_template(
+        cls,
+        template_action_set_id: int,
+        asset_id: int,
+        planned_start_datetime: Optional[datetime] = None,
+        maintenance_plan_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        commit: bool = True
+    ) -> MaintenanceActionSet:
         """
-        Create a MaintenanceActionSet from a TemplateActionSet
+        Create MaintenanceActionSet from TemplateActionSet.
         
         Args:
-            template_action_set: The template to create from
-            **kwargs: Additional parameters for MaintenanceActionSet creation
-                     (asset_id, scheduled_date, user_id, etc.)
-        
+            template_action_set_id: Template action set ID to copy from
+            asset_id: Asset ID for the maintenance event
+            planned_start_datetime: Planned start datetime (defaults to now)
+            maintenance_plan_id: Optional maintenance plan ID
+            user_id: User ID creating the maintenance event
+            commit: Whether to commit the transaction (default: True)
+            
         Returns:
-            MaintenanceActionSet: The created maintenance action set
+            Created MaintenanceActionSet instance
+            
+        Raises:
+            ValueError: If template not found or invalid parameters
         """
-        # Set default values
-        defaults = {
-            'template_action_set_id': template_action_set.id,
-            'task_name': template_action_set.task_name,
-            'description': template_action_set.description,
-            'estimated_duration': template_action_set.estimated_duration,
-            'staff_count': template_action_set.staff_count,
-            'parts_cost': template_action_set.parts_cost,
-            'labor_hours': template_action_set.labor_hours,
-            'safety_review_required': template_action_set.safety_review_required,
-            'revision': template_action_set.revision,
-            'scheduled_date': kwargs.get('scheduled_date', datetime.utcnow())
-        }
+        # Get template action set
+        template_action_set = TemplateActionSet.query.get_or_404(template_action_set_id)
         
-        # Merge with provided kwargs
-        event_data = {**defaults, **kwargs}
+        if not template_action_set.is_active:
+            logger.warning(f"Creating maintenance from inactive template: {template_action_set_id}")
         
-        # Create the maintenance action set
-        maintenance_action_set = MaintenanceActionSet(**event_data)
+        # Set defaults
+        if not planned_start_datetime:
+            planned_start_datetime = datetime.utcnow()
+        
+        if not user_id:
+            # Try to get from template or use system user
+            user_id = template_action_set.created_by_id
+        
+        # Create Event first (ONE-TO-ONE relationship)
+        event_id = Event.add_event(
+            event_type='maintenance',
+            description=f'Maintenance: {template_action_set.task_name}',
+            user_id=user_id,
+            asset_id=asset_id
+        )
+        
+        # Check if MaintenanceActionSet already exists for this event
+        existing = MaintenanceActionSet.query.filter_by(event_id=event_id).first()
+        if existing:
+            raise ValueError(f"MaintenanceActionSet already exists for event {event_id} (ONE-TO-ONE relationship)")
+        
+        # Create MaintenanceActionSet
+        maintenance_action_set = MaintenanceActionSet(
+            # Event coupling - REQUIRED, ONE-TO-ONE
+            event_id=event_id,
+            
+            # Template reference
+            template_action_set_id=template_action_set_id,
+            
+            # Asset
+            asset_id=asset_id,
+            
+            # Plan
+            maintenance_plan_id=maintenance_plan_id,
+            
+            # Copy metadata from VirtualActionSet
+            task_name=template_action_set.task_name,
+            description=template_action_set.description,
+            estimated_duration=template_action_set.estimated_duration,
+            safety_review_required=template_action_set.safety_review_required,
+            staff_count=template_action_set.staff_count,
+            parts_cost=template_action_set.parts_cost,
+            labor_hours=template_action_set.labor_hours,
+            
+            # Planning
+            planned_start_datetime=planned_start_datetime,
+            
+            # Execution tracking - initialize
+            status='Planned',
+            priority='Medium',
+            
+            # Audit fields
+            created_by_id=user_id,
+            updated_by_id=user_id
+        )
+        
         db.session.add(maintenance_action_set)
-        db.session.flush()  # Get the ID
+        
+        if commit:
+            db.session.commit()
+            logger.info(f"Created MaintenanceActionSet {maintenance_action_set.id} from template {template_action_set_id}")
+        else:
+            db.session.flush()
+            logger.info(f"Created MaintenanceActionSet {maintenance_action_set.id} from template {template_action_set_id} (not committed)")
         
         return maintenance_action_set
-    
-    @staticmethod
-    def create_with_actions_from_template(template_action_set: TemplateActionSet, **kwargs):
-        """
-        Create a MaintenanceActionSet with all its Actions from a TemplateActionSet
-        
-        Args:
-            template_action_set: The template to create from
-            **kwargs: Additional parameters for MaintenanceActionSet creation
-        
-        Returns:
-            MaintenanceActionSet: The created maintenance action set with actions
-        """
-        # Create the maintenance action set
-        maintenance_action_set = MaintenanceActionSetFactory.create_from_template(
-            template_action_set, **kwargs
-        )
-        
-        # Create actions from template action items
-        from app.buisness.maintenance.factories.action_factory import ActionFactory
-        actions = ActionFactory.create_all_from_template_action_set(
-            template_action_set, maintenance_action_set.id, kwargs.get('created_by_id')
-        )
-        
-        return maintenance_action_set
-    
-    @staticmethod
-    def copy_details_from_template_action_set(maintenance_action_set, template_action_set: TemplateActionSet, user_id=None):
-        """Copy common details from template action set to maintenance action set"""
-        maintenance_action_set.task_name = template_action_set.task_name
-        maintenance_action_set.description = template_action_set.description
-        maintenance_action_set.estimated_duration = template_action_set.estimated_duration
-        maintenance_action_set.staff_count = template_action_set.staff_count
-        maintenance_action_set.parts_cost = template_action_set.parts_cost
-        maintenance_action_set.labor_hours = template_action_set.labor_hours
-        maintenance_action_set.safety_review_required = template_action_set.safety_review_required
-        maintenance_action_set.revision = template_action_set.revision
-        
-        if user_id:
-            maintenance_action_set.add_comment_to_event(user_id, f"Details copied from template: {template_action_set.task_name}")
-    
-    @staticmethod
-    def generate_actions_from_template_action_set(maintenance_action_set, template_action_set: TemplateActionSet, user_id):
-        """Generate actions from template action set - using delegation pattern"""
-        from app.buisness.maintenance.factories.action_factory import ActionFactory
-        
-        actions = ActionFactory.create_all_from_template_action_set(
-            template_action_set, maintenance_action_set.id, user_id
-        )
-        
-        if user_id:
-            maintenance_action_set.add_comment_to_event(user_id, f"Generated {len(actions)} actions from template: {template_action_set.task_name}")
-        
-        return actions
+

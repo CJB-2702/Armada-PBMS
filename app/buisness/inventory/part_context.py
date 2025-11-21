@@ -6,7 +6,7 @@ Provides a clean interface for managing parts and their related data.
 from typing import List, Optional, Union
 from app import db
 from app.data.supply_items.part import Part
-from app.data.maintenance.base.part_demand import PartDemand
+from app.data.maintenance.base.part_demands import PartDemand
 
 
 class PartContext:

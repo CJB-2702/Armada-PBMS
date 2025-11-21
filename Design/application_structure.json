@@ -330,7 +330,7 @@
     "classes": [
       {
         "name": "ActionFactory",
-        "description": "Factory for creating Actions from TemplateActionItems",
+        "description": "Factory for creating Actions from ProtoActionItems ",
         "bases": []
       }
     ]
@@ -340,7 +340,7 @@
     "classes": [
       {
         "name": "MaintenanceActionSetFactory",
-        "description": "Factory for creating MaintenanceActionSet from TemplateActionSet",
+        "description": "Factory for creating MaintenanceActionSet from TemplateActions",
         "bases": []
       }
     ]
@@ -350,7 +350,7 @@
     "classes": [
       {
         "name": "MaintenanceActionSetFactory",
-        "description": "Factory for creating MaintenanceActionSet from TemplateActionSet",
+        "description": "Factory for creating MaintenanceActionSet from TemplateActions",
         "bases": []
       }
     ]
@@ -1013,54 +1013,6 @@
     "filepath": "app/data/inventory/build.py",
     "classes": []
   },
-  "app/data/inventory/managers/__init__.py": {
-    "filepath": "app/data/inventory/managers/__init__.py",
-    "classes": []
-  },
-  "app/data/inventory/managers/inventory_manager.py": {
-    "filepath": "app/data/inventory/managers/inventory_manager.py",
-    "classes": [
-      {
-        "name": "InventoryManager",
-        "description": "Manages all inventory movements and levels",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/inventory/managers/part_arrival_manager.py": {
-    "filepath": "app/data/inventory/managers/part_arrival_manager.py",
-    "classes": [
-      {
-        "name": "PartArrivalManager",
-        "description": "Handles receiving and inspection workflow",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/inventory/managers/part_demand_manager.py": {
-    "filepath": "app/data/inventory/managers/part_demand_manager.py",
-    "classes": [
-      {
-        "name": "PartDemandManager",
-        "description": "Extends maintenance part demand for purchasing integration",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/inventory/managers/purchase_order_manager.py": {
-    "filepath": "app/data/inventory/managers/purchase_order_manager.py",
-    "classes": [
-      {
-        "name": "PurchaseOrderManager",
-        "description": "Handles all purchase order business logic",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/inventory/utils/__init__.py": {
-    "filepath": "app/data/inventory/utils/__init__.py",
-    "classes": []
-  },
   "app/data/maintenance/__init__.py": {
     "filepath": "app/data/maintenance/__init__.py",
     "classes": []
@@ -1134,70 +1086,6 @@
     "filepath": "app/data/maintenance/build.py",
     "classes": []
   },
-  "app/data/maintenance/factories/__init__.py": {
-    "filepath": "app/data/maintenance/factories/__init__.py",
-    "classes": []
-  },
-  "app/data/maintenance/factories/action_factory.py": {
-    "filepath": "app/data/maintenance/factories/action_factory.py",
-    "classes": [
-      {
-        "name": "ActionFactory",
-        "description": "Factory for creating Actions from TemplateActionItems",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/factories/maintenance_action_set_factory.py": {
-    "filepath": "app/data/maintenance/factories/maintenance_action_set_factory.py",
-    "classes": [
-      {
-        "name": "MaintenanceActionSetFactory",
-        "description": "Factory for creating MaintenanceActionSet from TemplateActionSet",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/factories/maintenance_event_factory.py": {
-    "filepath": "app/data/maintenance/factories/maintenance_event_factory.py",
-    "classes": [
-      {
-        "name": "MaintenanceActionSetFactory",
-        "description": "Factory for creating MaintenanceActionSet from TemplateActionSet",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/factories/maintenance_factory.py": {
-    "filepath": "app/data/maintenance/factories/maintenance_factory.py",
-    "classes": [
-      {
-        "name": "MaintenanceFactory",
-        "description": "Main factory for creating complete maintenance workflows from templates",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/factories/maintenance_plan_factory.py": {
-    "filepath": "app/data/maintenance/factories/maintenance_plan_factory.py",
-    "classes": [
-      {
-        "name": "MaintenancePlanFactory",
-        "description": "Factory for creating MaintenancePlans and related operations",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/factories/part_demand_factory.py": {
-    "filepath": "app/data/maintenance/factories/part_demand_factory.py",
-    "classes": [
-      {
-        "name": "PartDemandFactory",
-        "description": "Factory for creating PartDemands from TemplatePartDemands",
-        "bases": []
-      }
-    ]
-  },
   "app/data/maintenance/maintenance_event.py": {
     "filepath": "app/data/maintenance/maintenance_event.py",
     "classes": [
@@ -1222,6 +1110,18 @@
     "filepath": "app/data/maintenance/templates/__init__.py",
     "classes": []
   },
+  "app/data/maintenance/templates/proto_action_item.py": {
+    "filepath": "app/data/maintenance/templates/proto_action_item.py",
+    "classes": [
+      {
+        "name": "ProtoActionItems ",
+        "description": "No description available",
+        "bases": [
+          "VirtualActionItem"
+        ]
+      }
+    ]
+  },
   "app/data/maintenance/templates/template_action_attachment.py": {
     "filepath": "app/data/maintenance/templates/template_action_attachment.py",
     "classes": [
@@ -1234,23 +1134,11 @@
       }
     ]
   },
-  "app/data/maintenance/templates/template_action_item.py": {
-    "filepath": "app/data/maintenance/templates/template_action_item.py",
-    "classes": [
-      {
-        "name": "TemplateActionItem",
-        "description": "No description available",
-        "bases": [
-          "VirtualActionItem"
-        ]
-      }
-    ]
-  },
   "app/data/maintenance/templates/template_action_set.py": {
     "filepath": "app/data/maintenance/templates/template_action_set.py",
     "classes": [
       {
-        "name": "TemplateActionSet",
+        "name": "TemplateActions",
         "description": "No description available",
         "bases": [
           "VirtualActionSet"
@@ -1262,7 +1150,7 @@
     "filepath": "app/data/maintenance/templates/template_action_set_attachment.py",
     "classes": [
       {
-        "name": "TemplateActionSetAttachment",
+        "name": "TemplateActionAttachment",
         "description": "No description available",
         "bases": [
           "VirtualAttachmentReference"
@@ -1291,40 +1179,6 @@
         "bases": [
           "VirtualPartDemand"
         ]
-      }
-    ]
-  },
-  "app/data/maintenance/utils/__init__.py": {
-    "filepath": "app/data/maintenance/utils/__init__.py",
-    "classes": []
-  },
-  "app/data/maintenance/utils/maintenance_helpers.py": {
-    "filepath": "app/data/maintenance/utils/maintenance_helpers.py",
-    "classes": [
-      {
-        "name": "MaintenanceHelpers",
-        "description": "Utility functions for maintenance operations",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/utils/quick_actions.py": {
-    "filepath": "app/data/maintenance/utils/quick_actions.py",
-    "classes": [
-      {
-        "name": "QuickActions",
-        "description": "Quick action functions for common maintenance operations",
-        "bases": []
-      }
-    ]
-  },
-  "app/data/maintenance/utils/template_helpers.py": {
-    "filepath": "app/data/maintenance/utils/template_helpers.py",
-    "classes": [
-      {
-        "name": "TemplateHelpers",
-        "description": "Utility functions for template operations",
-        "bases": []
       }
     ]
   },
@@ -1407,6 +1261,10 @@
         ]
       }
     ]
+  },
+  "app/logger.py": {
+    "filepath": "app/logger.py",
+    "classes": []
   },
   "app/presentation/routes/__init__.py": {
     "filepath": "app/presentation/routes/__init__.py",
@@ -1500,6 +1358,30 @@
     "filepath": "app/presentation/routes/maintenance/delays.py",
     "classes": []
   },
+  "app/presentation/routes/maintenance/fleet/__init__.py": {
+    "filepath": "app/presentation/routes/maintenance/fleet/__init__.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/fleet/analytics.py": {
+    "filepath": "app/presentation/routes/maintenance/fleet/analytics.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/fleet/assets.py": {
+    "filepath": "app/presentation/routes/maintenance/fleet/assets.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/fleet/dashboard.py": {
+    "filepath": "app/presentation/routes/maintenance/fleet/dashboard.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/fleet/events.py": {
+    "filepath": "app/presentation/routes/maintenance/fleet/events.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/fleet/fleet_table.py": {
+    "filepath": "app/presentation/routes/maintenance/fleet/fleet_table.py",
+    "classes": []
+  },
   "app/presentation/routes/maintenance/main.py": {
     "filepath": "app/presentation/routes/maintenance/main.py",
     "classes": []
@@ -1512,16 +1394,84 @@
     "filepath": "app/presentation/routes/maintenance/maintenance_plans.py",
     "classes": []
   },
+  "app/presentation/routes/maintenance/manager/__init__.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/__init__.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/active.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/active.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/assets_due.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/assets_due.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/assignments.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/assignments.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/dashboard.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/dashboard.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/delays.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/delays.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/events.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/events.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/part_demands.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/part_demands.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/plans.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/plans.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/manager/templates.py": {
+    "filepath": "app/presentation/routes/maintenance/manager/templates.py",
+    "classes": []
+  },
   "app/presentation/routes/maintenance/part_demands.py": {
     "filepath": "app/presentation/routes/maintenance/part_demands.py",
     "classes": []
   },
-  "app/presentation/routes/maintenance/template_action_items.py": {
-    "filepath": "app/presentation/routes/maintenance/template_action_items.py",
+  "app/presentation/routes/maintenance/technician/__init__.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/__init__.py",
     "classes": []
   },
-  "app/presentation/routes/maintenance/template_action_sets.py": {
-    "filepath": "app/presentation/routes/maintenance/template_action_sets.py",
+  "app/presentation/routes/maintenance/technician/actions.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/actions.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/technician/dashboard.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/dashboard.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/technician/delays.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/delays.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/technician/history.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/history.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/technician/parts.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/parts.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/technician/work.py": {
+    "filepath": "app/presentation/routes/maintenance/technician/work.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/proto_action_items.py": {
+    "filepath": "app/presentation/routes/maintenance/proto_action_items.py",
+    "classes": []
+  },
+  "app/presentation/routes/maintenance/template_actions.py": {
+    "filepath": "app/presentation/routes/maintenance/template_actions.py",
     "classes": []
   },
   "app/presentation/routes/maintenance/template_action_tools.py": {
@@ -1552,8 +1502,326 @@
     "filepath": "app/routes.py",
     "classes": []
   },
+  "app/services/__init__.py": {
+    "filepath": "app/services/__init__.py",
+    "classes": []
+  },
+  "app/services/assets/__init__.py": {
+    "filepath": "app/services/assets/__init__.py",
+    "classes": []
+  },
+  "app/services/assets/asset_detail_service.py": {
+    "filepath": "app/services/assets/asset_detail_service.py",
+    "classes": [
+      {
+        "name": "AssetDetailService",
+        "description": "Service for asset detail table presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/assets/asset_detail_union_service.py": {
+    "filepath": "app/services/assets/asset_detail_union_service.py",
+    "classes": [
+      {
+        "name": "AssetDetailUnionService",
+        "description": "Service class for performing union queries across all asset detail tables.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/assets/model_detail_service.py": {
+    "filepath": "app/services/assets/model_detail_service.py",
+    "classes": [
+      {
+        "name": "ModelDetailService",
+        "description": "Service for model detail table presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/assets/model_detail_union_service.py": {
+    "filepath": "app/services/assets/model_detail_union_service.py",
+    "classes": [
+      {
+        "name": "ModelDetailUnionService",
+        "description": "Service class for performing union queries across all model detail tables.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/core/__init__.py": {
+    "filepath": "app/services/core/__init__.py",
+    "classes": []
+  },
+  "app/services/core/asset_service.py": {
+    "filepath": "app/services/core/asset_service.py",
+    "classes": [
+      {
+        "name": "AssetService",
+        "description": "Service for asset presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/core/asset_type_service.py": {
+    "filepath": "app/services/core/asset_type_service.py",
+    "classes": [
+      {
+        "name": "AssetTypeService",
+        "description": "Service for asset type presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/core/event_service.py": {
+    "filepath": "app/services/core/event_service.py",
+    "classes": [
+      {
+        "name": "EventService",
+        "description": "Service for event presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/core/location_service.py": {
+    "filepath": "app/services/core/location_service.py",
+    "classes": [
+      {
+        "name": "LocationService",
+        "description": "Service for location presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/core/make_model_service.py": {
+    "filepath": "app/services/core/make_model_service.py",
+    "classes": [
+      {
+        "name": "MakeModelService",
+        "description": "Service for make/model presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/core/user_service.py": {
+    "filepath": "app/services/core/user_service.py",
+    "classes": [
+      {
+        "name": "UserService",
+        "description": "Service for user presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/inventory/__init__.py": {
+    "filepath": "app/services/inventory/__init__.py",
+    "classes": []
+  },
+  "app/services/inventory/active_inventory_service.py": {
+    "filepath": "app/services/inventory/active_inventory_service.py",
+    "classes": [
+      {
+        "name": "ActiveInventoryService",
+        "description": "Service for active inventory presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/inventory/inventory_movement_service.py": {
+    "filepath": "app/services/inventory/inventory_movement_service.py",
+    "classes": [
+      {
+        "name": "InventoryMovementService",
+        "description": "Service for inventory movement presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/inventory/inventory_service.py": {
+    "filepath": "app/services/inventory/inventory_service.py",
+    "classes": [
+      {
+        "name": "InventoryService",
+        "description": "Service for inventory availability checks and queries.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/inventory/part_demand_service.py": {
+    "filepath": "app/services/inventory/part_demand_service.py",
+    "classes": [
+      {
+        "name": "PartDemandInventoryService",
+        "description": "Service for part demand inventory-related queries.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/inventory/part_service.py": {
+    "filepath": "app/services/inventory/part_service.py",
+    "classes": [
+      {
+        "name": "PartService",
+        "description": "Service for part-related presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/inventory/tool_service.py": {
+    "filepath": "app/services/inventory/tool_service.py",
+    "classes": [
+      {
+        "name": "ToolService",
+        "description": "Service for tool-related presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/__init__.py": {
+    "filepath": "app/services/maintenance/__init__.py",
+    "classes": []
+  },
+  "app/services/maintenance/action_service.py": {
+    "filepath": "app/services/maintenance/action_service.py",
+    "classes": [
+      {
+        "name": "ActionService",
+        "description": "Service for action presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/admin_service.py": {
+    "filepath": "app/services/maintenance/admin_service.py",
+    "classes": [
+      {
+        "name": "AdminService",
+        "description": "Service for fleet/admin portal presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/delay_service.py": {
+    "filepath": "app/services/maintenance/delay_service.py",
+    "classes": [
+      {
+        "name": "DelayService",
+        "description": "Service for maintenance delay presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/maintenance_action_set_service.py": {
+    "filepath": "app/services/maintenance/maintenance_action_set_service.py",
+    "classes": [
+      {
+        "name": "MaintenanceActionSetService",
+        "description": "Service for maintenance action set presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/maintenance_plan_service.py": {
+    "filepath": "app/services/maintenance/maintenance_plan_service.py",
+    "classes": [
+      {
+        "name": "MaintenancePlanService",
+        "description": "Service for maintenance plan presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/maintenance_service.py": {
+    "filepath": "app/services/maintenance/maintenance_service.py",
+    "classes": [
+      {
+        "name": "MaintenanceService",
+        "description": "Service for maintenance dashboard statistics and aggregations.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/manager_service.py": {
+    "filepath": "app/services/maintenance/manager_service.py",
+    "classes": [
+      {
+        "name": "ManagerService",
+        "description": "Service for manager portal presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/part_demand_service.py": {
+    "filepath": "app/services/maintenance/part_demand_service.py",
+    "classes": [
+      {
+        "name": "PartDemandService",
+        "description": "Service for part demand presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/technician_service.py": {
+    "filepath": "app/services/maintenance/technician_service.py",
+    "classes": [
+      {
+        "name": "TechnicianService",
+        "description": "Service for technician portal presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/template_action_item_service.py": {
+    "filepath": "app/services/maintenance/template_action_item_service.py",
+    "classes": [
+      {
+        "name": "ProtoActionItemService",
+        "description": "Service for template action item presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/template_action_set_service.py": {
+    "filepath": "app/services/maintenance/template_action_set_service.py",
+    "classes": [
+      {
+        "name": "TemplateActionsService",
+        "description": "Service for template action set presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/template_action_tool_service.py": {
+    "filepath": "app/services/maintenance/template_action_tool_service.py",
+    "classes": [
+      {
+        "name": "TemplateActionToolService",
+        "description": "Service for template action tool presentation data.",
+        "bases": []
+      }
+    ]
+  },
+  "app/services/maintenance/template_part_demand_service.py": {
+    "filepath": "app/services/maintenance/template_part_demand_service.py",
+    "classes": [
+      {
+        "name": "TemplatePartDemandService",
+        "description": "Service for template part demand presentation data.",
+        "bases": []
+      }
+    ]
+  },
   "app/utils/__init__.py": {
     "filepath": "app/utils/__init__.py",
+    "classes": []
+  },
+  "app/utils/_build_structure_summary.py": {
+    "filepath": "app/utils/_build_structure_summary.py",
+    "classes": []
+  },
+  "app/utils/_view_database.py": {
+    "filepath": "app/utils/_view_database.py",
     "classes": []
   },
   "app/utils/logger.py": {
@@ -1577,16 +1845,8 @@
     "filepath": "app.py",
     "classes": []
   },
-  "build_structure_summary.py": {
-    "filepath": "build_structure_summary.py",
-    "classes": []
-  },
   "z_clear_data.py": {
     "filepath": "z_clear_data.py",
-    "classes": []
-  },
-  "z_view_database.py": {
-    "filepath": "z_view_database.py",
     "classes": []
   }
 }

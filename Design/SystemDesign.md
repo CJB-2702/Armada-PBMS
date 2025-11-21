@@ -82,12 +82,25 @@ The Asset Management System provides comprehensive functionality across five maj
 #### Maintenance Module
 **Goal**: Provide comprehensive maintenance event management with template-based workflows and three role-based portals optimized for different user needs.
 
+**Architecture**: The maintenance module follows a three-tier hierarchy:
+- **Base Items** (`base/`): Actual maintenance work executed by technicians, tightly coupled to Events
+- **Template Items** (`templates/`): Reusable blueprints created by supervisors to generate maintenance events
+- **Proto Templates** (`proto_templates/`): Reusable library of generic action definitions
+
+**Key Design Principles**:
+- **Copy vs Reference Pattern**: Action sets and actions are copied with reference to source (traceability). Parts and tools are copied without reference (standalone, allows real-world substitution)
+- **Event Coupling**: Base items are tightly coupled to Events (one-to-one relationship). Template and proto items have NO event coupling
+- **Sequence Order**: TemplateActionSet has NO sequence_order (standalone templates). TemplateActionItem has sequence_order (defines order within template). Base actions copy sequence_order from templates
+- **Virtual Base Classes**: Shared fields between base/template/proto go in virtual base classes (VirtualActionSet, VirtualActionItem, VirtualPartDemand, VirtualActionTool)
+
 **Objectives**:
 - Maintenance event creation and tracking
-- Template-based maintenance procedures
-- Action item management
+- Template-based maintenance procedures with versioning
+- Action item management with sequence ordering
 - Part demand tracking and approval workflow
+- Tool requirement tracking (to be implemented)
 - Maintenance workflow automation
+- Template versioning and traceability
 - **Technician Portal**:
   - Workflow-focused interface for completing assigned maintenance tasks
   - View and manage assigned work orders and action sets
@@ -509,8 +522,29 @@ asset_management/
 │   │   │   ├── model_details/   # Model-specific detail tables
 │   │   │   └── build.py
 │   │   ├── maintenance/         # Maintenance data models
-│   │   │   ├── base/            # Base maintenance models
-│   │   │   ├── templates/       # Template models
+│   │   │   ├── base/            # Base maintenance models (actual work)
+│   │   │   │   ├── maintenance_action_sets.py  # MaintenanceActionSet
+│   │   │   │   ├── actions.py                 # Action
+│   │   │   │   ├── part_demands.py            # PartDemand
+│   │   │   │   ├── action_tools.py            # ActionTool (to be implemented)
+│   │   │   │   ├── maintenance_delays.py      # MaintenanceDelay
+│   │   │   │   └── maintenance_plans.py       # MaintenancePlan
+│   │   │   ├── templates/       # Template models (blueprints)
+│   │   │   │   ├── template_action_sets.py    # TemplateActionSet
+│   │   │   │   ├── template_actions.py        # TemplateActionItem
+│   │   │   │   ├── template_part_demands.py   # TemplatePartDemand
+│   │   │   │   ├── template_action_tools.py   # TemplateActionTool
+│   │   │   │   ├── template_action_set_attachments.py  # TemplateActionSetAttachment
+│   │   │   │   └── template_action_attachments.py      # TemplateActionAttachment
+│   │   │   ├── proto_templates/ # Proto template models (reusable library)
+│   │   │   │   ├── proto_actions.py           # ProtoActionItem
+│   │   │   │   ├── proto_part_demands.py      # ProtoPartDemand (to be implemented)
+│   │   │   │   ├── proto_action_tools.py     # ProtoActionTool (to be implemented)
+│   │   │   │   └── proto_action_attachments.py # ProtoActionAttachment
+│   │   │   ├── virtual_action_set.py          # VirtualActionSet (abstract)
+│   │   │   ├── virtual_action_item.py         # VirtualActionItem (abstract)
+│   │   │   ├── virtual_part_demand.py         # VirtualPartDemand (abstract)
+│   │   │   ├── virtual_action_tool.py         # VirtualActionTool (abstract, to be created)
 │   │   │   └── build.py
 │   │   ├── inventory/           # Inventory data models
 │   │   │   ├── base/            # Base inventory models
@@ -533,8 +567,14 @@ asset_management/
 │   │   │   └── model_detail_context.py
 │   │   ├── maintenance/         # Maintenance business logic
 │   │   │   ├── factories/       # Maintenance factories
+│   │   │   │   ├── maintenance_action_set_factory.py  # MaintenanceActionSetFactory
+│   │   │   │   ├── action_factory.py                 # ActionFactory
+│   │   │   │   └── maintenance_factory.py            # MaintenanceFactory
 │   │   │   ├── utils/           # Maintenance utilities
-│   │   │   └── maintenance_event.py
+│   │   │   ├── maintenance_context.py                # MaintenanceContext
+│   │   │   ├── template_maintenance_context.py       # TemplateMaintenanceContext
+│   │   │   ├── action_context.py                     # ActionContext
+│   │   │   └── maintenance_plan_context.py           # MaintenancePlanContext
 │   │   ├── inventory/           # Inventory business logic
 │   │   │   └── managers/        # Business layer managers
 │   │   └── dispatching/          # Dispatch business logic

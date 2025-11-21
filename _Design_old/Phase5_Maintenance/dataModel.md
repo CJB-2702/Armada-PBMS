@@ -175,12 +175,12 @@ Maintenance Event Set
 ### VirtualActionSet
 - **Purpose**: Common interface for action sets (templates and actual events)
 - **Key Fields**: Task name, description, duration, labor requirements
-- **Usage**: Inherited by TemplateActionSet and MaintenanceEvent
+- **Usage**: Inherited by TemplateActions and MaintenanceEvent
 
 ### VirtualActionItem
 - **Purpose**: Common interface for action items (templates and actual actions)
 - **Key Fields**: Action name, description, duration, notes
-- **Usage**: Inherited by TemplateActionItem and Action
+- **Usage**: Inherited by ProtoActionItems and Action
 
 ### VirtualPartDemand
 - **Purpose**: Common interface for part demands (templates and actual demands)

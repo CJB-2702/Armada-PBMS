@@ -74,14 +74,19 @@ def create_app():
     from app.data.supply_items.issuable_tool import IssuableTool
     
     # Import maintenance models to ensure they're registered
-    from app.data.maintenance.templates.template_action_set import TemplateActionSet
-    from app.data.maintenance.templates.template_action_item import TemplateActionItem
-    from app.data.maintenance.base.maintenance_plan import MaintenancePlan
-    from app.data.maintenance.base.maintenance_action_set import MaintenanceActionSet
-    from app.buisness.maintenance.maintenance_event import MaintenanceEvent
-    from app.buisness.maintenance.template_maintenance_event import TemplateMaintenanceEvent
-    from app.data.maintenance.base.action import Action
-    from app.data.maintenance.base.part_demand import PartDemand
+    try:
+        from app.data.maintenance.templates.template_action_sets import TemplateActionSet
+        from app.data.maintenance.templates.template_actions import TemplateActionItem
+        from app.data.maintenance.proto_templates.proto_actions import ProtoActionItem
+        from app.data.maintenance.base.maintenance_plans import MaintenancePlan
+        from app.data.maintenance.base.maintenance_action_sets import MaintenanceActionSet
+        from app.data.maintenance.base.actions import Action
+        from app.data.maintenance.base.part_demands import PartDemand
+        from app.data.maintenance.base.action_tools import ActionTool
+    except ImportError as e:
+        # Maintenance module may be unavailable during certain phases; skip registration
+        logger.warning(f"Could not import maintenance models: {e}")
+        pass
     
     logger.debug("Models imported and registered")
     
@@ -95,6 +100,18 @@ def create_app():
     
     # Initialize tiered routes system (without re-registering main)
     init_routes(app)
+    
+    # Add template global to check if endpoint exists
+    @app.template_global()
+    def endpoint_exists(endpoint):
+        """Check if a route endpoint exists"""
+        try:
+            from flask import url_for
+            with app.app_context():
+                url_for(endpoint)
+            return True
+        except:
+            return False
     
     logger.info("Flask application initialization complete")
     

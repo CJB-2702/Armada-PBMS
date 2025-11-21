@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy import func
 from app import db
-from app.data.maintenance.base.part_demand import PartDemand
+from app.data.maintenance.base.part_demands import PartDemand
 from app.data.inventory.base import (
     ActiveInventory,
     InventoryMovement,

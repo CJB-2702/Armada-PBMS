@@ -202,3 +202,6 @@ from app.domain.assets import AssetContext  # Old path - don't use
 - **System Design**: See [SystemDesign.md](SystemDesign.md) for architecture, modules, and development patterns
 - **Widget Components**: See [widgets.md](widgets.md) for tracked widget components
 - **Application Structure**: See [application_structure.md](application_structure.md) for detailed file structure
+
+
+save work summaries to root directory do not save them in the design folder

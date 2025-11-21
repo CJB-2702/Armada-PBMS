@@ -156,3 +156,5 @@ class InventoryMovementService:
             part_demand_id=part_demand_id
         ).order_by(InventoryMovement.movement_date).all()
 
+
+

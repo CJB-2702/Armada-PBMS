@@ -20,7 +20,7 @@ from app.data.inventory.base import (
     ActiveInventory,
     PartArrival
 )
-from app.data.maintenance.base.part_demand import PartDemand
+from app.data.maintenance.base.part_demands import PartDemand
 from app.data.supply_items.part import Part
 
 

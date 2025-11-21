@@ -104,7 +104,7 @@ The system is developed in phases:
 
 ### Maintenance Models
 - **MaintenanceEvent**: Scheduled and reactive maintenance
-- **TemplateActionSet**: Reusable maintenance procedures
+- **TemplateActions**: Reusable maintenance procedures
 - **Action**: Individual maintenance tasks
 - **MaintenanceStatus**: Status tracking
 

@@ -133,9 +133,9 @@
                     <div class="stat-icon text-primary">
                         <i class="bi bi-file-earmark-check"></i>
                     </div>
-                    <h3 class="card-title text-primary">{{ total_template_action_sets or 0 }}</h3>
+                    <h3 class="card-title text-primary">{{ total_template_actions or 0 }}</h3>
                     <p class="card-text small">Template Action Sets</p>
-                    <a href="{{ url_for('template_action_sets.list') }}" class="btn btn-sm btn-outline-primary mt-2">View</a>
+                    <a href="{{ url_for('template_actions.list') }}" class="btn btn-sm btn-outline-primary mt-2">View</a>
                 </div>
             </div>
         </div>
@@ -145,9 +145,9 @@
                     <div class="stat-icon text-success">
                         <i class="bi bi-file-earmark-text"></i>
                     </div>
-                    <h3 class="card-title text-success">{{ total_template_action_items or 0 }}</h3>
+                    <h3 class="card-title text-success">{{ total_proto_action_items or 0 }}</h3>
                     <p class="card-text small">Template Action Items</p>
-                    <a href="{{ url_for('template_action_items.list') }}" class="btn btn-sm btn-outline-success mt-2">View</a>
+                    <a href="{{ url_for('proto_action_items.list') }}" class="btn btn-sm btn-outline-success mt-2">View</a>
                 </div>
             </div>
         </div>

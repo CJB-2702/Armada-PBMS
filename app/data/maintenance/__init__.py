@@ -4,21 +4,25 @@ from .base import (
     MaintenanceActionSet,
     Action,
     PartDemand,
+    ActionTool,
     MaintenanceDelay
 )
-
-# High-level wrappers
-from .maintenance_event import MaintenanceEvent
-from .template_maintenance_event import TemplateMaintenanceEvent
 
 # Template models
 from .templates import (
     TemplateActionSet,
     TemplateActionItem,
-    TemplateActionAttachment,
     TemplatePartDemand,
-    TemplateActionTool
+    TemplateActionTool,
+    TemplateActionSetAttachment,
+    TemplateActionAttachment
 )
+
+# Proto models
+from .proto_templates.proto_actions import ProtoActionItem
+from .proto_templates.proto_part_demands import ProtoPartDemand
+from .proto_templates.proto_action_tools import ProtoActionTool
+from .proto_templates.proto_action_attachments import ProtoActionAttachment
 
 # Core models
 from app.data.core.event_info.attachment import VirtualAttachmentReference
@@ -26,6 +30,8 @@ from app.data.core.event_info.attachment import VirtualAttachmentReference
 # Virtual models
 from .virtual_action_item import VirtualActionItem
 from .virtual_action_set import VirtualActionSet
+from .virtual_part_demand import VirtualPartDemand
+from .virtual_action_tool import VirtualActionTool
 
 __all__ = [
     # Base models
@@ -33,23 +39,29 @@ __all__ = [
     'MaintenanceActionSet',
     'Action',
     'PartDemand',
+    'ActionTool',
     'MaintenanceDelay',
-    
-    # High-level wrappers
-    'MaintenanceEvent',
-    'TemplateMaintenanceEvent',
     
     # Template models
     'TemplateActionSet',
     'TemplateActionItem',
-    'TemplateActionAttachment',
     'TemplatePartDemand',
     'TemplateActionTool',
+    'TemplateActionSetAttachment',
+    'TemplateActionAttachment',
+    
+    # Proto models
+    'ProtoActionItem',
+    'ProtoPartDemand',
+    'ProtoActionTool',
+    'ProtoActionAttachment',
     
     # Core models
     'VirtualAttachmentReference',
     
     # Virtual models
     'VirtualActionItem',
-    'VirtualActionSet'
+    'VirtualActionSet',
+    'VirtualPartDemand',
+    'VirtualActionTool'
 ]

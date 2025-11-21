@@ -19,7 +19,7 @@ from app.data.inventory.base import (
     PartDemandPurchaseOrderLine
 )
 from app.data.core.event_info.event import Event
-from app.data.maintenance.base.part_demand import PartDemand
+from app.data.maintenance.base.part_demands import PartDemand
 from app.buisness.core.event_context import EventContext
 
 

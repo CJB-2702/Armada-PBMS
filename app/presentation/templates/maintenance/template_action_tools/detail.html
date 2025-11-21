@@ -32,7 +32,7 @@
                     <dt class="col-sm-4">Template Action Item:</dt>
                     <dd class="col-sm-8">
                         {% if template_action_item %}
-                        <a href="{{ url_for('template_action_items.detail', template_action_item_id=template_action_item.id) }}">
+                        <a href="{{ url_for('proto_action_items.detail', template_action_item_id=template_action_item.id) }}">
                             {{ template_action_item.action_name }}
                         </a>
                         {% else %}

@@ -2,15 +2,17 @@ from app.data.core.user_created_base import UserCreatedBase
 from app import db
 
 class VirtualActionSet(UserCreatedBase):
-    """Virtual action sets created from templates"""
+    """
+    Virtual base class for action sets
+    Shared fields for MaintenanceActionSet and TemplateActionSet
+    """
     __abstract__ = True
     
     task_name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    sequence_order = db.Column(db.Integer, nullable=True, default=1)
-    revision = db.Column(db.String(20), nullable=True, default='1')
-    estimated_duration = db.Column(db.Float, nullable=True)
-    staff_count = db.Column(db.Integer, nullable=True, default=1)
+    estimated_duration = db.Column(db.Float, nullable=True)  # in hours
+    safety_review_required = db.Column(db.Boolean, default=False)
+    staff_count = db.Column(db.Integer, nullable=True)
     parts_cost = db.Column(db.Float, nullable=True)
     labor_hours = db.Column(db.Float, nullable=True)
-    safety_review_required = db.Column(db.Boolean, default=False)
+

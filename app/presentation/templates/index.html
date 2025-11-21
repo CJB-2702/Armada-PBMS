@@ -183,19 +183,14 @@
                         Plan and track maintenance schedules, service records, and repair history.
                     </p>
                     <div class="mb-3">
-                        <span class="status-indicator status-active"></span>
-                        <small class="text-success">Active</small>
+                        <span class="status-indicator status-development"></span>
+                        <small class="text-warning">In Development</small>
                     </div>
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('maintenance.index') }}" class="btn btn-info btn-sm">
                             <i class="bi bi-arrow-right"></i> Maintenance Dashboard
                         </a>
-                        <a href="{{ url_for('maintenance_plans.list') }}" class="btn btn-outline-info btn-sm">
-                            <i class="bi bi-list"></i> View Plans
-                        </a>
-                        <a href="{{ url_for('actions.list') }}" class="btn btn-outline-info btn-sm">
-                            <i class="bi bi-tools"></i> View Actions
-                        </a>
+                        <small class="text-muted">Data layer complete</small>
                     </div>
                 </div>
             </div>

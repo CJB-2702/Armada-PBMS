@@ -46,7 +46,7 @@
                             </label>
                             <select class="form-select form-select-lg" id="template_action_set_id" name="template_action_set_id" required onchange="updateTemplateInfo()">
                                 <option value="">-- Select a Maintenance Procedure --</option>
-                                {% for template in template_action_sets %}
+                                {% for template in template_actions %}
                                 <option value="{{ template.id }}" 
                                         data-description="{{ template.task_description or 'No description' }}"
                                         data-duration="{{ template.estimated_duration_hours or 'N/A' }}"

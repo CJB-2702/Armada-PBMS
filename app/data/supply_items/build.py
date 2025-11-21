@@ -29,7 +29,7 @@ def init_data(build_data):
     from app.data.supply_items.part import Part
     from app.data.supply_items.tool import Tool
     from app.data.supply_items.issuable_tool import IssuableTool
-    from app.data.maintenance.base.part_demand import PartDemand
+    from app.data.maintenance.base.part_demands import PartDemand
     from app.data.core.user_info.user import User
     
     # Get system user for audit fields
@@ -97,7 +97,7 @@ def test_supply_independence():
         from app.data.supply_items.part import Part
         from app.data.supply_items.tool import Tool
         from app.data.supply_items.issuable_tool import IssuableTool
-        from app.data.maintenance.base.part_demand import PartDemand
+        from app.data.maintenance.base.part_demands import PartDemand
         
         # Test that we can query supply tables
         parts_count = Part.query.count()

@@ -1,99 +1,168 @@
-from app.data.maintenance.templates.template_action_set import TemplateActionSet
+"""
+Maintenance Factory
+Main factory for creating complete maintenance workflows from templates.
+Coordinates all factories, handles transaction management, and validates business rules.
+"""
+
+from typing import Optional
+from datetime import datetime
+from app import db
+from app.logger import get_logger
 from app.buisness.maintenance.factories.maintenance_action_set_factory import MaintenanceActionSetFactory
 from app.buisness.maintenance.factories.action_factory import ActionFactory
-from app.buisness.maintenance.factories.part_demand_factory import PartDemandFactory
-from app import db
+from app.data.maintenance.base.maintenance_action_sets import MaintenanceActionSet
+from app.data.maintenance.templates.template_action_sets import TemplateActionSet
+
+logger = get_logger("asset_management.buisness.maintenance.factories")
+
 
 class MaintenanceFactory:
-    """Main factory for creating complete maintenance workflows from templates"""
+    """
+    Main factory for creating complete maintenance workflows from templates.
     
-    @staticmethod
-    def create_complete_maintenance_from_template(template_action_set: TemplateActionSet, **kwargs):
+    Responsibilities:
+    - Coordinate all factories
+    - Create complete maintenance event with all actions, parts, tools
+    - Handle transaction management
+    - Validate business rules
+    """
+    
+    @classmethod
+    def create_from_template(
+        cls,
+        template_action_set_id: int,
+        asset_id: int,
+        planned_start_datetime: Optional[datetime] = None,
+        maintenance_plan_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        commit: bool = True
+    ) -> MaintenanceActionSet:
         """
-        Create a complete maintenance workflow from a TemplateActionSet
+        Create complete maintenance event from template.
         
-        This includes:
-        - MaintenanceActionSet
-        - All Actions from TemplateActionItems
-        - All PartDemands from TemplatePartDemands
+        This is the main entry point for creating maintenance events from templates.
+        It coordinates the creation of:
+        - MaintenanceActionSet (with Event)
+        - All Actions (with PartDemands and ActionTools)
+        
+        Process: Template → Base (with Event creation)
+        1. Create MaintenanceActionSet from TemplateActionSet
+        2. Create Event (ONE-TO-ONE relationship)
+        3. Create Action records from TemplateActionItems
+        4. Create PartDemand records from TemplatePartDemands (standalone copies)
+        5. Create ActionTool records from TemplateActionTools (standalone copies)
         
         Args:
-            template_action_set: The template to create from
-            **kwargs: Additional parameters for creation
-                     (asset_id, scheduled_date, user_id, etc.)
-        
+            template_action_set_id: Template action set ID to copy from
+            asset_id: Asset ID for the maintenance event
+            planned_start_datetime: Planned start datetime (defaults to now)
+            maintenance_plan_id: Optional maintenance plan ID
+            user_id: User ID creating the maintenance event
+            commit: Whether to commit the transaction (default: True)
+            
         Returns:
-            dict: Dictionary containing created objects
-                {
-                    'maintenance_action_set': MaintenanceActionSet,
-                    'actions': list[Action],
-                    'part_demands': list[PartDemand]
-                }
+            Created MaintenanceActionSet instance with all related records
+            
+        Raises:
+            ValueError: If template not found, invalid parameters, or business rule violation
         """
-        # Create the maintenance action set
-        maintenance_action_set = MaintenanceActionSetFactory.create_from_template(
-            template_action_set, **kwargs
-        )
+        # Validate template exists
+        template_action_set = TemplateActionSet.query.get_or_404(template_action_set_id)
         
-        # Create all actions with their part demands
-        actions = []
-        all_part_demands = []
+        if not template_action_set.is_active:
+            logger.warning(f"Creating maintenance from inactive template: {template_action_set_id}")
         
-        template_action_items = template_action_set.template_action_items.order_by(
-            'sequence_order'
-        )
+        # Set defaults
+        if not planned_start_datetime:
+            planned_start_datetime = datetime.utcnow()
         
-        for template_action_item in template_action_items:
-            if template_action_item.is_required:
-                # Create action
-                action = ActionFactory.create_from_template(
-                    template_action_item, 
-                    maintenance_action_set.id, 
-                    kwargs.get('created_by_id')
+        if not user_id:
+            user_id = template_action_set.created_by_id
+        
+        try:
+            # Step 1: Create MaintenanceActionSet (this also creates the Event)
+            maintenance_action_set = MaintenanceActionSetFactory.create_from_template(
+                template_action_set_id=template_action_set_id,
+                asset_id=asset_id,
+                planned_start_datetime=planned_start_datetime,
+                maintenance_plan_id=maintenance_plan_id,
+                user_id=user_id,
+                commit=False  # Don't commit yet, wait for all actions
+            )
+            
+            # Step 2: Create all Actions from TemplateActionItems
+            # This also creates PartDemands and ActionTools
+            actions = ActionFactory.create_from_template_action_set(
+                template_action_set_id=template_action_set_id,
+                maintenance_action_set_id=maintenance_action_set.id,
+                user_id=user_id,
+                commit=False  # Don't commit yet
+            )
+            
+            # Validate business rules
+            if not actions:
+                logger.warning(f"No actions created from template {template_action_set_id}")
+            
+            # Commit all changes
+            if commit:
+                db.session.commit()
+                logger.info(
+                    f"Created complete maintenance event {maintenance_action_set.id} "
+                    f"from template {template_action_set_id} with {len(actions)} actions"
                 )
-                actions.append(action)
-                
-                # Create part demands for this action
-                part_demands = PartDemandFactory.create_all_from_template_action_item(
-                    template_action_item, 
-                    action.id, 
-                    kwargs.get('created_by_id')
+            else:
+                db.session.flush()
+                logger.info(
+                    f"Created complete maintenance event {maintenance_action_set.id} "
+                    f"from template {template_action_set_id} with {len(actions)} actions (not committed)"
                 )
-                all_part_demands.extend(part_demands)
-        
-        return {
-            'maintenance_action_set': maintenance_action_set,
-            'actions': actions,
-            'part_demands': all_part_demands
-        }
+            
+            return maintenance_action_set
+            
+        except Exception as e:
+            # Rollback on error
+            db.session.rollback()
+            logger.error(f"Failed to create maintenance from template {template_action_set_id}: {str(e)}")
+            raise
     
-    @staticmethod
-    def create_maintenance_action_set_only(template_action_set: TemplateActionSet, **kwargs):
+    @classmethod
+    def create_from_maintenance_plan(
+        cls,
+        maintenance_plan_id: int,
+        asset_id: int,
+        planned_start_datetime: Optional[datetime] = None,
+        user_id: Optional[int] = None,
+        commit: bool = True
+    ) -> MaintenanceActionSet:
         """
-        Create only a MaintenanceActionSet from a TemplateActionSet (no actions)
+        Create maintenance event from maintenance plan.
         
         Args:
-            template_action_set: The template to create from
-            **kwargs: Additional parameters for creation
-        
+            maintenance_plan_id: Maintenance plan ID
+            asset_id: Asset ID for the maintenance event
+            planned_start_datetime: Planned start datetime (defaults to now)
+            user_id: User ID creating the maintenance event
+            commit: Whether to commit the transaction (default: True)
+            
         Returns:
-            MaintenanceActionSet: The created maintenance action set
+            Created MaintenanceActionSet instance
+            
+        Raises:
+            ValueError: If maintenance plan not found or invalid
         """
-        return MaintenanceActionSetFactory.create_from_template(template_action_set, **kwargs)
-    
-    @staticmethod
-    def add_actions_to_maintenance_action_set(maintenance_action_set, template_action_set: TemplateActionSet, user_id: int):
-        """
-        Add actions to an existing maintenance action set from a template
+        from app.data.maintenance.base.maintenance_plans import MaintenancePlan
         
-        Args:
-            maintenance_action_set: The existing maintenance action set
-            template_action_set: The template to create actions from
-            user_id: ID of the user creating the actions
+        maintenance_plan = MaintenancePlan.query.get_or_404(maintenance_plan_id)
         
-        Returns:
-            list[Action]: List of created actions
-        """
-        return ActionFactory.create_all_from_template_action_set(
-            template_action_set, maintenance_action_set.id, user_id
+        if not maintenance_plan.template_action_set_id:
+            raise ValueError(f"Maintenance plan {maintenance_plan_id} has no template action set")
+        
+        return cls.create_from_template(
+            template_action_set_id=maintenance_plan.template_action_set_id,
+            asset_id=asset_id,
+            planned_start_datetime=planned_start_datetime,
+            maintenance_plan_id=maintenance_plan_id,
+            user_id=user_id,
+            commit=commit
         )
+

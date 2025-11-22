@@ -741,16 +741,37 @@ Each module should contain its own independent build and data initialization fil
 4. **Module Isolation**: Each module can be built and initialized independently
 
 #### Build Flow
-1. **app.py** calls `app.build.build_database()`
+1. **app.py** calls `app.build.build_database()` with command-line flags
 2. **app/build.py** orchestrates the overall build process with phase-specific options
 3. **Category builders** in `app/data/*/build.py` coordinate their specific model builds
 4. **Data layer builders** (core, assets, maintenance, inventory, dispatching) build their specific models
+5. **Critical data** is always verified and inserted (from `app/data/core/build_data_critical.json`)
+6. **Debug data** is optionally inserted based on command-line flags (from `app/debug/data/*.json`)
+
+#### Build Command-Line Flags
+The build system supports command-line flags for controlling database initialization:
+
+```bash
+python app.py [OPTIONS]
+
+Options:
+  --build-only          Build database tables only, exit without starting server
+  --enable-debug-data   Enable debug data insertion (default: True)
+  --no-debug-data       Disable debug data insertion
+  --phase1, --phase2a, --phase2b, --all  Build specific phases (default: all)
+```
+
+**Flag Behavior**:
+- `--build-only`: Creates tables and inserts data, then exits (useful for database initialization)
+- `--enable-debug-data` / `--no-debug-data`: Controls whether test/debugging data is inserted
+- If neither flag is specified, debug data defaults to enabled
+- Critical data (from `build_data_critical.json`) is always inserted regardless of flags
 
 #### Model Build System
 The build system supports flexible phase-specific building:
 
 ```python
-def build_database(build_phase='all', data_phase='all'):
+def build_database(build_phase='all', data_phase='all', enable_debug_data=True):
     """
     build_phase options:
     - 'phase1': Core Foundation Tables only (Model Phase 1A)
@@ -764,8 +785,40 @@ def build_database(build_phase='all', data_phase='all'):
     - 'phase2b': Phase 1 Core System Initialization + Automatic Detail Creation toggle + create assets and details
     - 'all': highest phase (default = phase2b)
     - 'none': Skip data insertion
+    
+    enable_debug_data: If True, insert debug/test data after critical data (default: True)
     """
 ```
+
+#### Debug Data Insertion System
+The debug data system provides a modular, phase-aware mechanism for inserting test and development data:
+
+**Location**: `app/debug/`
+
+**Structure**:
+- `debug_data_manager.py`: Central orchestrator for debug data insertion
+- `add_*_debugging_data.py`: Module-specific insertion functions (core, assets, dispatching, maintenance, inventory)
+- `data/*.json`: Module-specific debug data files (core.json, assets.json, dispatching.json, maintenance.json, inventory.json)
+
+**Key Features**:
+- **Idempotent**: Checks for existing data before insertion, skips if already present
+- **Phase-Aware**: Respects build order (core → assets → dispatching → inventory → maintenance)
+- **Transactional**: All-or-nothing insertion (fails fast on errors)
+- **Factory-Based**: Uses business layer factories and contexts for data creation
+- **Automatic Tool/Part Copying**: Proto tools automatically copied to templates when template actions reference proto actions
+
+**Data Separation**:
+- **Critical Data** (`app/data/core/build_data_critical.json`): Essential production data, always inserted
+- **Debug Data** (`app/debug/data/*.json`): Test/development data, inserted only when enabled
+
+**Insertion Order**:
+1. Critical data verification and insertion (always)
+2. Debug data insertion (if enabled):
+   - Core (users, locations, assets, supply/parts/tools)
+   - Assets (detail templates, model details)
+   - Dispatching (configurations, example dispatches)
+   - Inventory (parts, tools - now part of core)
+   - Maintenance (proto actions, templates, plans, events)
 
 ### User Management System
 

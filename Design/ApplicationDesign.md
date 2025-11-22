@@ -198,6 +198,37 @@ from app.domain.assets import AssetContext  # Old path - don't use
 - Role-based access control (RBAC)
 - System user protection (cannot be modified by regular users)
 
+## Database Build System
+
+### Build Command-Line Flags
+The application supports command-line flags for controlling database initialization:
+
+```bash
+python app.py [OPTIONS]
+
+Options:
+  --build-only          Build database tables only, exit without starting server
+  --enable-debug-data   Enable debug data insertion (default: True)
+  --no-debug-data       Disable debug data insertion
+  --phase1, --phase2a, --phase2b, --all  Build specific phases (default: all)
+```
+
+**Usage Examples**:
+- `python app.py --build-only`: Initialize database with all data, then exit
+- `python app.py --build-only --no-debug-data`: Initialize database with only critical data
+- `python app.py`: Normal startup (builds if needed, then starts server)
+
+### Debug Data System
+The debug data system (`app/debug/`) provides modular test data insertion:
+
+- **Critical Data**: Always inserted from `app/data/core/build_data_critical.json` (essential production data)
+- **Debug Data**: Optionally inserted from `app/debug/data/*.json` when `--enable-debug-data` is set (default)
+- **Idempotent**: Automatically skips insertion if data already exists
+- **Phase-Aware**: Respects build dependencies (core → assets → dispatching → inventory → maintenance)
+- **Factory-Based**: Uses business layer factories and contexts for proper data creation
+
+See [SystemDesign.md](SystemDesign.md) for detailed architecture information.
+
 ## References
 - **System Design**: See [SystemDesign.md](SystemDesign.md) for architecture, modules, and development patterns
 - **Widget Components**: See [widgets.md](widgets.md) for tracked widget components

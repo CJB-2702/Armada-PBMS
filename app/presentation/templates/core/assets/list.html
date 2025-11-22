@@ -127,7 +127,7 @@
                         </thead>
                         <tbody>
                             {% for asset in assets.items %}
-                            <tr hx-get="{{ url_for('core_assets.asset_details_card', asset_id=asset.id) }}"
+                            <tr hx-get="{{ url_for('assets.asset_details_card.asset_details_card', asset_id=asset.id) }}"
                                 hx-target="#asset-details-container"
                                 hx-swap="innerHTML"
                                 style="cursor: pointer;"
@@ -295,7 +295,7 @@
             </div>
             <div class="card-body">
                 <div id="asset-details-container"
-                     hx-get="{{ url_for('core_assets.asset_details_card') }}"
+                     hx-get="{{ url_for('assets.asset_details_card.asset_details_card') }}"
                      hx-trigger="load"
                      hx-swap="innerHTML">
                     <div class="text-center py-4">

@@ -21,7 +21,7 @@
                 <p class="text-muted">Serial Number: <code>{{ asset.serial_number }}</code></p>
             </div>
             <div class="btn-group" role="group">
-                <a href="{{ url_for('core_assets.all_details', asset_id=asset.id) }}" class="btn btn-info">
+                <a href="{{ url_for('assets.all_details.all_details', asset_id=asset.id) }}" class="btn btn-info">
                     <i class="bi bi-table"></i> All Details
                 </a>
                 <a href="{{ url_for('core_assets.edit', asset_id=asset.id) }}" class="btn btn-primary">
@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row" id="core-asset-details-cards">
     <!-- Asset Information -->
     <div class="col-md-8">
         <div class="card mb-4">
@@ -253,7 +253,7 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('core_assets.all_details', asset_id=asset.id) }}" class="btn btn-outline-info">
+                    <a href="{{ url_for('assets.all_details.all_details', asset_id=asset.id) }}" class="btn btn-outline-info">
                         <i class="bi bi-table"></i> View All Details
                     </a>
                     <a href="{{ url_for('core_assets.edit', asset_id=asset.id) }}" class="btn btn-outline-primary">

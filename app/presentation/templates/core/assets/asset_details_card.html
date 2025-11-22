@@ -212,7 +212,7 @@
                         <a href="{{ url_for('core_assets.detail', asset_id=asset.id) }}" class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-eye"></i> View Full Details
                         </a>
-                        <a href="{{ url_for('core_assets.all_details', asset_id=asset.id) }}" class="btn btn-outline-info btn-sm">
+                        <a href="{{ url_for('assets.all_details.all_details', asset_id=asset.id) }}" class="btn btn-outline-info btn-sm">
                             <i class="bi bi-table"></i> View All Details ({{ detail_count }})
                         </a>
                         <a href="{{ url_for('core_assets.edit', asset_id=asset.id) }}" class="btn btn-outline-secondary btn-sm">

@@ -9,7 +9,6 @@ from app.data.core.asset_info.asset import Asset
 from app.data.core.event_info.event import Event
 from app.buisness.assets.factories.asset_factory import AssetFactory
 from app.buisness.core.asset_context import AssetContext as CoreAssetContext
-from app.buisness.assets.asset_details_context import AssetDetailsContext
 from app.services.core.asset_service import AssetService
 from app import db
 from app.logger import get_logger
@@ -176,48 +175,4 @@ def delete(asset_id):
     db.session.commit()
     
     flash('Asset deleted successfully', 'success')
-    return redirect(url_for('core_assets.list'))
-
-@bp.route('/assets/<int:asset_id>/all-details')
-@login_required
-def all_details(asset_id):
-    """View all detail records for an asset using the new template structure"""
-    asset_context = AssetDetailsContext(asset_id)
-    
-    # Get details grouped by type using service (presentation-specific)
-    from app.services.assets.asset_detail_service import AssetDetailService
-    asset_details = AssetDetailService.get_asset_details_by_type(asset_id)
-    model_details = AssetDetailService.get_model_details_by_type(asset_id)
-    
-    # Get configurations using service (presentation-specific)
-    asset_type_configs = AssetDetailService.get_asset_type_configs(asset_context.asset_type_id) if asset_context.asset_type_id else []
-    model_type_configs = AssetDetailService.get_model_type_configs(asset_context.asset.make_model_id) if asset_context.asset.make_model_id else []
-    
-    return render_template('core/assets/all_details.html',
-                         asset=asset_context.asset,
-                         asset_details=asset_details,
-                         model_details=model_details,
-                         asset_type_configs=asset_type_configs,
-                         model_type_configs=model_type_configs)
-
-@bp.route('/assets/details-card')
-@bp.route('/assets/details-card/<int:asset_id>')
-@login_required
-def asset_details_card(asset_id=None):
-    """HTMX endpoint for asset details card"""
-    if asset_id is None:
-        # Return empty state
-        return render_template('core/assets/asset_details_card.html', asset=None)
-    
-    asset_context = AssetDetailsContext(asset_id)
-    
-    # Get recent events from service (presentation-specific query)
-    events = AssetService.get_recent_events(asset_id, limit=5)
-    
-    return render_template('core/assets/asset_details_card.html',
-                         asset=asset_context.asset,
-                         asset_type=asset_context.asset_type,
-                         make_model=asset_context.make_model,
-                         location=asset_context.major_location,
-                         events=events,
-                         detail_count=asset_context.detail_count) 
+    return redirect(url_for('core_assets.list')) 

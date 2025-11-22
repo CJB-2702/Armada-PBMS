@@ -11,9 +11,12 @@ Handles:
 Note: Detail table management is handled by AssetDetailsContext in domain.assets
 """
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, TYPE_CHECKING
 from app.data.core.asset_info.asset import Asset
 from app.data.core.event_info.event import Event
+
+if TYPE_CHECKING:
+    from app.buisness.core.asset_factory_base import AssetFactoryBase
 
 
 class AssetContext:
@@ -24,9 +27,40 @@ class AssetContext:
     - Accessing asset and related core models (MakeModel, MajorLocation, AssetType)
     - Querying events related to the asset
     - Accessing basic asset properties
+    - Creating new assets via factory pattern
     
     Uses only models from app.models.core.*
+    
+    Factory Replacement Strategy:
+    =============================
+    This class uses a factory replacement pattern to eliminate import dependencies
+    from the core module to the assets module while maintaining important functionality.
+    
+    HOW IT WORKS:
+    - AssetContext has a static class attribute 'asset_factory' that holds a factory instance
+    - The core module provides CoreAssetFactory (basic asset creation + events)
+    - The assets module can replace this factory with AssetDetailsFactory (adds detail creation)
+    - When assets module is imported, it replaces AssetContext.asset_factory with AssetDetailsFactory
+    - Almost all of the time, the factory will be AssetDetailsFactory in place
+    
+    WHY THIS APPROACH:
+    - Core module has ZERO imports from assets module (maintains module independence)
+    - Assets module imports core (reverse dependency - allowed direction)
+    - Factory replacement happens at runtime when assets module is imported
+    - If assets module is not imported, core factory is used (graceful degradation)
+    - Business logic (event creation, detail creation) is in business layer, not data layer
+    
+    FACTORY LIFECYCLE:
+    1. Initially, asset_factory is None
+    2. On first AssetContext.create() call, if factory is None, CoreAssetFactory is created (lazy init)
+    3. When assets module is imported, it checks factory type and replaces with AssetDetailsFactory
+    4. Subsequent create() calls use AssetDetailsFactory (which includes detail creation)
     """
+    
+    # Static factory attribute - can be replaced by feature modules
+    # Almost all of the time, this will be AssetDetailsFactory (set when assets module is imported)
+    # If assets module is not imported, this will be CoreAssetFactory (created on first use)
+    asset_factory: 'AssetFactoryBase' = None
     
     def __init__(self, asset: Union[Asset, int]):
         """
@@ -103,6 +137,71 @@ class AssetContext:
             List of Event instances
         """
         return Event.query.filter_by(asset_id=self._asset_id).order_by(Event.timestamp.desc()).limit(limit).all()
+    
+    @classmethod
+    def create(
+        cls,
+        created_by_id: Optional[int] = None,
+        commit: bool = True,
+        enable_detail_insertion: bool = True,
+        **kwargs
+    ) -> 'AssetContext':
+        """
+        Create a new asset using the configured factory.
+        
+        This method uses the factory replacement pattern:
+        - If assets module is imported, uses AssetDetailsFactory (creates asset + events + details)
+        - If assets module not imported, uses CoreAssetFactory (creates asset + events only)
+        - Factory is lazily initialized if not set
+        
+        Args:
+            created_by_id: ID of the user creating the asset
+            commit: Whether to commit the transaction
+            enable_detail_insertion: Whether to create detail rows (only works with AssetDetailsFactory)
+            **kwargs: Asset fields (name, serial_number, make_model_id, etc.)
+            
+        Returns:
+            AssetContext instance for the newly created asset
+            
+        Raises:
+            ValueError: If required fields are missing or serial number is duplicate
+        """
+        # Lazy initialization: if factory not set, use core factory
+        # This ensures the system works even if assets module is never imported
+        if cls.asset_factory is None:
+            from app.buisness.core.core_asset_factory import CoreAssetFactory
+            cls.asset_factory = CoreAssetFactory()
+        
+        # Use the configured factory to create the asset
+        # In most cases, this will be AssetDetailsFactory (set by assets module)
+        asset = cls.asset_factory.create_asset(
+            created_by_id=created_by_id,
+            commit=commit,
+            enable_detail_insertion=enable_detail_insertion,
+            **kwargs
+        )
+        
+        return cls(asset)
+    
+    @classmethod
+    def get_factory_type(cls) -> str:
+        """
+        Get the type of the current factory (for debugging and introspection).
+        
+        This is useful for:
+        - Debugging which factory is being used
+        - Logging factory type in application logs
+        - Verifying factory replacement worked correctly
+        
+        Returns:
+            str: Factory type identifier:
+                - "core" if CoreAssetFactory is in use
+                - "detail factory" if AssetDetailsFactory is in use
+                - "None (will use CoreAssetFactory on first create)" if factory not yet initialized
+        """
+        if cls.asset_factory is None:
+            return "None (will use CoreAssetFactory on first create)"
+        return cls.asset_factory.get_factory_type()
     
     def refresh(self):
         """Refresh cached data from database"""

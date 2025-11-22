@@ -2,6 +2,11 @@ from app.data.core.user_created_base import UserCreatedBase
 from app import db
 from datetime import datetime
 
+# this class is supposed to define information about a part
+# ex that a part exists with name washer and serial number 1234567890
+# it only has an inventory column for ease of access
+# all inventory and issuance information should be managed in the inventory module
+
 class Part(UserCreatedBase):
     __tablename__ = 'parts'
     

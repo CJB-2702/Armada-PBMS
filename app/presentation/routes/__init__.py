@@ -24,11 +24,14 @@ def init_app(app):
     app.register_blueprint(assets.bp, url_prefix='/assets')
 
     # Register individual core route blueprints
-    from .core import assets as core_assets, locations, asset_types, make_models, users
+    from .core import assets as core_assets, locations, asset_types, make_models, users, dashboard
     from .core.events import events as core_events
     from .core.events import comments as core_comments
     from .core.events import attachments as core_attachments
 
+    # Register core dashboard
+    app.register_blueprint(dashboard.bp, url_prefix='/core')
+    
     app.register_blueprint(core_events.bp, url_prefix='/core')
     app.register_blueprint(core_assets.bp, url_prefix='/core', name='core_assets')
     app.register_blueprint(locations.bp, url_prefix='/core')
@@ -114,12 +117,21 @@ def init_app(app):
         logger.warning(f"Maintenance main blueprint not available during rebuild: {e}")
         pass
     
-    # Register supply blueprints (using new implementations)
-    from .supply.main import supply_bp
-    from .supply import parts as new_parts, tools as new_tools
-    
-    app.register_blueprint(supply_bp)
-    app.register_blueprint(new_parts.bp, url_prefix='/supply', name='supply.new_parts')
-    app.register_blueprint(new_tools.bp, url_prefix='/supply', name='supply.new_tools')
+    # Register supply blueprints (integrated into core section)
+    try:
+        from .core.supply.main import supply_bp
+        from .core.supply import parts as core_supply_parts, tools as core_supply_tools, issuable_tools as core_supply_issuable_tools
+        
+        # Register main supply blueprint with /core prefix
+        app.register_blueprint(supply_bp, url_prefix='/core')
+        
+        # Register parts, tools, and issuable_tools blueprints separately to avoid nested endpoint names
+        app.register_blueprint(core_supply_parts.bp, url_prefix='/core/supply/parts')
+        app.register_blueprint(core_supply_tools.bp, url_prefix='/core/supply/tools')
+        app.register_blueprint(core_supply_issuable_tools.bp, url_prefix='/core/supply/issuable-tools')
+        
+        logger.info("Registered core supply blueprints")
+    except ImportError as e:
+        logger.warning(f"Core supply blueprints not available: {e}")
     
     logger.info("All route blueprints registered successfully") 

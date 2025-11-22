@@ -5,7 +5,7 @@ Presentation service for part-related queries (stock status, demands).
 
 from typing import Dict, List, Optional, Any
 from app.data.maintenance.base.part_demands import PartDemand
-from app.data.supply_items.part import Part
+from app.data.core.supply.part import Part
 from app.services.inventory.inventory_service import InventoryService
 
 

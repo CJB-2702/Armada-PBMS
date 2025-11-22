@@ -8,7 +8,7 @@ from datetime import datetime
 from flask_sqlalchemy.pagination import Pagination
 from app.data.inventory.base import InventoryMovement
 from app.data.core.major_location import MajorLocation
-from app.data.supply_items.part import Part
+from app.data.core.supply.part import Part
 
 
 class InventoryMovementService:

@@ -40,13 +40,61 @@
                             Core Management
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('users.list') }}">Users</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('locations.list') }}">Locations</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('asset_types.list') }}">Asset Types</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('make_models.list') }}">Make/Models</a></li>
+                            <!-- Dashboard -->
+                            <li><a class="dropdown-item" href="{{ url_for('core_dashboard.dashboard') }}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('core_assets.list') }}">Assets</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('events.list') }}">Events</a></li>
+                            
+                            <!-- Asset Info Section -->
+                            <li><h6 class="dropdown-header">
+                                <i class="bi bi-truck"></i> Asset Info
+                            </h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('core_assets.list') }}">
+                                <i class="bi bi-list-ul"></i> Assets
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('asset_types.list') }}">
+                                <i class="bi bi-tags"></i> Asset Types
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('make_models.list') }}">
+                                <i class="bi bi-tag"></i> Make/Models
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <!-- Event Info Section -->
+                            <li><h6 class="dropdown-header">
+                                <i class="bi bi-calendar-event"></i> Event Info
+                            </h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('events.list') }}">
+                                <i class="bi bi-list-ul"></i> Events
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <!-- Supply Section -->
+                            <li><h6 class="dropdown-header">
+                                <i class="bi bi-box-seam"></i> Supply
+                            </h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('core_supply_parts.list') }}">
+                                <i class="bi bi-box"></i> Parts
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('core_supply_tools.list') }}">
+                                <i class="bi bi-tools"></i> Tool Definitions
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('core_supply_issuable_tools.list') }}">
+                                <i class="bi bi-wrench"></i> Issuable Tools
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <!-- User Info Section -->
+                            <li><h6 class="dropdown-header">
+                                <i class="bi bi-people"></i> User Info
+                            </h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('users.list') }}">
+                                <i class="bi bi-person"></i> Users
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('locations.list') }}">
+                                <i class="bi bi-geo-alt"></i> Locations
+                            </a></li>
                         </ul>
                     </li>
                     
@@ -69,18 +117,6 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('maintenance.index') }}">Dashboard</a></li>
-                        </ul>
-                    </li>
-                    
-                    <!-- Supply -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Supply
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('supply.index') }}">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('supply.new_parts.list') }}">Parts</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('supply.new_tools.list') }}">Tools</a></li>
                         </ul>
                     </li>
                     

@@ -41,13 +41,143 @@ def check_system_initialization():
         logger.error(f"Error checking system initialization: {e}")
         return False
 
-def build_database(build_phase='all', data_phase='all'):
+
+def verify_critical_data():
+    """
+    Verify that critical data is present in the database
+    
+    Returns:
+        bool: True if all critical data is present, False otherwise
+    """
+    from app.data.core.user_info.user import User
+    from app.data.core.event_info.event import Event
+    from app.data.core.asset_info.asset_type import AssetType
+    
+    try:
+        # Check for System user (id=0)
+        system_user = User.query.filter_by(id=0, username='system').first()
+        if not system_user:
+            logger.warning("System user (id=0) not found")
+            return False
+        
+        # Check for Admin user (id=1)
+        admin_user = User.query.filter_by(id=1, username='admin').first()
+        if not admin_user:
+            logger.warning("Admin user (id=1) not found")
+            return False
+        
+        # Check for System_Initialized event
+        system_event = Event.query.filter_by(
+            event_type='System',
+            description='System initialized with core data'
+        ).first()
+        if not system_event:
+            logger.warning("System_Initialized event not found")
+            return False
+        
+        # Check for Vehicle asset type
+        vehicle_type = AssetType.query.filter_by(name='Vehicle').first()
+        if not vehicle_type:
+            logger.warning("Vehicle asset type not found")
+            return False
+        
+        logger.info("Critical data verification passed")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error verifying critical data: {e}")
+        return False
+
+
+def insert_critical_data():
+    """
+    Insert critical data that must always be present
+    
+    Loads from app/data/core/build_data_critical.json and inserts using factories.
+    This function is called ALWAYS, regardless of flags.
+    
+    Raises:
+        FileNotFoundError: If critical data file not found
+        Exception: If critical data insertion fails (stops application)
+    """
+    critical_file = Path(__file__).parent / 'data' / 'core' / 'build_data_critical.json'
+    
+    if not critical_file.exists():
+        error_msg = f"Critical data file not found: {critical_file}"
+        logger.error(error_msg)
+        raise FileNotFoundError(error_msg)
+    
+    logger.info("Loading critical data from build_data_critical.json...")
+    with open(critical_file, 'r') as f:
+        critical_data = json.load(f)
+    
+    # Verify critical data is present first
+    if verify_critical_data():
+        logger.info("Critical data already present, skipping insertion")
+        return
+    
+    logger.warning("Critical data missing, attempting insertion...")
+    
+    # Get system user for audit fields (may not exist yet)
+    from app.data.core.user_info.user import User
+    system_user = User.query.filter_by(username='system').first()
+    system_user_id = system_user.id if system_user else None
+    
+    try:
+        # Insert Essential Users
+        if 'Essential' in critical_data and 'Users' in critical_data['Essential']:
+            logger.info("Inserting essential users...")
+            for user_key, user_data in critical_data['Essential']['Users'].items():
+                User.find_or_create_from_dict(
+                    user_data,
+                    user_id=system_user_id,
+                    lookup_fields=['username']
+                )
+                logger.info(f"Inserted essential user: {user_data.get('username')}")
+        
+        # Insert Essential Events (System_Initialized)
+        if 'Essential' in critical_data and 'Events' in critical_data['Essential']:
+            logger.info("Inserting essential events...")
+            from app.data.core.build import create_system_initialization_event
+            # The create_system_initialization_event function handles the event creation
+            create_system_initialization_event(system_user_id, force_create=True)
+        
+        # Insert Core Asset Types
+        if 'Core' in critical_data and 'Asset_Types' in critical_data['Core']:
+            logger.info("Inserting core asset types...")
+            from app.data.core.asset_info.asset_type import AssetType
+            for type_key, type_data in critical_data['Core']['Asset_Types'].items():
+                AssetType.find_or_create_from_dict(
+                    type_data,
+                    user_id=system_user_id,
+                    lookup_fields=['name']
+                )
+                logger.info(f"Inserted asset type: {type_data.get('name')}")
+        
+        db.session.commit()
+        logger.info("Successfully inserted critical data")
+        
+        # Verify again after insertion
+        if not verify_critical_data():
+            error_msg = "Critical data insertion completed but verification failed"
+            logger.error(error_msg)
+            raise Exception(error_msg)
+        
+    except Exception as e:
+        db.session.rollback()
+        error_msg = f"Critical data insertion failed: {e}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
+
+def build_database(build_phase='all', data_phase='all', enable_debug_data=True):
     """
     Main build orchestrator for the Asset Management System
     
     Args:
         build_phase (str): 'phase1', 'phase2', 'phase3', 'all', or 'none'
         data_phase (str): 'phase1', 'phase2', 'phase3', 'all', or 'none'
+        enable_debug_data (bool): Whether to insert debug data (default: True)
+                                  Note: Critical data is ALWAYS checked and inserted regardless of flags
     """
     app = create_app()
     
@@ -58,37 +188,44 @@ def build_database(build_phase='all', data_phase='all'):
         if build_phase != 'none':
             build_models(build_phase)
         
-        # Check if system is properly initialized (after models are built)
+        # ALWAYS verify and insert critical data (regardless of flags)
+        # Critical data must be present for the application to function
+        logger.info("Verifying and inserting critical data (always required)...")
+        try:
+            insert_critical_data()
+        except Exception as e:
+            logger.error(f"Critical data insertion failed: {e}")
+            logger.error("Application cannot continue without critical data. Stopping build.")
+            raise
+        
+        # Check if system is properly initialized (after critical data is inserted)
         system_initialized = check_system_initialization()
         
-        # Insert data based on phase
-        if data_phase != 'none':
+        # Data insertion is now handled by:
+        # 1. insert_critical_data() - Always runs (handled above)
+        # 2. debug_data_manager - Handles all test/debug data (handled below)
+        # The old insert_data() function has been removed as all test data
+        # insertion has been moved to the debug data manager
+        
+        # Ensure system initialization event exists (part of critical data)
+        if not system_initialized:
+            logger.info("System not properly initialized, forcing system initialization event creation")
+            from app.data.core.build import create_system_initialization_event
+            from app.data.core.user_info.user import User
+            
+            system_user = User.query.filter_by(username='system').first()
+            system_user_id = system_user.id if system_user else None
+            
+            create_system_initialization_event(system_user_id, force_create=True)
+        
+        # Insert debug data (if enabled and not --build-only)
+        if enable_debug_data and data_phase != 'none':
             try:
-                insert_data(data_phase)
-                
-                # If this is the first time or system failed to init properly, force create system event
-                if not system_initialized:
-                    logger.info("System not properly initialized, forcing system initialization event creation")
-                    from app.data.core.build import create_system_initialization_event
-                    from app.data.core.user_info.user import User
-                    
-                    system_user = User.query.filter_by(username='system').first()
-                    system_user_id = system_user.id if system_user else None
-                    
-                    create_system_initialization_event(system_user_id, force_create=True)
-                    
+                from app.debug.debug_data_manager import insert_debug_data
+                logger.info("Inserting debug data...")
+                insert_debug_data(enabled=True, phase=data_phase)
             except Exception as e:
-                logger.error(f"Error during data insertion: {e}")
-                logger.info("System initialization failed, creating system failure event")
-                
-                # Force create system failure event to indicate system failure
-                from app.data.core.build import create_system_failure_event
-                from app.data.core.user_info.user import User
-                
-                system_user = User.query.filter_by(username='system').first()
-                system_user_id = system_user.id if system_user else None
-                
-                create_system_failure_event(system_user_id, str(e))
+                logger.error(f"Debug data insertion failed: {e}")
                 raise
         
         logger.info("Database build completed successfully")
@@ -119,7 +256,7 @@ def build_models(phase):
     
     if phase in ['phase4', 'phase5', 'phase6', 'all']:
         logger.info("Building Phase 4 models (Supply)")
-        from app.data.supply_items.build import build_models as build_supply_models
+        from app.data.core.supply.build import build_models as build_supply_models
         build_supply_models()
     
     if phase in ['phase5', 'phase6', 'all']:
@@ -136,107 +273,17 @@ def build_models(phase):
     db.create_all()
     logger.info("All database tables created")
 
-def insert_data(phase):
-    """
-    Insert initial data based on the specified phase
-    
-    Args:
-        phase (str): 'phase1', 'phase2', 'phase3', 'phase4', 'phase5', 'phase6', or 'all'
-    """
-    logger.info(f"Inserting data for phase: {phase}")
-    
-    # Load build data
-    build_data = load_build_data()
-    
-    if phase in ['phase1','phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
-        logger.info("Inserting Phase 1 data (Core Foundation)")
-        from app.data.core.build import init_data
-        init_data(build_data)
-    
-    if phase in ['phase2', 'phase3', 'phase4', 'phase5', 'phase6', 'all']:
-        logger.info("Inserting Phase 2 data (Asset Details)")
-        from app.data.assets.build import phase_2_init_data
-        phase_2_init_data(build_data)
-    
-    if phase in ['phase3', 'phase4', 'phase5', 'phase6', 'all']:
-        logger.info("Inserting Phase 3 data (Dispatching)")
-        try:
-            from app.data.core.asset_info.asset import Asset
-            from app.data.core.build import init_essential_data
-            from app.data.assets.build import phase3_insert_data, phase3_update_data
-            
-            # Automatic detail insertion is now enabled by default in assets build
-            init_essential_data(build_data)
-            phase3_insert_data(build_data)
-            phase3_update_data(build_data)
-            
-            # Create dispatching users (after core users are created)
-            if 'Dispatching' in build_data and 'Users' in build_data['Dispatching']:
-                logger.info("Creating dispatching users...")
-                from app.data.core.user_info.user import User
-                system_user = User.query.filter_by(username='system').first()
-                system_user_id = system_user.id if system_user else None
-                
-                for user_key, user_data in build_data['Dispatching']['Users'].items():
-                    User.find_or_create_from_dict(
-                        user_data,
-                        user_id=system_user_id,
-                        lookup_fields=['username']
-                    )
-                    logger.info(f"Created dispatching user: {user_data.get('username')}")
-            
-            # Setup dispatching configurations
-            from app.data.dispatching.build import create_sample_dispatch_configurations, create_example_dispatch_records
-            create_sample_dispatch_configurations()
-            create_example_dispatch_records()
-        except ImportError as e:
-            logger.error(f"Phase 3 failed to insert data: {e}")
-            raise
-    
-    if phase in ['phase4', 'phase5', 'phase6', 'all']:
-        logger.info("Inserting Phase 4 data (Supply)")
-        try:
-            from app.data.supply_items.build import init_data as init_supply_data
-            init_supply_data(build_data)
-        except ImportError as e:
-            logger.error(f"Phase 4 failed to insert data: {e}")
-            raise
-    
-    if phase in ['phase5', 'phase6', 'all']:
-        logger.info("Inserting Phase 5 data (Maintenance)")
-        try:
-            from app.data.maintenance.build import init_data as init_maintenance_data
-            init_maintenance_data(build_data)
-        except ImportError as e:
-            logger.error(f"Phase 5 failed to insert data: {e}")
-            raise
-    
-    if phase in ['phase6', 'all']:
-        logger.info("Phase 6 data (Inventory & Purchasing)")
-        logger.info("No sample data configured for Phase 6 yet")
-        # Future: Add Phase 6 sample data
-        # from app.models.inventory.build import init_sample_data
-        # init_sample_data()
-    
-    if phase in ['phase4', 'phase5', 'phase6', 'all']:
-        logger.info("Setting up User Interface data")
-        create_default_admin_user()
+# insert_data() function has been removed
+# All data insertion is now handled by:
+# 1. insert_critical_data() - Handles critical data (always runs)
+# 2. debug_data_manager.insert_debug_data() - Handles all test/debug data
+# Build files now only contain table creation logic (build_models functions)
 
 
-def load_build_data():
-    """
-    Load build data from JSON file
-    
-    Returns:
-        dict: Build data from JSON file
-    """
-    config_file = Path(__file__).parent / 'utils' / 'build_data.json'
-    
-    if not config_file.exists():
-        raise FileNotFoundError(f"Build data file not found: {config_file}")
-    
-    with open(config_file, 'r') as f:
-        return json.load(f)
+# load_build_data() function removed
+# Build data is now loaded by:
+# 1. insert_critical_data() - Loads from app/data/core/build_data_critical.json
+# 2. debug_data_manager - Loads from app/debug/data/*.json files
 
 def build_models_only(phase):
     """
@@ -247,35 +294,9 @@ def build_models_only(phase):
     """
     build_database(build_phase=phase, data_phase='none')
 
-def create_default_admin_user():
-    """
-    Create a default admin user for Phase 4 authentication
-    """
-    from app.data.core.user_info.user import User
-    
-    # Check if admin user already exists
-    admin_user = User.query.filter_by(username='admin').first()
-    if admin_user:
-        logger.info("Admin user already exists")
-        return
-    
-    # Create default admin user
-    admin_user = User(
-        username='admin',
-        email='admin@assetmanagement.local',
-        is_active=True,
-        is_admin=True,
-        is_system=False
-    )
-    admin_user.set_password('admin-password-change-me')
-    
-    db.session.add(admin_user)
-    db.session.commit()
-    
-    logger.info("Default admin user created successfully")
-    logger.info("Username: admin")
-    logger.info("Password: admin-password-change-me")
-    logger.warning("IMPORTANT: Change the default password in production!")
+# create_default_admin_user() function removed
+# Admin user is now part of critical data and is inserted by insert_critical_data()
+# See app/data/core/build_data_critical.json for admin user definition
 
 def insert_data_only(phase):
     """

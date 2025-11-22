@@ -22,10 +22,10 @@ except ImportError:
     logger.warning("Maintenance routes not available")
 
 try:
-    from .supply.main import supply_bp
+    from .core.supply.main import supply_bp
 except ImportError:
     supply_bp = None
-    logger.warning("Supply routes not available")
+    logger.warning("Core supply routes not available")
 
 logger = get_logger("asset_management.routes.main")
 main = Blueprint('main', __name__)

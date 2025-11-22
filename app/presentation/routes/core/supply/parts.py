@@ -1,24 +1,24 @@
 """
-Part management routes
+Part management routes - integrated into core section
 CRUD operations for Part model
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
-from app.data.supply_items.part import Part
+from app.data.core.supply.part import Part
 from app.buisness.inventory.part_context import PartContext
 from app import db
 from app.logger import get_logger
 
-logger = get_logger("asset_management.routes.supply.parts")
-bp = Blueprint('parts', __name__)
+logger = get_logger("asset_management.routes.core.supply.parts")
+bp = Blueprint('core_supply_parts', __name__)
 
 # ROUTE_TYPE: SIMPLE_CRUD (GET)
 # EXCEPTION: Direct ORM usage allowed for simple GET operations on Part
 # This route performs basic list operations with minimal filtering and business logic.
 # Rationale: Simple pagination and filtering on single entity type doesn't require domain abstraction.
 # NOTE: CREATE/DELETE operations should use domain managers - see create() and delete() routes
-@bp.route('/parts')
+@bp.route('')
 @login_required
 def list():
     """List all parts with basic filtering"""
@@ -85,7 +85,7 @@ def list():
                              'part_name': part_name
                          })
 
-@bp.route('/parts/<int:part_id>')
+@bp.route('/<int:part_id>')
 @login_required
 def detail(part_id):
     """View individual part details"""
@@ -100,7 +100,7 @@ def detail(part_id):
                          part=context.part,
                          part_demands=context.get_recent_demands(limit=10))
 
-@bp.route('/parts/create', methods=['GET', 'POST'])
+@bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
     """Create new part"""
@@ -148,7 +148,7 @@ def create():
         db.session.commit()
         
         flash('Part created successfully', 'success')
-        return redirect(url_for('supply.parts.detail', part_id=part.id))
+        return redirect(url_for('core_supply_parts.detail', part_id=part.id))
     
     return render_template('supply/parts/create.html')
 
@@ -157,7 +157,7 @@ def create():
 # This route performs basic update operations with minimal business logic.
 # Rationale: Simple part update doesn't require domain abstraction.
 # NOTE: CREATE/DELETE operations should use domain managers - see create() and delete() routes
-@bp.route('/parts/<int:part_id>/edit', methods=['GET', 'POST'])
+@bp.route('/<int:part_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(part_id):
     """Edit part"""
@@ -204,11 +204,11 @@ def edit(part_id):
         db.session.commit()
         
         flash('Part updated successfully', 'success')
-        return redirect(url_for('supply.parts.detail', part_id=part.id))
+        return redirect(url_for('core_supply_parts.detail', part_id=part.id))
     
     return render_template('supply/parts/edit.html', part=part)
 
-@bp.route('/parts/<int:part_id>/adjust-stock', methods=['POST'])
+@bp.route('/<int:part_id>/adjust-stock', methods=['POST'])
 @login_required
 def adjust_stock(part_id):
     """Adjust stock level for a part"""
@@ -219,15 +219,15 @@ def adjust_stock(part_id):
     
     if not quantity or quantity < 0:
         flash('Invalid quantity', 'error')
-        return redirect(url_for('supply.parts.detail', part_id=part_id))
+        return redirect(url_for('core_supply_parts.detail', part_id=part_id))
     
     part.adjust_stock(quantity, adjustment_type, current_user.id)
     db.session.commit()
     
     flash(f'Stock adjusted successfully', 'success')
-    return redirect(url_for('supply.parts.detail', part_id=part_id))
+    return redirect(url_for('core_supply_parts.detail', part_id=part_id))
 
-@bp.route('/parts/<int:part_id>/delete', methods=['POST'])
+@bp.route('/<int:part_id>/delete', methods=['POST'])
 @login_required
 def delete(part_id):
     """Delete part"""
@@ -236,11 +236,12 @@ def delete(part_id):
     # Check if part has part demands
     if part.part_demands.count() > 0:
         flash('Cannot delete part with part demands', 'error')
-        return redirect(url_for('supply.parts.detail', part_id=part.id))
+        return redirect(url_for('core_supply_parts.detail', part_id=part.id))
     
     db.session.delete(part)
     db.session.commit()
     
     flash('Part deleted successfully', 'success')
-    return redirect(url_for('supply.parts.list'))
+    return redirect(url_for('core_supply_parts.list'))
+
 

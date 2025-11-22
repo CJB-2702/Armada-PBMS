@@ -6,8 +6,8 @@ Presentation service for tool-related queries.
 from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime, timedelta
 from flask_sqlalchemy.pagination import Pagination
-from app.data.supply_items.tool import Tool
-from app.data.supply_items.issuable_tool import IssuableTool
+from app.data.core.supply.tool import Tool
+from app.data.core.supply.issuable_tool import IssuableTool
 from app.data.core.user_info.user import User
 
 

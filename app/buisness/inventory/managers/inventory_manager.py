@@ -21,7 +21,7 @@ from app.data.inventory.base import (
     PartArrival
 )
 from app.data.maintenance.base.part_demands import PartDemand
-from app.data.supply_items.part import Part
+from app.data.core.supply.part import Part
 
 
 class InventoryManager:

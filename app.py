@@ -25,7 +25,11 @@ def parse_arguments():
     parser.add_argument('--phase4', action='store_true', 
                        help='Build Phase 1, Phase 2, Phase 3, and Phase 4 (Core + Asset Detail Tables + Automatic Detail Creation + User Interface)')
     parser.add_argument('--build-only', action='store_true',
-                       help='Build database only, do not start the web server')
+                       help='Build database tables only, do not insert data (except critical data). Critical data is ALWAYS checked and inserted regardless of flags.')
+    parser.add_argument('--enable-debug-data', action='store_true', default=True,
+                       help='Enable debug data insertion (default: enabled if flag not present)')
+    parser.add_argument('--no-debug-data', action='store_false', dest='enable_debug_data',
+                       help='Disable debug data insertion')
     
     return parser.parse_args()
 
@@ -71,17 +75,29 @@ if __name__ == '__main__':
         build_phase = 'all'
     logger.debug("")
     
-    # Build database first
-    if args.phase1:
-        build_database(build_phase=build_phase, data_phase='phase1')
+    # Determine data phase and debug data flag
+    # If --build-only, set data_phase to 'none' (only create tables, no data insertion except critical)
+    if args.build_only:
+        data_phase = 'none'
+        logger.debug("--build-only mode: Creating tables only (critical data will still be verified/inserted)")
+    elif args.phase1:
+        data_phase = 'phase1'
     elif args.phase2:
-        build_database(build_phase=build_phase, data_phase='phase2')
+        data_phase = 'phase2'
     elif args.phase3:
-        build_database(build_phase=build_phase, data_phase='phase3')
+        data_phase = 'phase3'
     elif args.phase4:
-        build_database(build_phase=build_phase, data_phase='phase4')
+        data_phase = 'phase4'
     else:
-        build_database(build_phase=build_phase)
+        data_phase = 'all'
+    
+    # Build database
+    # Note: Critical data is ALWAYS checked and inserted regardless of flags
+    build_database(
+        build_phase=build_phase, 
+        data_phase=data_phase,
+        enable_debug_data=args.enable_debug_data if not args.build_only else False
+    )
     
     if args.build_only:
         logger.debug("Build completed. Exiting without starting web server.")

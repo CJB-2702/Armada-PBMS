@@ -6,8 +6,8 @@ Handles complexity of Tool vs IssuableTool distinction.
 
 from typing import Optional, Union
 from app import db
-from app.data.supply_items.tool import Tool
-from app.data.supply_items.issuable_tool import IssuableTool
+from app.data.core.supply.tool import Tool
+from app.data.core.supply.issuable_tool import IssuableTool
 from app.data.core.user_info.user import User
 
 

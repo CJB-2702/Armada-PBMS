@@ -2,6 +2,8 @@ from app.data.core.user_created_base import UserCreatedBase
 from app import db
 from datetime import datetime
 
+#todo this should probably just be an asset with class tool and this as an asset detail.
+
 class IssuableTool(UserCreatedBase):
     """
     Issuable Tool class - represents a tool that can be issued/assigned to users

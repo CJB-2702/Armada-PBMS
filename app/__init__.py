@@ -47,7 +47,7 @@ def create_app():
     logger.debug("Extensions initialized")
     
     # Import and register blueprints
-    from app.data import core, assets, supply_items
+    from app.data import core, assets
     
     # Import models to ensure they're registered with SQLAlchemy
     from app.data.core.user_info.user import User
@@ -68,10 +68,14 @@ def create_app():
         # Dispatching module may be unavailable during certain phases; skip registration
         pass
     
-    # Import supply models to ensure they're registered
-    from app.data.supply_items.part import Part
-    from app.data.supply_items.tool import Tool
-    from app.data.supply_items.issuable_tool import IssuableTool
+    # Import supply models to ensure they're registered (supply is now part of core)
+    try:
+        from app.data.core.supply.part import Part
+        from app.data.core.supply.tool import Tool
+        from app.data.core.supply.issuable_tool import IssuableTool
+    except ImportError as e:
+        logger.warning(f"Could not import supply models: {e}")
+        pass
     
     # Import maintenance models to ensure they're registered
     try:

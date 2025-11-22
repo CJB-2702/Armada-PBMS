@@ -20,7 +20,7 @@ from app.data.inventory.base import (
     InventoryMovement,
     PurchaseOrderLine
 )
-from app.data.supply_items.part import Part
+from app.data.core.supply.part import Part
 
 
 class PartDemandManager:

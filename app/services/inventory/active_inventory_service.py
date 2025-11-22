@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from flask_sqlalchemy.pagination import Pagination
 from app.data.inventory.base import ActiveInventory
 from app.data.core.major_location import MajorLocation
-from app.data.supply_items.part import Part
+from app.data.core.supply.part import Part
 
 
 class ActiveInventoryService:

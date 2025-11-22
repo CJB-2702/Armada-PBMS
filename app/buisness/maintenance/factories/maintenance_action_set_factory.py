@@ -96,8 +96,8 @@ class MaintenanceActionSetFactory:
             maintenance_plan_id=maintenance_plan_id,
             
             # Copy metadata from VirtualActionSet
+            # Note: description is a computed property (from task_name), don't set it
             task_name=template_action_set.task_name,
-            description=template_action_set.description,
             estimated_duration=template_action_set.estimated_duration,
             safety_review_required=template_action_set.safety_review_required,
             staff_count=template_action_set.staff_count,

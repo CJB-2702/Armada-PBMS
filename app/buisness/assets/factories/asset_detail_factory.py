@@ -26,28 +26,42 @@ class AssetDetailFactory(DetailFactory):
         logger.debug(f"AssetDetailFactory.create_detail_table_rows called for asset {asset.id}")
         
         try:
+            # Get the asset creation event
+            from app.data.core.event_info.event import Event
+            creation_event = Event.query.filter_by(
+                asset_id=asset.id,
+                event_type='Asset Created'
+            ).order_by(Event.timestamp.asc()).first()
+            
+            event_id = creation_event.id if creation_event else None
+            if event_id:
+                logger.debug(f"Found asset creation event {event_id} for asset {asset.id}")
+            else:
+                logger.warning(f"No creation event found for asset {asset.id}")
+            
             # Create asset detail rows based on asset type
             asset_type_id = asset.get_asset_type_id(force_reload=True)
             if asset_type_id:
                 logger.debug(f"Creating asset type detail rows for asset type: {asset_type_id}")
-                cls._create_asset_type_detail_rows(asset, asset_type_id)
+                cls._create_asset_type_detail_rows(asset, asset_type_id, event_id=event_id)
             
             # Create asset detail rows based on model type
             if asset.make_model_id:
                 logger.debug(f"Creating model type detail rows for make_model: {asset.make_model_id}")
-                cls._create_model_type_detail_rows(asset, asset.make_model_id)
+                cls._create_model_type_detail_rows(asset, asset.make_model_id, event_id=event_id)
                 
         except Exception as e:
             logger.debug(f"Error creating detail table rows for asset {asset.id}: {e}")
     
     @classmethod
-    def _create_asset_type_detail_rows(cls, asset, asset_type_id):
+    def _create_asset_type_detail_rows(cls, asset, asset_type_id, event_id=None):
         """
         Create detail table rows based on asset type configurations
         
         Args:
             asset: The Asset object
             asset_type_id (int): The asset type ID
+            event_id (int, optional): The asset creation event ID
         """
         try:
             from app.data.assets.detail_table_templates.asset_details_from_asset_type import AssetDetailTemplateByAssetType
@@ -61,20 +75,22 @@ class AssetDetailFactory(DetailFactory):
                 cls._create_single_detail_row(
                     config=config,
                     detail_table_type=config.detail_table_type,
-                    target_id=asset.id
+                    target_id=asset.id,
+                    event_id=event_id
                 )
                 
         except Exception as e:
             logger.debug(f"Error creating asset type detail rows for asset {asset.id}: {e}")
     
     @classmethod
-    def _create_model_type_detail_rows(cls, asset, make_model_id):
+    def _create_model_type_detail_rows(cls, asset, make_model_id, event_id=None):
         """
         Create detail table rows based on model type configurations
         
         Args:
             asset: The Asset object
             make_model_id (int): The make model ID
+            event_id (int, optional): The asset creation event ID
         """
         try:
             from app.data.assets.detail_table_templates.asset_details_from_model_type import AssetDetailTemplateByModelType
@@ -88,7 +104,8 @@ class AssetDetailFactory(DetailFactory):
                 cls._create_single_detail_row(
                     config=config,
                     detail_table_type=config.detail_table_type,
-                    target_id=asset.id
+                    target_id=asset.id,
+                    event_id=event_id
                 )
                 
         except Exception as e:

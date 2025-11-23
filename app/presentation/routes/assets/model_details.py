@@ -120,6 +120,9 @@ def edit(detail_type, id):
             # Gather update data
             update_data = {}
             for field in config['fields']:
+                # Skip event_id - it's set automatically and cannot be changed
+                if field == 'event_id':
+                    continue
                 if field in request.form:
                     update_data[field] = request.form.get(field)
             

@@ -124,9 +124,9 @@ def _insert_asset_types(asset_types_data, system_user_id):
 
 
 def _insert_make_models(make_models_data, system_user_id):
-    """Insert make/models using MakeModelFactory"""
+    """Insert make/models using MakeModelContext.create_from_dict()"""
     from app.data.core.asset_info.asset_type import AssetType
-    from app.buisness.assets.factories.make_model_factory import MakeModelFactory
+    from app.buisness.core.make_model_context import MakeModelContext
     
     for model_key, model_data in make_models_data.items():
         # Handle asset_type_name reference
@@ -139,20 +139,8 @@ def _insert_make_models(make_models_data, system_user_id):
                 logger.warning(f"Asset type '{asset_type_name}' not found for make/model {model_data.get('make')} {model_data.get('model')}")
                 continue
         
-        # Check if make/model already exists
-        if 'make' in model_data and 'model' in model_data:
-            from app.data.core.asset_info.make_model import MakeModel
-            existing = MakeModel.query.filter_by(
-                make=model_data['make'],
-                model=model_data['model'],
-                year=model_data.get('year')
-            ).first()
-            if existing:
-                logger.debug(f"Make/model {model_data['make']} {model_data['model']} already exists, skipping")
-                continue
-        
-        # Use factory to create make/model
-        MakeModelFactory.create_make_model_from_dict(
+        # Use MakeModelContext to create make/model (handles duplicate checking via lookup_fields)
+        MakeModelContext.create_from_dict(
             make_model_data=model_data,
             created_by_id=system_user_id,
             commit=False,  # Commit all at once at the end
@@ -162,10 +150,10 @@ def _insert_make_models(make_models_data, system_user_id):
 
 
 def _insert_assets(assets_data, system_user_id):
-    """Insert assets using AssetFactory"""
+    """Insert assets using AssetContext.create()"""
     from app.data.core.major_location import MajorLocation
     from app.data.core.asset_info.make_model import MakeModel
-    from app.buisness.assets.factories.asset_factory import AssetFactory
+    from app.buisness.core.asset_context import AssetContext
     
     for asset_key, asset_data in assets_data.items():
         # Handle major_location_name reference
@@ -195,20 +183,20 @@ def _insert_assets(assets_data, system_user_id):
                 logger.warning(f"Make/model '{make} {model}' not found for asset {asset_data.get('name', 'Unknown')}")
                 continue
         
-        # Check if asset already exists
-        if 'name' in asset_data:
+        # Check if asset already exists by serial_number
+        if 'serial_number' in asset_data:
             from app.data.core.asset_info.asset import Asset
-            existing = Asset.query.filter_by(name=asset_data['name']).first()
+            existing = Asset.query.filter_by(serial_number=asset_data['serial_number']).first()
             if existing:
-                logger.debug(f"Asset {asset_data['name']} already exists, skipping")
+                logger.debug(f"Asset with serial_number '{asset_data['serial_number']}' already exists, skipping")
                 continue
         
-        # Use factory to create asset
-        AssetFactory.create_asset_from_dict(
-            asset_data=asset_data,
+        # Use AssetContext.create() to create asset
+        AssetContext.create(
             created_by_id=system_user_id,
             commit=False,  # Commit all at once at the end
-            lookup_fields=['serial_number']
+            enable_detail_insertion=True,
+            **asset_data
         )
         logger.debug(f"Inserted asset: {asset_data.get('name')}")
 

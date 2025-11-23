@@ -11,11 +11,11 @@ Handles:
 Note: Detail table management is handled by MakeModelDetailsContext in domain.assets
 """
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from app.data.core.asset_info.make_model import MakeModel
 from app.data.core.asset_info.asset import Asset
 from app.data.core.event_info.event import Event
-
+from app.buisness.core.factories.make_model_factory_base import MakeModelFactoryBase
 
 class MakeModelContext:
     """
@@ -29,6 +29,8 @@ class MakeModelContext:
     
     Uses only models from app.models.core.*
     """
+
+    make_model_factory: MakeModelFactoryBase = None
     
     def __init__(self, model: Union[MakeModel, int]):
         """
@@ -46,6 +48,50 @@ class MakeModelContext:
         
         self._creation_event = None
     
+    
+    @classmethod
+    def _check_make_model_factory(cls):
+        """Check if the make model factory is set"""
+        if cls.make_model_factory is None:
+            from app.buisness.core.factories.core_make_model_factory import CoreMakeModelFactory
+            cls.make_model_factory = CoreMakeModelFactory()
+        return cls.make_model_factory
+
+    @classmethod
+    def create(cls, created_by_id: Optional[int] = None, commit: bool = True, **kwargs) -> 'MakeModelContext':
+        """Create a new make model using the configured factory"""
+        cls._check_make_model_factory()
+        make_model = cls.make_model_factory.create_make_model(created_by_id=created_by_id, commit=commit, **kwargs)
+        return cls(make_model)
+    
+    @classmethod
+    def create_from_dict(cls, make_model_data: Dict[str, Any], created_by_id: Optional[int] = None, commit: bool = True, lookup_fields: Optional[list] = None) -> 'MakeModelContext':
+        """Create a make model from a dictionary with optional find_or_create behavior"""
+        cls._check_make_model_factory()
+        make_model, created = cls.make_model_factory.create_make_model_from_dict(make_model_data, created_by_id=created_by_id, commit=commit, lookup_fields=lookup_fields)
+        return cls(make_model)
+        
+    @classmethod
+    def get_factory_type(cls) -> str:
+        """
+        Get the type of the current factory (for debugging and introspection).
+        
+        This is useful for:
+        - Debugging which factory is being used
+        - Logging factory type in application logs
+        - Verifying factory replacement worked correctly
+        
+        Returns:
+            str: Factory type identifier:
+                - "core" if CoreAssetFactory is in use
+                - "detail factory" if AssetDetailsFactory is in use
+                - "None (will use CoreAssetFactory on first create)" if factory not yet initialized
+        """
+        if cls.make_model_factory is None:
+            return "None (will use CoreAssetFactory on first create)"
+        return cls.make_model_factory.get_factory_type()
+    
+
     @property
     def model(self) -> MakeModel:
         """Get the MakeModel instance"""

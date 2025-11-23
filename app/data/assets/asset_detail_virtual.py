@@ -7,10 +7,7 @@ Base class for all asset-specific detail tables
 from app.data.core.user_created_base import UserCreatedBase
 from app import db
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import event    
 from app.data.core.sequences import AssetDetailIDManager
-from app.data.core.asset_info.asset import Asset
-Asset.enable_automatic_detail_insertion()
 
 class AssetDetailVirtual(UserCreatedBase):
     """
@@ -23,6 +20,7 @@ class AssetDetailVirtual(UserCreatedBase):
     # Common field for all asset detail tables
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
     all_asset_detail_id = db.Column(db.Integer, nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True)
     
     # Relationship to Asset
     @declared_attr
@@ -30,6 +28,11 @@ class AssetDetailVirtual(UserCreatedBase):
         # Use the class name to create a unique backref
         backref_name = f'{cls.__name__.lower()}_details'
         return db.relationship('Asset', backref=backref_name)
+    
+    # Relationship to Event
+    @declared_attr
+    def event(cls):
+        return db.relationship('Event', backref=f'{cls.__name__.lower()}_details')
     
     def __repr__(self):
         """String representation of the asset detail table"""

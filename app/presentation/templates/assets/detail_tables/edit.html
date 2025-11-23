@@ -46,7 +46,17 @@
                                     {{ field.replace('_', ' ').title() }}
                                 </label>
                                 
-                                {% if field == 'purchase_date' or field == 'warranty_expiry' or field == 'registration_expiry' or field == 'insurance_expiry' or field == 'service_date' or field == 'certification_date' %}
+                                {% if field == 'event_id' %}
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="{{ field }}" 
+                                           name="{{ field }}"
+                                           value="{{ record[field] if record[field] else '' }}"
+                                           disabled
+                                           readonly>
+                                    <div class="form-text">This field is automatically set and cannot be changed</div>
+                                
+                                {% elif field == 'purchase_date' or field == 'warranty_expiry' or field == 'registration_expiry' or field == 'insurance_expiry' or field == 'service_date' or field == 'certification_date' %}
                                     <input type="date" 
                                            class="form-control" 
                                            id="{{ field }}" 

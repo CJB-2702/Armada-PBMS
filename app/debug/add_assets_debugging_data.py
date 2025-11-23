@@ -9,6 +9,8 @@ Uses factories and contexts for data creation.
 from app import db
 from app.logger import get_logger
 from datetime import datetime
+from app.buisness.core.asset_context import AssetContext
+from app.buisness.core.make_model_context import MakeModelContext
 
 logger = get_logger("asset_management.debug.assets")
 
@@ -160,9 +162,9 @@ def _insert_detail_table_templates(templates_data, system_user_id):
 
 
 def _insert_models_for_automatic_detail_insertion(models_data, system_user_id):
-    """Insert models using MakeModelFactory"""
+    """Insert models using MakeModelContext.create_from_dict()"""
     from app.data.core.asset_info.asset_type import AssetType
-    from app.buisness.assets.factories.make_model_factory import MakeModelFactory
+    from app.buisness.core.make_model_context import MakeModelContext
     
     for model_data in models_data:
         # Set default asset type to Vehicle if not specified
@@ -171,8 +173,8 @@ def _insert_models_for_automatic_detail_insertion(models_data, system_user_id):
             if asset_type:
                 model_data['asset_type_id'] = asset_type.id
         
-        # Use factory to create make/model
-        MakeModelFactory.create_make_model_from_dict(
+        # Use MakeModelContext to create make/model
+        MakeModelContext.create_from_dict(
             make_model_data=model_data,
             created_by_id=system_user_id,
             commit=False,
@@ -182,10 +184,9 @@ def _insert_models_for_automatic_detail_insertion(models_data, system_user_id):
 
 
 def _insert_assets_for_automatic_detail_insertion(assets_data, system_user_id):
-    """Insert assets using AssetFactory"""
+    """Insert assets using AssetContext.create()"""
     from app.data.core.major_location import MajorLocation
     from app.data.core.asset_info.make_model import MakeModel
-    from app.buisness.assets.factories.asset_factory import AssetFactory
     
     for asset_data in assets_data:
         # Handle major_location_name reference
@@ -215,12 +216,20 @@ def _insert_assets_for_automatic_detail_insertion(assets_data, system_user_id):
                 logger.warning(f"Make/model '{make} {model}' not found for asset {asset_data.get('name', 'Unknown')}")
                 continue
         
-        # Use factory to create asset
-        AssetFactory.create_asset_from_dict(
-            asset_data=asset_data,
+        # Check if asset already exists by serial_number
+        if 'serial_number' in asset_data:
+            from app.data.core.asset_info.asset import Asset
+            existing_asset = Asset.query.filter_by(serial_number=asset_data['serial_number']).first()
+            if existing_asset:
+                logger.debug(f"Asset with serial_number '{asset_data['serial_number']}' already exists, skipping")
+                continue
+        
+        # Use AssetContext.create() to create asset
+        AssetContext.create(
             created_by_id=system_user_id,
             commit=False,
-            lookup_fields=['serial_number']
+            enable_detail_insertion=True,
+            **asset_data
         )
         logger.debug(f"Created asset: {asset_data.get('name')}")
 

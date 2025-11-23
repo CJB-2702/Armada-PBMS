@@ -245,3 +245,4 @@ def delete(part_id):
     return redirect(url_for('core_supply_parts.list'))
 
 
+

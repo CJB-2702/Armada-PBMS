@@ -21,14 +21,19 @@ class ModelDetailVirtual(UserCreatedBase):
     # Common field for all model detail tables
     make_model_id = db.Column(db.Integer, db.ForeignKey('make_models.id'), nullable=False)
     all_model_detail_id = db.Column(db.Integer, nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=True)
     
-
     # Relationship to MakeModel
     @declared_attr
     def make_model(cls):
         # Use the class name to create a unique backref
         backref_name = f'{cls.__name__.lower()}_details'
         return db.relationship('MakeModel', backref=backref_name)
+    
+    # Relationship to Event
+    @declared_attr
+    def event(cls):
+        return db.relationship('Event', backref=f'{cls.__name__.lower()}_details')
     
     def __repr__(self):
         """String representation of the model detail table"""

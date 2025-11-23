@@ -11,12 +11,12 @@ Handles:
 Note: Detail table management is handled by AssetDetailsContext in domain.assets
 """
 
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import List, Optional, Union, Dict, Any, TYPE_CHECKING
 from app.data.core.asset_info.asset import Asset
 from app.data.core.event_info.event import Event
 
 if TYPE_CHECKING:
-    from app.buisness.core.asset_factory_base import AssetFactoryBase
+    from app.buisness.core.factories.asset_factory_base import AssetFactoryBase
 
 
 class AssetContext:
@@ -60,7 +60,7 @@ class AssetContext:
     # Static factory attribute - can be replaced by feature modules
     # Almost all of the time, this will be AssetDetailsFactory (set when assets module is imported)
     # If assets module is not imported, this will be CoreAssetFactory (created on first use)
-    asset_factory: 'AssetFactoryBase' = None
+    asset_factory: AssetFactoryBase = None
     
     def __init__(self, asset: Union[Asset, int]):
         """
@@ -138,12 +138,24 @@ class AssetContext:
         """
         return Event.query.filter_by(asset_id=self._asset_id).order_by(Event.timestamp.desc()).limit(limit).all()
     
+
+    @classmethod
+    def _check_asset_factory(cls):
+        """Check if the asset factory is set"""
+        if cls.asset_factory is None:
+            from app.buisness.core.factories.core_asset_factory import CoreAssetFactory
+            cls.asset_factory = CoreAssetFactory()
+            # Disable detail creation when using core factory
+            from app.data.core.asset_info.asset import Asset
+            Asset.disable_detail_creation()
+        return cls.asset_factory
+
+
     @classmethod
     def create(
         cls,
         created_by_id: Optional[int] = None,
         commit: bool = True,
-        enable_detail_insertion: bool = True,
         **kwargs
     ) -> 'AssetContext':
         """
@@ -168,20 +180,24 @@ class AssetContext:
         """
         # Lazy initialization: if factory not set, use core factory
         # This ensures the system works even if assets module is never imported
-        if cls.asset_factory is None:
-            from app.buisness.core.core_asset_factory import CoreAssetFactory
-            cls.asset_factory = CoreAssetFactory()
-        
+        cls._check_asset_factory()
         # Use the configured factory to create the asset
         # In most cases, this will be AssetDetailsFactory (set by assets module)
         asset = cls.asset_factory.create_asset(
             created_by_id=created_by_id,
             commit=commit,
-            enable_detail_insertion=enable_detail_insertion,
             **kwargs
         )
         
         return cls(asset)
+    
+    @classmethod
+    def create_from_dict(cls, asset_data: Dict[str, Any], created_by_id: Optional[int] = None, commit: bool = True, lookup_fields: Optional[list] = None) -> 'AssetContext':
+        """Create an asset from a dictionary with optional find_or_create behavior"""
+        cls._check_asset_factory()
+        asset, created = cls.asset_factory.create_asset_from_dict(asset_data, created_by_id=created_by_id, commit=commit, lookup_fields=lookup_fields)
+        return cls(asset)
+        
     
     @classmethod
     def get_factory_type(cls) -> str:
@@ -202,6 +218,105 @@ class AssetContext:
         if cls.asset_factory is None:
             return "None (will use CoreAssetFactory on first create)"
         return cls.asset_factory.get_factory_type()
+    
+    def edit(
+        self,
+        updated_by_id: Optional[int] = None,
+        commit: bool = True,
+        **kwargs
+    ) -> 'AssetContext':
+        """
+        Edit asset with automatic event creation for key field changes.
+        
+        Key fields that trigger events when changed:
+        - name
+        - serial_number
+        - major_location_id
+        - make_model_id
+        
+        Args:
+            updated_by_id: ID of the user making the change
+            commit: Whether to commit the transaction
+            **kwargs: Fields to update (name, serial_number, major_location_id, make_model_id, status, meters, etc.)
+            
+        Returns:
+            AssetContext instance (self)
+        """
+        from app import db
+        from app.data.core.major_location import MajorLocation
+        
+        # Get current values for key fields
+        key_fields = ['name', 'serial_number', 'major_location_id', 'make_model_id']
+        current_values = {}
+        new_values = {}
+        changes = []
+        
+        for field in key_fields:
+            current_value = getattr(self._asset, field, None)
+            current_values[field] = current_value
+            
+            if field in kwargs:
+                new_value = kwargs[field]
+                new_values[field] = new_value
+                
+                # Check if value is actually changing
+                if current_value != new_value:
+                    changes.append((field, current_value, new_value))
+        
+        # Create event if any key fields are changing
+        if changes:
+            # Build description with old and new values
+            description_parts = ["Asset Key Details Change:"]
+            
+            for field, old_val, new_val in changes:
+                # Format values for display
+                if field == 'major_location_id':
+                    old_display = MajorLocation.query.get(old_val).name if old_val and MajorLocation.query.get(old_val) else str(old_val) if old_val else "None"
+                    new_display = MajorLocation.query.get(new_val).name if new_val and MajorLocation.query.get(new_val) else str(new_val) if new_val else "None"
+                elif field == 'make_model_id':
+                    from app.data.core.asset_info.make_model import MakeModel
+                    old_mm = MakeModel.query.get(old_val) if old_val else None
+                    new_mm = MakeModel.query.get(new_val) if new_val else None
+                    old_display = f"{old_mm.make} {old_mm.model}" if old_mm else str(old_val) if old_val else "None"
+                    new_display = f"{new_mm.make} {new_mm.model}" if new_mm else str(new_val) if new_val else "None"
+                else:
+                    old_display = str(old_val) if old_val else "None"
+                    new_display = str(new_val) if new_val else "None"
+                
+                description_parts.append(f"  {field}: {old_display} → {new_display}")
+            
+            description = "\n".join(description_parts)
+            
+            # Determine location for event (use new location if it's changing, otherwise current)
+            event_location_id = new_values.get('major_location_id', self._asset.major_location_id)
+            
+            # Create the event
+            event = Event(
+                event_type='Asset Key Details Change',
+                description=description,
+                user_id=updated_by_id,
+                asset_id=self._asset_id,
+                major_location_id=event_location_id
+            )
+            db.session.add(event)
+        
+        # Apply all changes (including non-key fields)
+        for key, value in kwargs.items():
+            if value is not None:
+                setattr(self._asset, key, value)
+        
+        # Set audit fields
+        if updated_by_id:
+            self._asset.updated_by_id = updated_by_id
+        
+        # Commit if requested
+        if commit:
+            db.session.commit()
+            from app.logger import get_logger
+            logger = get_logger("asset_management.buisness.core")
+            logger.info(f"Asset edited: {self._asset.name} (ID: {self._asset_id})")
+        
+        return self
     
     def refresh(self):
         """Refresh cached data from database"""

@@ -6,17 +6,19 @@ Factory class for creating MakeModel instances with proper detail table initiali
 
 from app.logger import get_logger
 from app import db
+from app.buisness.core.factories.core_make_model_factory import CoreMakeModelFactory
+from app.buisness.assets.factories.model_detail_factory import ModelDetailFactory
 
 logger = get_logger("asset_management.domain.assets.factories")
 
-class MakeModelFactory:
+class MakeModelFactory(CoreMakeModelFactory):
     """
     Factory class for creating MakeModel instances
     Ensures proper creation with detail table initialization
     """
     
-    @classmethod
-    def create_make_model(cls, created_by_id=None, commit=True, **kwargs):
+  
+    def create_make_model(self, created_by_id=None, commit=True, **kwargs):
         """
         Create a new MakeModel with proper initialization
         
@@ -31,56 +33,25 @@ class MakeModelFactory:
         Raises:
             ValueError: If required fields are missing or invalid
         """
-        from app.data.core.asset_info.make_model import MakeModel
+        # Use parent to create model and event
+        make_model = super().create_make_model(
+            created_by_id=created_by_id,
+            commit=False,  # Don't commit yet, we may add details
+            **kwargs
+        )
         
-        # Validate required fields
-        if 'make' not in kwargs:
-            raise ValueError("Make is required")
-        if 'model' not in kwargs:
-            raise ValueError("Model is required")
+        # Create detail rows
+        self._create_detail_rows(make_model)
         
-        # Check for duplicate make/model/year combination
-        existing_model = MakeModel.query.filter_by(
-            make=kwargs['make'],
-            model=kwargs['model'],
-            year=kwargs.get('year')
-        ).first()
-        
-        if existing_model:
-            raise ValueError(
-                f"Make/Model/Year combination already exists: "
-                f"{kwargs['make']} {kwargs['model']} {kwargs.get('year', 'N/A')}"
-            )
-        
-        # Set audit fields if provided
-        if created_by_id:
-            kwargs['created_by_id'] = created_by_id
-            kwargs['updated_by_id'] = created_by_id
-        
-        # Create the make/model instance
-        make_model = MakeModel(**kwargs)
-        
-        logger.info(f"Creating make/model: {kwargs.get('make')} {kwargs.get('model')} {kwargs.get('year', '')}")
-        
-        # Add to session
-        db.session.add(make_model)
-        
-        # Commit if requested
+        # Now commit if requested
         if commit:
+            from app import db
             db.session.commit()
-            logger.info(f"Make/Model created successfully: {make_model.make} {make_model.model} (ID: {make_model.id})")
-        else:
-            # Flush to get the ID but don't commit
-            db.session.flush()
-            logger.info(f"Make/Model added to session: {make_model.make} {make_model.model} (ID: {make_model.id}, not committed)")
-        
-        # The after_insert event listener will automatically create detail table rows
-        # This happens in MakeModel._after_insert() which calls make_model.create_detail_table_rows()
+            logger.info(f"Make/Model with details created: {make_model.make} {make_model.model} (ID: {make_model.id})")
         
         return make_model
     
-    @classmethod
-    def create_make_model_from_dict(cls, make_model_data, created_by_id=None, commit=True, lookup_fields=None):
+    def create_make_model_from_dict(self, make_model_data, created_by_id=None, commit=True, lookup_fields=None):
         """
         Create a make/model from a dictionary, with optional find_or_create behavior
         
@@ -93,71 +64,31 @@ class MakeModelFactory:
         Returns:
             tuple: (make_model, created) where created is True if make/model was created
         """
-        from app.data.core.asset_info.make_model import MakeModel
+        make_model, created = super().create_make_model_from_dict(
+            make_model_data, 
+            created_by_id=created_by_id, 
+            commit=False,  # Don't commit yet, we may add details
+            lookup_fields=lookup_fields
+        )
         
-        # If lookup_fields provided, try to find existing make/model
-        if lookup_fields:
-            query_filters = {field: make_model_data.get(field) for field in lookup_fields if field in make_model_data}
-            existing_model = MakeModel.query.filter_by(**query_filters).first()
-            
-            if existing_model:
-                logger.info(f"Found existing make/model: {existing_model.make} {existing_model.model} (ID: {existing_model.id})")
-                return existing_model, False
+        # Only create detail rows if this is a new model
+        if created:
+            self._create_detail_rows(make_model)
         
-        # Create new make/model
-        make_model = cls.create_make_model(created_by_id=created_by_id, commit=commit, **make_model_data)
-        return make_model, True
-    
-    @classmethod
-    def update_make_model(cls, make_model, updated_by_id=None, commit=True, **kwargs):
-        """
-        Update an existing make/model
-        
-        Args:
-            make_model (MakeModel): The make/model to update
-            updated_by_id (int): ID of the user updating the make/model
-            commit (bool): Whether to commit the transaction
-            **kwargs: Fields to update
-            
-        Returns:
-            MakeModel: The updated make/model instance
-        """
-        from app.data.core.asset_info.make_model import MakeModel
-        
-        # Check for duplicate make/model/year if any of those fields are being updated
-        if any(key in kwargs for key in ['make', 'model', 'year']):
-            make = kwargs.get('make', make_model.make)
-            model = kwargs.get('model', make_model.model)
-            year = kwargs.get('year', make_model.year)
-            
-            existing_model = MakeModel.query.filter_by(
-                make=make,
-                model=model,
-                year=year
-            ).first()
-            
-            if existing_model and existing_model.id != make_model.id:
-                raise ValueError(
-                    f"Make/Model/Year combination already exists: {make} {model} {year or 'N/A'}"
-                )
-        
-        # Update fields
-        for key, value in kwargs.items():
-            if hasattr(make_model, key):
-                setattr(make_model, key, value)
-        
-        # Set updated_by_id if provided
-        if updated_by_id:
-            make_model.updated_by_id = updated_by_id
-        
-        logger.info(f"Updating make/model: {make_model.make} {make_model.model} (ID: {make_model.id})")
-        
-        # Commit if requested
+        # Now commit if requested
         if commit:
+            from app import db
             db.session.commit()
-            logger.info(f"Make/Model updated successfully: {make_model.make} {make_model.model} (ID: {make_model.id})")
-        else:
-            logger.info(f"Make/Model updates staged: {make_model.make} {make_model.model} (ID: {make_model.id}, not committed)")
         
-        return make_model
+        return make_model, created
 
+    def _create_detail_rows(self, make_model):
+        """Create detail table rows for make/model"""
+        try:
+            ModelDetailFactory.create_detail_table_rows(make_model.id, make_model.asset_type_id)
+        except Exception as e:
+            logger.warning(f"Could not create detail rows for make model {make_model.id}: {e}")
+            # Don't fail model creation if detail creation fails
+
+    def get_factory_type(self) -> str:
+        return "detail factory"

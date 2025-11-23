@@ -44,11 +44,11 @@ def build_models():
     AssetDetailIDManager.create_sequence_if_not_exists()
     ModelDetailIDManager.create_sequence_if_not_exists()
     
-    # Automatic detail insertion is now enabled by default when Asset class is loaded
-    from app.data.core.asset_info.asset import Asset
-    Asset.enable_automatic_detail_insertion()
+    # Note: Asset detail insertion is now handled automatically by AssetDetailsFactory
+    # which is registered with AssetContext when the assets module is imported.
+    # No manual enabling is needed - the factory pattern handles it.
     
-    # Enable automatic detail insertion for models
+    # Enable automatic detail insertion for models (models still use event listeners)
     from app.data.core.asset_info.make_model import MakeModel
     MakeModel.enable_automatic_detail_insertion()
     

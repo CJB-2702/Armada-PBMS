@@ -80,12 +80,13 @@ def create():
                 'meter4': request.form.get('meter4', type=float)
             }
             
-            # Use AssetFactory to create the asset
-            asset = AssetFactory.create_asset(
+
+            asset_context = CoreAssetContext.create(
                 created_by_id=current_user.id,
                 commit=True,
                 **asset_data
             )
+            asset = asset_context.asset
             
             flash('Asset created successfully', 'success')
             logger.info(f"User {current_user.username} created asset: {asset.name} (ID: {asset.id})")
@@ -114,8 +115,8 @@ def create():
 @bp.route('/assets/<int:asset_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(asset_id):
-    """Edit asset using AssetFactory"""
-    asset = Asset.query.get_or_404(asset_id)
+    """Edit asset using AssetContext"""
+    asset_context = CoreAssetContext(asset_id)
     
     if request.method == 'POST':
         try:
@@ -132,17 +133,16 @@ def edit(asset_id):
                 'meter4': request.form.get('meter4', type=float)
             }
             
-            # Use AssetFactory to update the asset
-            AssetFactory.update_asset(
-                asset=asset,
+            # Use AssetContext.edit() to update asset (creates events for key field changes)
+            asset_context.edit(
                 updated_by_id=current_user.id,
                 commit=True,
                 **update_data
             )
             
             flash('Asset updated successfully', 'success')
-            logger.info(f"User {current_user.username} updated asset: {asset.name} (ID: {asset.id})")
-            return redirect(url_for('core_assets.detail', asset_id=asset.id))
+            logger.info(f"User {current_user.username} updated asset: {asset_context.asset.name} (ID: {asset_id})")
+            return redirect(url_for('core_assets.detail', asset_id=asset_id))
             
         except ValueError as e:
             flash(str(e), 'error')
@@ -156,7 +156,7 @@ def edit(asset_id):
     form_options = AssetService.get_form_options()
     
     return render_template('core/assets/edit.html', 
-                         asset=asset,
+                         asset=asset_context.asset,
                          locations=form_options['locations'],
                          make_models=form_options['make_models'])
 

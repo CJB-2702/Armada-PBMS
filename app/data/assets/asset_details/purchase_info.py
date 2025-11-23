@@ -25,8 +25,6 @@ class PurchaseInfo(AssetDetailVirtual):
     warranty_end_date = db.Column(db.Date, nullable=True)
     purchase_notes = db.Column(db.Text, nullable=True)
     
- 
-    
     def __repr__(self):
         """String representation of the purchase info"""
         return f'<PurchaseInfo Asset:{self.asset_id} Vendor:{self.purchase_vendor}>'

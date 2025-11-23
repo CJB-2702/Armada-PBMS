@@ -11,7 +11,7 @@ Detail table creation is handled by AssetDetailsFactory in the assets module.
 """
 
 from typing import Optional, Dict, Any
-from app.buisness.core.asset_factory_base import AssetFactoryBase
+from app.buisness.core.factories.asset_factory_base import AssetFactoryBase
 from app.data.core.asset_info.asset import Asset
 from app.data.core.event_info.event import Event
 from app import db

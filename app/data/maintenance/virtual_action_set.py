@@ -15,4 +15,12 @@ class VirtualActionSet(UserCreatedBase):
     staff_count = db.Column(db.Integer, nullable=True)
     parts_cost = db.Column(db.Float, nullable=True)
     labor_hours = db.Column(db.Float, nullable=True)
+    
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """Get set of column names for this model (excluding audit fields)."""
+        return {
+            'task_name', 'description', 'estimated_duration', 'safety_review_required',
+            'staff_count', 'parts_cost', 'labor_hours'
+        }
 

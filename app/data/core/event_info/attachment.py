@@ -221,3 +221,11 @@ class VirtualAttachmentReference(UserCreatedBase):
     def get_attachment(self):
         """Get attachment"""
         return Attachment.query.get(self.attachment_id)
+    
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """Get set of column names for this model (excluding audit fields and relationship-only fields)."""
+        return {
+            'attachment_id', 'all_attachment_references_id', 'attached_to_type', 
+            'display_order', 'attachment_type', 'caption'
+        }

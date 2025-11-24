@@ -94,10 +94,11 @@ def init_app(app):
         
         # Register manager portal
         try:
-            from .maintenance.manager import manager_bp
+            from .maintenance.manager import manager_bp, template_builder_bp
             app.register_blueprint(manager_bp)
+            app.register_blueprint(template_builder_bp)
             portal_blueprints_registered += 1
-            logger.debug("Registered manager portal blueprint")
+            logger.debug("Registered manager portal blueprint and template builder blueprint")
         except ImportError as e:
             logger.debug(f"Manager portal blueprint not available: {e}")
         

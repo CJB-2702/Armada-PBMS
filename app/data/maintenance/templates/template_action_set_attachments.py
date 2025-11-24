@@ -29,6 +29,18 @@ class TemplateActionSetAttachment(VirtualAttachmentReference):
         if not self.attached_to_type:
             self.attached_to_type = 'TemplateActionSet'
     
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """
+        Get set of column names for this model (excluding audit fields and relationship-only fields).
+        Returns all columns including template_action_set_id.
+        """
+        base_fields = VirtualAttachmentReference.get_column_dict()
+        template_fields = {
+            'template_action_set_id', 'description', 'sequence_order', 'is_required', 'attached_to_type'
+        }
+        return base_fields | template_fields
+    
     def __repr__(self):
         return f'<TemplateActionSetAttachment {self.id}: {self.attachment_type}>'
 

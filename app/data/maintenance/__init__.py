@@ -33,6 +33,12 @@ from .virtual_action_set import VirtualActionSet
 from .virtual_part_demand import VirtualPartDemand
 from .virtual_action_tool import VirtualActionTool
 
+# Builder models
+from .builders import (
+    TemplateBuilderMemory,
+    TemplateBuilderAttachmentReference
+)
+
 __all__ = [
     # Base models
     'MaintenancePlan',
@@ -63,5 +69,9 @@ __all__ = [
     'VirtualActionItem',
     'VirtualActionSet',
     'VirtualPartDemand',
-    'VirtualActionTool'
+    'VirtualActionTool',
+    
+    # Builder models
+    'TemplateBuilderMemory',
+    'TemplateBuilderAttachmentReference'
 ]

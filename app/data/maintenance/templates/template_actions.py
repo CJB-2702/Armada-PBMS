@@ -62,5 +62,19 @@ class TemplateActionItem(VirtualActionItem):
     # Self-referential relationship for versioning
     prior_revision = relationship('TemplateActionItem', remote_side='TemplateActionItem.id', foreign_keys=[prior_revision_id], backref='subsequent_revisions')
     
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """
+        Get set of column names for this model (excluding audit fields and relationship-only fields).
+        Returns all columns including template_action_set_id.
+        """
+        base_fields = VirtualActionItem.get_column_dict()
+        template_fields = {
+            'template_action_set_id', 'sequence_order', 'is_required', 'instructions', 'instructions_type',
+            'minimum_staff_count', 'required_skills', 'proto_action_item_id',
+            'revision', 'prior_revision_id'
+        }
+        return base_fields | template_fields
+    
     def __repr__(self):
         return f'<TemplateActionItem {self.id}: {self.action_name} (order: {self.sequence_order})>'

@@ -149,7 +149,45 @@ def plan_maintenance():
 def build_maintenance():
     """Build maintenance - Create and manage templates and prototypes"""
     logger.info(f"Build maintenance accessed by {current_user.username}")
-    return render_template('maintenance/manager/build_maintenance.html')
+    
+    # Get search parameters
+    search_id = request.args.get('search_id', type=int)
+    search_name = request.args.get('search_name', '').strip() or None
+    asset_type_id = request.args.get('asset_type_id', type=int)
+    make_model_id = request.args.get('make_model_id', type=int)
+    
+    # Get available templates for copying
+    try:
+        from app.services.maintenance.template_builder_service import TemplateBuilderService
+        from app.data.core.asset_info.asset_type import AssetType
+        from app.data.core.asset_info.make_model import MakeModel
+        
+        available_templates = TemplateBuilderService.get_available_templates(
+            search_id=search_id,
+            search_name=search_name,
+            asset_type_id=asset_type_id,
+            make_model_id=make_model_id
+        )
+        
+        # Get asset types and make/models for dropdowns
+        asset_types = AssetType.query.filter_by(is_active=True).order_by(AssetType.name).all()
+        make_models = MakeModel.query.filter_by(is_active=True).order_by(MakeModel.make, MakeModel.model).all()
+    except Exception as e:
+        logger.warning(f"Could not load available templates: {e}")
+        available_templates = []
+        asset_types = []
+        make_models = []
+    
+    return render_template(
+        'maintenance/manager/build_maintenance.html',
+        available_templates=available_templates,
+        asset_types=asset_types,
+        make_models=make_models,
+        search_id=search_id,
+        search_name=search_name or '',
+        selected_asset_type_id=asset_type_id,
+        selected_make_model_id=make_model_id
+    )
 
 
 @manager_bp.route('/assign-monitor')

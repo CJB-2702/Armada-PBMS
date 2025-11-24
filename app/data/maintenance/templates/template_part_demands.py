@@ -24,6 +24,18 @@ class TemplatePartDemand(VirtualPartDemand):
     def is_required(self):
         return not self.is_optional
     
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """
+        Get set of column names for this model (excluding audit fields and relationship-only fields).
+        Returns all columns including template_action_item_id.
+        """
+        base_fields = VirtualPartDemand.get_column_dict()
+        template_fields = {
+            'template_action_item_id', 'is_optional', 'sequence_order'
+        }
+        return base_fields | template_fields
+    
     def __repr__(self):
         part_name = self.part.part_name if self.part else "Unknown"
         return f'<TemplatePartDemand {self.id}: {part_name} x{self.quantity_required}>'

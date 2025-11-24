@@ -13,4 +13,11 @@ class VirtualActionTool(UserCreatedBase):
     notes = db.Column(db.Text, nullable=True)
     
     # Note: Relationship to Tool is defined in concrete subclasses (ActionTool, TemplateActionTool, ProtoActionTool)
+    
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """Get set of column names for this model (excluding audit fields)."""
+        return {
+            'tool_id', 'quantity_required', 'notes'
+        }
 

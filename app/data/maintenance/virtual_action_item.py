@@ -11,3 +11,11 @@ class VirtualActionItem(UserCreatedBase):
     expected_billable_hours = db.Column(db.Float, nullable=True)
     safety_notes = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """Get set of column names for this model (excluding audit fields)."""
+        return  {
+            'action_name', 'description', 'estimated_duration', 'expected_billable_hours',
+            'safety_notes', 'notes'
+        }

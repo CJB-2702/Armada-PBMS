@@ -17,6 +17,8 @@ class TemplateActionSet(VirtualActionSet):
     # Template metadata
     is_active = db.Column(db.Boolean, default=True)
     maintenance_plan_id = db.Column(db.Integer, db.ForeignKey('maintenance_plans.id'), nullable=True)
+    asset_type_id = db.Column(db.Integer, db.ForeignKey('asset_types.id'), nullable=True)
+    make_model_id = db.Column(db.Integer, db.ForeignKey('make_models.id'), nullable=True)
     
     # Relationships
     template_action_items = relationship(
@@ -45,6 +47,19 @@ class TemplateActionSet(VirtualActionSet):
     
     # Referenced by maintenance action sets
     maintenance_action_sets = relationship('MaintenanceActionSet', foreign_keys='MaintenanceActionSet.template_action_set_id', back_populates='template_action_set', lazy='dynamic', overlaps='template_action_set')
+    
+    @classmethod
+    def get_column_dict(cls) -> set:
+        """
+        Get set of column names for this model (excluding audit fields and relationship-only fields).
+        Returns all columns including maintenance_plan_id.
+        """
+        base_fields = VirtualActionSet.get_column_dict()
+        template_fields = {
+            'revision', 'prior_revision_id', 'is_active', 
+            'maintenance_plan_id', 'asset_type_id', 'make_model_id'
+        }
+        return base_fields | template_fields
     
     def __repr__(self):
         revision_str = f' (rev {self.revision})' if self.revision else ''

@@ -447,15 +447,20 @@ def update_metadata(builder_id):
     """Update template metadata."""
     try:
         context = TemplateBuilderContext(builder_id)
+        builder_memory = TemplateBuilderMemory.query.get_or_404(builder_id)
         
         # Update common fields
-        if 'task_name' in request.form:
+        # Task name is only editable if not a revision
+        if 'task_name' in request.form and not builder_memory.is_revision:
             context.task_name = request.form.get('task_name')
         if 'description' in request.form:
             context.description = request.form.get('description')
         if 'estimated_duration' in request.form:
             duration = request.form.get('estimated_duration')
             context.set_metadata('estimated_duration', float(duration) if duration else None)
+        
+        # Revision number is always disabled, so we don't update it here
+        # It's set automatically based on is_revision status
         
         flash('Metadata updated', 'success')
     except Exception as e:

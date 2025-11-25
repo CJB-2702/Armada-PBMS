@@ -76,15 +76,28 @@ class TemplateBuilderService:
                 'proto_action_item_id': action.proto_action_item_id,
             })
         
+        # Get builder memory to access revision fields
+        builder_memory = TemplateBuilderMemory.query.get(builder_id)
+        is_revision = builder_memory.is_revision if builder_memory else False
+        
+        # Get revision from metadata, default to '0' for new builds
+        revision = context.get_metadata('revision')
+        if revision is None and not is_revision:
+            revision = '0'
+        
         return {
             'builder_id': builder_id,
             'name': context.name,
             'build_type': context.build_type,
             'build_status': context.build_status,
+            'is_revision': is_revision,
+            'src_revision_id': builder_memory.src_revision_id if builder_memory else None,
+            'src_revision_number': builder_memory.src_revision_number if builder_memory else None,
             'metadata': {
                 'task_name': context.task_name or '',
                 'description': context.description or '',
                 'estimated_duration': context.get_metadata('estimated_duration'),
+                'revision': revision,
                 'safety_review_required': context.get_metadata('safety_review_required') if context.get_metadata('safety_review_required') is not None else False,
                 'staff_count': context.get_metadata('staff_count'),
                 'parts_cost': context.get_metadata('parts_cost'),

@@ -103,6 +103,27 @@ from app.domain.assets import AssetContext  # Old path - don't use
 - **Never** modify core models from services layer (read-only)
 - **avoid** putting database queries directly in routes (use business layer or services)
 
+#### Data Model Priority and Type Conversion
+
+**CRITICAL**: Data models take priority over presentation layer form data.
+
+- **Models define the source of truth** - field names, types, and structure come from the data models
+- **Presentation and service layers must convert form data** to match business and data models, not the other way around
+- **Form field names should match model field names** - if they don't, convert at the presentation/service layer
+- **Type conversion responsibility**: Presentation routes and services must convert string form data to appropriate types (dates, integers, floats, booleans) based on model column types
+- **Never modify data models** to match form field names or types - always adapt the form handling code
+
+**Example**:
+```python
+# ✅ Correct - Convert form data to match model
+purchase_date_str = request.form.get('purchase_date')
+purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date() if purchase_date_str else None
+purchase_info.purchase_date = purchase_date  # Model expects date object
+
+# ❌ Incorrect - Don't change model to match form
+# purchase_info.purchase_date = purchase_date_str  # Wrong - model expects date, not string
+```
+
 ### File Path Handling
 - **Use `pathlib.Path`**: All file and directory operations should use `pathlib.Path` instead of `os.path`
 - **Benefits**: More readable, object-oriented, cross-platform compatible

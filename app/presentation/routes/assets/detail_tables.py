@@ -7,10 +7,14 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from app.logger import get_logger
 from flask_login import login_required, current_user
 from app.data.core.asset_info.asset import Asset
+from app.data.assets.asset_details.purchase_info import PurchaseInfo
+from app.data.assets.asset_details.vehicle_registration import VehicleRegistration
+from app.data.assets.asset_details.toyota_warranty_receipt import ToyotaWarrantyReceipt
 from app.buisness.assets.detail_table_context import DetailTableContext
 from app.services.assets.asset_detail_service import AssetDetailService
 from app import db
 from pathlib import Path
+from datetime import datetime
 
 bp = Blueprint('detail_tables', __name__)
 logger = get_logger("asset_management.routes.bp")
@@ -18,6 +22,71 @@ logger = get_logger("asset_management.routes.bp")
 def get_detail_table_config(detail_type):
     """Get configuration for a detail table type"""
     return AssetDetailService.get_detail_table_config(detail_type)
+
+def convert_form_data_to_model_types(model_class, form_data):
+    """
+    Convert form data strings to appropriate types based on model column types.
+    Models take priority - form data is converted to match model types.
+    
+    Args:
+        model_class: The SQLAlchemy model class
+        form_data: Dictionary of form field names to string values
+        
+    Returns:
+        Dictionary with converted values matching model field types
+    """
+    from sqlalchemy import Date, DateTime, Integer, Float, Boolean
+    
+    converted_data = {}
+    
+    for field_name, value in form_data.items():
+        if value == '' or value is None:
+            converted_data[field_name] = None
+            continue
+            
+        # Get the column from the model
+        if hasattr(model_class, field_name):
+            column = getattr(model_class, field_name)
+            if hasattr(column, 'property') and hasattr(column.property, 'columns'):
+                column_type = column.property.columns[0].type
+                
+                # Convert based on column type
+                if isinstance(column_type, Date):
+                    try:
+                        converted_data[field_name] = datetime.strptime(value, '%Y-%m-%d').date()
+                    except ValueError:
+                        converted_data[field_name] = None
+                elif isinstance(column_type, DateTime):
+                    try:
+                        converted_data[field_name] = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+                    except ValueError:
+                        try:
+                            converted_data[field_name] = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            converted_data[field_name] = None
+                elif isinstance(column_type, Integer):
+                    try:
+                        converted_data[field_name] = int(value) if value else None
+                    except ValueError:
+                        converted_data[field_name] = None
+                elif isinstance(column_type, Float):
+                    try:
+                        converted_data[field_name] = float(value) if value else None
+                    except ValueError:
+                        converted_data[field_name] = None
+                elif isinstance(column_type, Boolean):
+                    converted_data[field_name] = value.lower() in ('true', '1', 'yes', 'on')
+                else:
+                    # String or other types - keep as is but handle empty strings
+                    converted_data[field_name] = value if value else None
+            else:
+                # Not a column, keep as is
+                converted_data[field_name] = value if value else None
+        else:
+            # Field doesn't exist in model, keep as is
+            converted_data[field_name] = value if value else None
+    
+    return converted_data
 
 # Generic CRUD routes for all detail table types
 
@@ -59,11 +128,10 @@ def create(detail_type):
     if request.method == 'POST':
         try:
             # Gather form data
-            record_data = {}
+            form_data = {}
             for field in config['fields']:
-                value = request.form.get(field)
-                if value:
-                    record_data[field] = value
+                if field in request.form:
+                    form_data[field] = request.form.get(field)
             
             # Asset selection is required
             asset_id = request.form.get('asset_id', type=int)
@@ -72,7 +140,11 @@ def create(detail_type):
                 return render_template('assets/detail_tables/create.html',
                                      detail_type=detail_type,
                                      config=config,
-                                     asset_options=asset_options)
+                                     asset_options=form_options['asset_options'])
+            
+            # Convert form data to match model field types
+            model_class = config['model']
+            record_data = convert_form_data_to_model_types(model_class, form_data)
             
             # Create record using DetailTableContext
             record = DetailTableContext.create_detail_record(
@@ -131,11 +203,15 @@ def edit(detail_type, id):
     
     if request.method == 'POST':
         try:
-            # Gather update data
-            update_data = {}
+            # Gather form data
+            form_data = {}
             for field in config['fields']:
                 if field in request.form:
-                    update_data[field] = request.form.get(field)
+                    form_data[field] = request.form.get(field)
+            
+            # Convert form data to match model field types
+            model_class = config['model']
+            update_data = convert_form_data_to_model_types(model_class, form_data)
             
             # Update asset_id if present
             asset_id = request.form.get('asset_id', type=int)
@@ -218,20 +294,55 @@ def edit_purchase_info(asset_id):
     purchase_info = PurchaseInfo.query.filter_by(asset_id=asset_id).first()
     
     if request.method == 'POST':
-        # Validate form data
-        purchase_date = request.form.get('purchase_date')
+        # Convert form data to match data model field names and types
+        purchase_date_str = request.form.get('purchase_date')
+        purchase_date = None
+        if purchase_date_str:
+            try:
+                purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid purchase date format', 'error')
+                return render_template('assets/detail_tables/edit_purchase_info.html', 
+                                     asset=asset,
+                                     purchase_info=purchase_info)
+        
         purchase_price = request.form.get('purchase_price', type=float)
-        vendor = request.form.get('vendor')
-        warranty_expiry = request.form.get('warranty_expiry')
-        notes = request.form.get('notes')
+        purchase_vendor = request.form.get('purchase_vendor') or None
+        purchase_order_number = request.form.get('purchase_order_number') or None
+        
+        warranty_start_date_str = request.form.get('warranty_start_date')
+        warranty_start_date = None
+        if warranty_start_date_str:
+            try:
+                warranty_start_date = datetime.strptime(warranty_start_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid warranty start date format', 'error')
+                return render_template('assets/detail_tables/edit_purchase_info.html', 
+                                     asset=asset,
+                                     purchase_info=purchase_info)
+        
+        warranty_end_date_str = request.form.get('warranty_end_date')
+        warranty_end_date = None
+        if warranty_end_date_str:
+            try:
+                warranty_end_date = datetime.strptime(warranty_end_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid warranty end date format', 'error')
+                return render_template('assets/detail_tables/edit_purchase_info.html', 
+                                     asset=asset,
+                                     purchase_info=purchase_info)
+        
+        purchase_notes = request.form.get('purchase_notes') or None
         
         if purchase_info:
             # Update existing
             purchase_info.purchase_date = purchase_date
             purchase_info.purchase_price = purchase_price
-            purchase_info.vendor = vendor
-            purchase_info.warranty_expiry = warranty_expiry
-            purchase_info.notes = notes
+            purchase_info.purchase_vendor = purchase_vendor
+            purchase_info.purchase_order_number = purchase_order_number
+            purchase_info.warranty_start_date = warranty_start_date
+            purchase_info.warranty_end_date = warranty_end_date
+            purchase_info.purchase_notes = purchase_notes
             purchase_info.updated_by_id = current_user.id
         else:
             # Create new
@@ -239,9 +350,11 @@ def edit_purchase_info(asset_id):
                 asset_id=asset_id,
                 purchase_date=purchase_date,
                 purchase_price=purchase_price,
-                vendor=vendor,
-                warranty_expiry=warranty_expiry,
-                notes=notes,
+                purchase_vendor=purchase_vendor,
+                purchase_order_number=purchase_order_number,
+                warranty_start_date=warranty_start_date,
+                warranty_end_date=warranty_end_date,
+                purchase_notes=purchase_notes,
                 created_by_id=current_user.id,
                 updated_by_id=current_user.id
             )
@@ -284,23 +397,46 @@ def edit_vehicle_registration(asset_id):
     registration = VehicleRegistration.query.filter_by(asset_id=asset_id).first()
     
     if request.method == 'POST':
-        # Validate form data
-        license_plate = request.form.get('license_plate')
-        registration_number = request.form.get('registration_number')
-        registration_expiry = request.form.get('registration_expiry')
-        vin = request.form.get('vin')
-        state = request.form.get('state')
-        insurance_provider = request.form.get('insurance_provider')
-        insurance_policy_number = request.form.get('insurance_policy_number')
-        insurance_expiry = request.form.get('insurance_expiry')
+        # Convert form data to match data model field names and types
+        license_plate = request.form.get('license_plate') or None
+        registration_number = request.form.get('registration_number') or None
+        
+        registration_expiry_str = request.form.get('registration_expiry')
+        registration_expiry = None
+        if registration_expiry_str:
+            try:
+                registration_expiry = datetime.strptime(registration_expiry_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid registration expiry date format', 'error')
+                return render_template('assets/detail_tables/edit_vehicle_registration.html', 
+                                     asset=asset,
+                                     registration=registration)
+        
+        vin_number = request.form.get('vin_number') or None
+        state_registered = request.form.get('state_registered') or None
+        registration_status = request.form.get('registration_status') or 'Active'
+        insurance_provider = request.form.get('insurance_provider') or None
+        insurance_policy_number = request.form.get('insurance_policy_number') or None
+        
+        insurance_expiry_str = request.form.get('insurance_expiry')
+        insurance_expiry = None
+        if insurance_expiry_str:
+            try:
+                insurance_expiry = datetime.strptime(insurance_expiry_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid insurance expiry date format', 'error')
+                return render_template('assets/detail_tables/edit_vehicle_registration.html', 
+                                     asset=asset,
+                                     registration=registration)
         
         if registration:
             # Update existing
             registration.license_plate = license_plate
             registration.registration_number = registration_number
             registration.registration_expiry = registration_expiry
-            registration.vin = vin
-            registration.state = state
+            registration.vin_number = vin_number
+            registration.state_registered = state_registered
+            registration.registration_status = registration_status
             registration.insurance_provider = insurance_provider
             registration.insurance_policy_number = insurance_policy_number
             registration.insurance_expiry = insurance_expiry
@@ -312,8 +448,9 @@ def edit_vehicle_registration(asset_id):
                 license_plate=license_plate,
                 registration_number=registration_number,
                 registration_expiry=registration_expiry,
-                vin=vin,
-                state=state,
+                vin_number=vin_number,
+                state_registered=state_registered,
+                registration_status=registration_status,
                 insurance_provider=insurance_provider,
                 insurance_policy_number=insurance_policy_number,
                 insurance_expiry=insurance_expiry,
@@ -359,30 +496,52 @@ def edit_toyota_warranty(asset_id):
     warranty = ToyotaWarrantyReceipt.query.filter_by(asset_id=asset_id).first()
     
     if request.method == 'POST':
-        # Validate form data
-        warranty_number = request.form.get('warranty_number')
-        warranty_start_date = request.form.get('warranty_start_date')
-        warranty_end_date = request.form.get('warranty_end_date')
-        service_center = request.form.get('service_center')
-        notes = request.form.get('notes')
+        # Convert form data to match data model field names and types
+        warranty_receipt_number = request.form.get('warranty_receipt_number') or None
+        warranty_type = request.form.get('warranty_type') or None
+        
+        warranty_mileage_limit = request.form.get('warranty_mileage_limit', type=int)
+        if warranty_mileage_limit == '':
+            warranty_mileage_limit = None
+        
+        warranty_time_limit_months = request.form.get('warranty_time_limit_months', type=int)
+        if warranty_time_limit_months == '':
+            warranty_time_limit_months = None
+        
+        dealer_name = request.form.get('dealer_name') or None
+        dealer_contact = request.form.get('dealer_contact') or None
+        dealer_phone = request.form.get('dealer_phone') or None
+        dealer_email = request.form.get('dealer_email') or None
+        service_history = request.form.get('service_history') or None
+        warranty_claims = request.form.get('warranty_claims') or None
         
         if warranty:
             # Update existing
-            warranty.warranty_number = warranty_number
-            warranty.warranty_start_date = warranty_start_date
-            warranty.warranty_end_date = warranty_end_date
-            warranty.service_center = service_center
-            warranty.notes = notes
+            warranty.warranty_receipt_number = warranty_receipt_number
+            warranty.warranty_type = warranty_type
+            warranty.warranty_mileage_limit = warranty_mileage_limit
+            warranty.warranty_time_limit_months = warranty_time_limit_months
+            warranty.dealer_name = dealer_name
+            warranty.dealer_contact = dealer_contact
+            warranty.dealer_phone = dealer_phone
+            warranty.dealer_email = dealer_email
+            warranty.service_history = service_history
+            warranty.warranty_claims = warranty_claims
             warranty.updated_by_id = current_user.id
         else:
             # Create new
             warranty = ToyotaWarrantyReceipt(
                 asset_id=asset_id,
-                warranty_number=warranty_number,
-                warranty_start_date=warranty_start_date,
-                warranty_end_date=warranty_end_date,
-                service_center=service_center,
-                notes=notes,
+                warranty_receipt_number=warranty_receipt_number,
+                warranty_type=warranty_type,
+                warranty_mileage_limit=warranty_mileage_limit,
+                warranty_time_limit_months=warranty_time_limit_months,
+                dealer_name=dealer_name,
+                dealer_contact=dealer_contact,
+                dealer_phone=dealer_phone,
+                dealer_email=dealer_email,
+                service_history=service_history,
+                warranty_claims=warranty_claims,
                 created_by_id=current_user.id,
                 updated_by_id=current_user.id
             )

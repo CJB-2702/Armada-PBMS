@@ -68,6 +68,8 @@ class TemplateBuilderContext:
         if cls._valid_metadata_fields is None:
             all_fields = TemplateActionSet.get_column_dict()
             invalid_columns = ['maintenance_plan_id']
+            whitelist = { 'attachments'}
+            all_fields = all_fields | whitelist
             cls._valid_metadata_fields = all_fields - set(invalid_columns)
         return cls._valid_metadata_fields
     
@@ -130,11 +132,19 @@ class TemplateBuilderContext:
             build_type=build_type,
             build_status='Initialized',
             created_by_id=user_id,
-            updated_by_id=user_id
+            updated_by_id=user_id,
+            is_revision=False  # New builds are not revisions
         )
         db.session.add(builder_memory)
         db.session.commit()
-        return cls(builder_memory)
+        
+        # Create context and set default revision to '0' for new builds
+        context = cls(builder_memory)
+        if 'revision' not in context._build_metadata:
+            context._build_metadata['revision'] = '0'
+            context._save()
+        
+        return context
     
     @classmethod
     def copy_from_template(
@@ -157,15 +167,26 @@ class TemplateBuilderContext:
             TemplateBuilderContext: New builder context with copied data
         """
         template = TemplateActionSet.query.get_or_404(template_action_set_id)
-        
-        # Create builder memory
-        builder_memory = TemplateBuilderMemory(
-            name=name,
-            build_type=None,  # Can be set later
-            build_status='Initialized',
-            created_by_id=user_id,
-            updated_by_id=user_id
-        )
+
+        if is_revision:
+            builder_memory = TemplateBuilderMemory(
+                name=name,
+                build_type=None,  # Can be set later
+                build_status='Initialized',
+                created_by_id=user_id,
+                updated_by_id=user_id,
+                src_revision_id=template_action_set_id,
+                src_revision_number=template.revision,
+                is_revision=True
+            )
+        else:
+            builder_memory = TemplateBuilderMemory(
+                name=name,
+                build_type=None,  # Can be set later
+                build_status='Initialized',
+                created_by_id=user_id,
+                updated_by_id=user_id
+            )
         db.session.add(builder_memory)
         db.session.flush()  # Get ID
         
@@ -183,6 +204,7 @@ class TemplateBuilderContext:
         
         # Handle revision logic
         if is_revision:
+            # For revisions, set prior_revision_id and increment revision number
             context._build_metadata['prior_revision_id'] = template.id
             if template.revision:
                 # Increment revision number (simple approach)
@@ -191,8 +213,12 @@ class TemplateBuilderContext:
                     context._build_metadata['revision'] = str(rev_num + 1)
                 except ValueError:
                     context._build_metadata['revision'] = '2'
+            else:
+                # If source has no revision, start at 1
+                context._build_metadata['revision'] = '1'
         else:
-            context._build_metadata['revision'] = None
+            # For new builds (not revisions), default to '0' and no prior_revision_id
+            context._build_metadata['revision'] = '0'
             context._build_metadata['prior_revision_id'] = None
         
         # Ensure is_active is set
@@ -590,6 +616,16 @@ class TemplateBuilderContext:
         
         # Start transaction
         try:
+            # Determine prior_revision_id: use src_revision_id from TemplateBuilderMemory if this is a revision,
+            # otherwise use prior_revision_id from metadata
+            if self._builder_memory.is_revision and self._builder_memory.src_revision_id:
+                prior_revision_id = self._builder_memory.src_revision_id
+            else:
+                prior_revision_id = self._build_metadata.get('prior_revision_id')
+            
+            # Get revision number from metadata (should be set correctly by copy_from_template or default to '0')
+            revision = self._build_metadata.get('revision', '0')
+            
             # Create TemplateActionSet
             template_action_set = TemplateActionSet(
                 task_name=self._build_metadata['task_name'],
@@ -599,8 +635,8 @@ class TemplateBuilderContext:
                 staff_count=self._build_metadata.get('staff_count'),
                 parts_cost=self._build_metadata.get('parts_cost'),
                 labor_hours=self._build_metadata.get('labor_hours'),
-                revision=self._build_metadata.get('revision'),
-                prior_revision_id=self._build_metadata.get('prior_revision_id'),
+                revision=revision,
+                prior_revision_id=prior_revision_id,
                 is_active=self._build_metadata.get('is_active', True),
                 maintenance_plan_id=None,  # Not assigned during building
                 asset_type_id=self._build_metadata.get('asset_type_id'),

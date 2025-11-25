@@ -114,9 +114,29 @@
                 <div class="col-md-6 mb-3">
                     <label for="task_name" class="form-label">Task Name *</label>
                     <input type="text" class="form-control" id="task_name" name="task_name" 
-                           value="{{ builder.metadata.task_name }}" required>
+                           value="{{ builder.metadata.task_name }}" 
+                           {% if builder.is_revision %}disabled{% endif %}
+                           required>
+                    {% if builder.is_revision %}
+                    <!-- Hidden field to ensure task_name is submitted even when disabled -->
+                    <input type="hidden" name="task_name" value="{{ builder.metadata.task_name }}">
+                    <small class="form-text text-muted">Task name is inherited from the source revision and cannot be changed.</small>
+                    {% endif %}
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-3 mb-3">
+                    <label for="revision" class="form-label">Revision Number</label>
+                    <input type="text" class="form-control" id="revision" name="revision" 
+                           value="{{ builder.metadata.revision or '0' }}"
+                           disabled>
+                    <!-- Hidden field to ensure revision is submitted even when disabled -->
+                    <input type="hidden" name="revision" value="{{ builder.metadata.revision or '0' }}">
+                    {% if builder.is_revision %}
+                    <small class="form-text text-muted">Revision number is automatically set based on the source revision.</small>
+                    {% else %}
+                    <small class="form-text text-muted">New templates default to revision 0.</small>
+                    {% endif %}
+                </div>
+                <div class="col-md-3 mb-3">
                     <label for="estimated_duration" class="form-label">Estimated Duration (hours)</label>
                     <input type="number" step="0.1" class="form-control" id="estimated_duration" 
                            name="estimated_duration" value="{{ builder.metadata.estimated_duration or '' }}">

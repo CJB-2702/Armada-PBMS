@@ -21,6 +21,12 @@ class TemplateBuilderMemory(UserCreatedBase):
     build_type = db.Column(db.String(50), nullable=True)  # e.g., "Preventive", "Corrective", "Inspection", "Overhaul"
     build_status = db.Column(db.String(20), default='Initialized', nullable=False)  # Initialized, In Progress, Ready for Review, Submitted, Abandoned
     
+    # If this is a revision, we need to store the template_action_set_id
+    # ONLY STORE THE SRC_REVISION_ID IF THIS IS A REVISION
+    is_revision = db.Column(db.Boolean, default=False, nullable=False)
+    src_revision_id = db.Column(db.Integer, db.ForeignKey('template_action_sets.id'), nullable=True)
+    src_revision_number = db.Column(db.Integer, nullable=True)
+    
     # Template reference (set after submission)
     template_action_set_id = db.Column(db.Integer, db.ForeignKey('template_action_sets.id'), nullable=True)
     

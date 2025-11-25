@@ -25,19 +25,19 @@ DETAIL_TABLE_CONFIG = {
         'model': PurchaseInfo,
         'name': 'Purchase Information',
         'icon': 'bi-cart',
-        'fields': ['purchase_date', 'purchase_price', 'vendor', 'warranty_expiry', 'event_id']
+        'fields': ['purchase_date', 'purchase_price', 'purchase_vendor', 'purchase_order_number', 'warranty_start_date', 'warranty_end_date', 'purchase_notes', 'event_id']
     },
     'vehicle_registration': {
         'model': VehicleRegistration,
         'name': 'Vehicle Registration',
         'icon': 'bi-car-front',
-        'fields': ['license_plate', 'vin', 'registration_expiry', 'insurance_expiry', 'insurance_provider']
+        'fields': ['license_plate', 'registration_number', 'registration_expiry', 'vin_number', 'state_registered', 'registration_status', 'insurance_provider', 'insurance_policy_number', 'insurance_expiry']
     },
     'toyota_warranty_receipt': {
         'model': ToyotaWarrantyReceipt,
         'name': 'Toyota Warranty Receipt',
         'icon': 'bi-shield-check',
-        'fields': ['warranty_number', 'service_date', 'service_type', 'dealer_name', 'mileage_at_service']
+        'fields': ['warranty_receipt_number', 'warranty_type', 'warranty_mileage_limit', 'warranty_time_limit_months', 'dealer_name', 'dealer_contact', 'dealer_phone', 'dealer_email', 'service_history', 'warranty_claims']
     }
 }
 

@@ -276,6 +276,40 @@ class EventContext:
             auto_commit=auto_commit
         )
     
+    def edit_action(
+        self,
+        action_id: int,
+        user_id: int,
+        comment_content: Optional[str] = None,
+        **action_updates
+    ):
+        """
+        Edit an action and optionally add a comment about the edit.
+        
+        Args:
+            action_id: ID of action to edit
+            user_id: ID of user making the edit
+            comment_content: Optional comment content about the edit
+            **action_updates: Keyword arguments to pass to ActionContext.edit_action()
+            
+        Returns:
+            ActionContext instance after edit
+        """
+        from app.buisness.maintenance.base.action_context import ActionContext
+        
+        action_context = ActionContext(action_id)
+        action_context.edit_action(**action_updates)
+        
+        # Add comment if provided
+        if comment_content:
+            self.add_comment(
+                user_id=user_id,
+                content=f"[Action: {action_context.action.action_name}] {comment_content}",
+                is_human_made=True
+            )
+        
+        return action_context
+    
     def refresh(self):
         """Refresh cached comments and attachments from database"""
         self._comments = None

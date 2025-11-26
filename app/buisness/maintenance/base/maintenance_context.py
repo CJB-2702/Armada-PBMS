@@ -217,6 +217,129 @@ class MaintenanceContext:
         """Get active delays (those without end date)"""
         return [d for d in self._struct.delays if d.delay_end_date is None]
     
+    def all_actions_in_terminal_states(self) -> bool:
+        """
+        Check if all actions are in terminal states (Complete, Failed, or Skipped).
+        
+        Returns:
+            True if all actions are in terminal states, False otherwise
+        """
+        terminal_states = {'Complete', 'Failed', 'Skipped'}
+        if self.total_actions == 0:
+            return True  # No actions means all are "terminal" (vacuous truth)
+        return all(action.status in terminal_states for action in self._struct.actions)
+    
+    # Billable Hours Management
+    @property
+    def calculated_billable_hours(self) -> float:
+        """
+        Calculate sum of all action billable hours.
+        
+        Returns:
+            Sum of all action.billable_hours (treating None as 0)
+        """
+        return sum(a.billable_hours or 0 for a in self._struct.actions)
+    
+    @property
+    def actual_billable_hours(self) -> Optional[float]:
+        """
+        Get actual billable hours for the maintenance event.
+        
+        Returns:
+            Actual billable hours or None if not set or attribute doesn't exist
+        """
+        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
+            return None
+        return self.maintenance_action_set.actual_billable_hours
+    
+    def update_actual_billable_hours_auto(self) -> bool:
+        """
+        Auto-update actual_billable_hours if calculated sum is greater than current value.
+        This implements the auto-update behavior when action billable hours change.
+        
+        Returns:
+            True if update occurred, False otherwise
+        """
+        # Check if the attribute exists (handles cases where DB migration hasn't run)
+        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
+            return False
+        
+        calculated = self.calculated_billable_hours
+        current = self.maintenance_action_set.actual_billable_hours or 0
+        if calculated > current:
+            self.maintenance_action_set.actual_billable_hours = calculated
+            db.session.commit()
+            self.refresh()
+            return True
+        return False
+    
+    def set_actual_billable_hours(self, manual_value: float) -> 'MaintenanceContext':
+        """
+        Manually set actual_billable_hours (allows override of calculated sum).
+        
+        Args:
+            manual_value: Manual value to set (must be non-negative)
+            
+        Returns:
+            self for chaining
+            
+        Raises:
+            ValueError: If manual_value is negative or attribute doesn't exist
+        """
+        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
+            raise ValueError("actual_billable_hours field not available. Database migration may be required.")
+        if manual_value < 0:
+            raise ValueError("Billable hours must be non-negative")
+        self.maintenance_action_set.actual_billable_hours = manual_value
+        db.session.commit()
+        self.refresh()
+        return self
+    
+    def sync_actual_billable_hours_to_calculated(self) -> 'MaintenanceContext':
+        """
+        Reset actual_billable_hours to calculated sum.
+        Used when user clicks "sync to sum" button.
+        
+        Returns:
+            self for chaining
+            
+        Raises:
+            ValueError: If attribute doesn't exist
+        """
+        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
+            raise ValueError("actual_billable_hours field not available. Database migration may be required.")
+        self.maintenance_action_set.actual_billable_hours = self.calculated_billable_hours
+        db.session.commit()
+        self.refresh()
+        return self
+    
+    def get_billable_hours_warning(self) -> Optional[str]:
+        """
+        Get warning message if actual_billable_hours is outside expected range.
+        
+        Warning conditions:
+        - If actual < calculated (less than sum)
+        - If actual > calculated * 4 (more than 4x sum)
+        
+        Returns:
+            Warning message string or None if no warning needed
+        """
+        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
+            return None
+        
+        calculated = self.calculated_billable_hours
+        actual = self.maintenance_action_set.actual_billable_hours
+        
+        if actual is None:
+            return None
+        
+        if actual < calculated:
+            return f"Actual billable hours ({actual:.2f}) is less than calculated sum ({calculated:.2f})"
+        elif calculated > 0 and actual > calculated * 4:
+            return f"Actual billable hours ({actual:.2f}) is more than 4x the calculated sum ({calculated:.2f})"
+        
+        return None
+    
     # Query methods
     @staticmethod
     def get_all() -> List['MaintenanceContext']:
@@ -315,7 +438,77 @@ class MaintenanceContext:
             'completion_percentage': self.completion_percentage,
             'total_part_demands': self.total_part_demands,
             'assigned_user_id': self._struct.assigned_user_id,
+            'actual_billable_hours': self.actual_billable_hours,
+            'calculated_billable_hours': self.calculated_billable_hours,
+            'billable_hours_warning': self.get_billable_hours_warning(),
         }
+    
+    def update_action_set_details(
+        self,
+        task_name: Optional[str] = None,
+        description: Optional[str] = None,
+        estimated_duration: Optional[float] = None,
+        asset_id: Optional[int] = None,
+        maintenance_plan_id: Optional[int] = None,
+        status: Optional[str] = None,
+        priority: Optional[str] = None,
+        planned_start_datetime: Optional[datetime] = None,
+        safety_review_required: Optional[bool] = None,
+        staff_count: Optional[int] = None,
+        labor_hours: Optional[float] = None,
+        completion_notes: Optional[str] = None
+    ) -> 'MaintenanceContext':
+        """
+        Update maintenance action set details.
+        
+        All fields are inherited from VirtualActionSet or defined in MaintenanceActionSet.
+        Description is a column from VirtualActionSet and can be set directly.
+        
+        Args:
+            task_name: Task name (from VirtualActionSet)
+            description: Description (from VirtualActionSet)
+            estimated_duration: Estimated duration in hours (from VirtualActionSet)
+            asset_id: Asset ID (from EventDetailVirtual)
+            maintenance_plan_id: Maintenance plan ID
+            status: Status
+            priority: Priority
+            planned_start_datetime: Planned start datetime
+            safety_review_required: Whether safety review is required (from VirtualActionSet)
+            staff_count: Staff count (from VirtualActionSet)
+            labor_hours: Labor hours (from VirtualActionSet)
+            completion_notes: Completion notes
+            
+        Returns:
+            self for chaining
+        """
+        if task_name is not None:
+            self.maintenance_action_set.task_name = task_name
+        if description is not None:
+            self.maintenance_action_set.description = description
+        if estimated_duration is not None:
+            self.maintenance_action_set.estimated_duration = estimated_duration
+        if asset_id is not None:
+            self.maintenance_action_set.asset_id = asset_id if asset_id else None
+        if maintenance_plan_id is not None:
+            self.maintenance_action_set.maintenance_plan_id = maintenance_plan_id if maintenance_plan_id else None
+        if status is not None:
+            self.maintenance_action_set.status = status
+        if priority is not None:
+            self.maintenance_action_set.priority = priority
+        if planned_start_datetime is not None:
+            self.maintenance_action_set.planned_start_datetime = planned_start_datetime
+        if safety_review_required is not None:
+            self.maintenance_action_set.safety_review_required = safety_review_required
+        if staff_count is not None:
+            self.maintenance_action_set.staff_count = staff_count if staff_count else None
+        if labor_hours is not None:
+            self.maintenance_action_set.labor_hours = labor_hours if labor_hours else None
+        if completion_notes is not None:
+            self.maintenance_action_set.completion_notes = completion_notes
+        
+        db.session.commit()
+        self.refresh()
+        return self
     
     def refresh(self):
         """Refresh cached data from database"""

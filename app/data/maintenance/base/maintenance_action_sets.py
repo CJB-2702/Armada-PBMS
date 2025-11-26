@@ -28,6 +28,7 @@ class MaintenanceActionSet(EventDetailVirtual, VirtualActionSet):
     priority = db.Column(db.String(20), default='Medium')
     start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
+    actual_billable_hours = db.Column(db.Float, nullable=True)
     
     # Assignment
     assigned_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -60,10 +61,7 @@ class MaintenanceActionSet(EventDetailVirtual, VirtualActionSet):
     # Class attributes for EventDetailVirtual
     event_type = 'maintenance'
     
-    @property
-    def description(self):
-        """Description for the event"""
-        return f'Maintenance: {self.task_name}' if self.task_name else 'Maintenance Event'
+
     
     def create_event(self):
         """Create event for this maintenance action set"""

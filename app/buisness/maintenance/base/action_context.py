@@ -290,55 +290,6 @@ class ActionContext:
             return delta.total_seconds() / 3600
         return None
     
-    # Query methods
-    @staticmethod
-    def get_by_maintenance_action_set(maintenance_action_set_id: int) -> List['ActionContext']:
-        """
-        Get all actions for a maintenance action set.
-        
-        Args:
-            maintenance_action_set_id: Maintenance action set ID
-            
-        Returns:
-            List of ActionContext instances, ordered by sequence_order
-        """
-        actions = Action.query.filter_by(
-            maintenance_action_set_id=maintenance_action_set_id
-        ).order_by(Action.sequence_order).all()
-        return [ActionContext(action) for action in actions]
-    
-    @staticmethod
-    def get_by_user(user_id: int) -> List['ActionContext']:
-        """
-        Get all actions assigned to a user.
-        
-        Args:
-            user_id: User ID
-            
-        Returns:
-            List of ActionContext instances
-        """
-        actions = Action.query.filter_by(assigned_user_id=user_id).all()
-        return [ActionContext(action) for action in actions]
-    
-    @staticmethod
-    def get_by_status(status: str, maintenance_action_set_id: Optional[int] = None) -> List['ActionContext']:
-        """
-        Get actions by status.
-        
-        Args:
-            status: Status to filter by
-            maintenance_action_set_id: Optional maintenance action set ID to filter by
-            
-        Returns:
-            List of ActionContext instances
-        """
-        query = Action.query.filter_by(status=status)
-        if maintenance_action_set_id:
-            query = query.filter_by(maintenance_action_set_id=maintenance_action_set_id)
-        actions = query.all()
-        return [ActionContext(action) for action in actions]
-    
     def to_dict(self) -> Dict[str, Any]:
         """
         Serialize action to dictionary.

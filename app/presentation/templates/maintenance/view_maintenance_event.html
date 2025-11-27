@@ -358,7 +358,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('maintenance.edit_maintenance_event', event_id=event.id) }}" class="btn btn-outline-warning">
+                        <a href="{{ url_for('maintenance_event.edit_maintenance_event', event_id=event.id) }}" class="btn btn-outline-warning">
                             <i class="bi bi-pencil"></i> Edit Event
                         </a>
                         {% if maintenance.status == 'Delayed' %}
@@ -366,14 +366,16 @@
                             <i class="bi bi-tools"></i> Do Work
                         </button>
                         {% if active_delays %}
-                        <form method="POST" action="{{ url_for('maintenance.end_delay', event_id=event.id, delay_id=active_delays[0].id) }}" class="d-inline">
-                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('End the delay and resume work?')">
-                                <i class="bi bi-play-circle"></i> End Delay
-                            </button>
-                        </form>
+                        <button type="button" 
+                                class="btn btn-success w-100" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#endDelayModal" 
+                                onclick="setupEndDelayModal({{ active_delays[0].id }}, {% if active_delays[0].delay_start_date %}'{{ active_delays[0].delay_start_date.strftime('%Y-%m-%dT%H:%M') }}'{% else %}null{% endif %})">
+                            <i class="bi bi-play-circle"></i> End Delay
+                        </button>
                         {% endif %}
                         {% else %}
-                        <a href="{{ url_for('maintenance.work_maintenance_event', event_id=event.id) }}" class="btn btn-outline-success">
+                        <a href="{{ url_for('maintenance_event.work_maintenance_event', event_id=event.id) }}" class="btn btn-outline-success">
                             <i class="bi bi-tools"></i> Do Work
                         </a>
                         {% endif %}
@@ -581,5 +583,92 @@
         </div>
     </div>
 </div>
+
+<!-- End Delay Modal -->
+<div class="modal fade" id="endDelayModal" tabindex="-1" aria-labelledby="endDelayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="endDelayModalLabel">
+                    <i class="bi bi-play-circle"></i> End Delay
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="endDelayForm" method="POST" action="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="delay_start_date" class="form-label">Delay Start Time</label>
+                        <input type="datetime-local" 
+                               class="form-control" 
+                               id="delay_start_date" 
+                               name="delay_start_date"
+                               required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="delay_end_date" class="form-label">Delay End Time</label>
+                        <input type="datetime-local" 
+                               class="form-control" 
+                               id="delay_end_date" 
+                               name="delay_end_date"
+                               required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="delay_comment" class="form-label">Comment (Optional)</label>
+                        <textarea class="form-control" 
+                                  id="delay_comment" 
+                                  name="comment" 
+                                  rows="3" 
+                                  placeholder="Add a comment about ending this delay..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> End Delay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function setupEndDelayModal(delayId, delayStartDate) {
+        // Set form action URL
+        const form = document.getElementById('endDelayForm');
+        form.action = "{{ url_for('maintenance_event.end_delay', event_id=event.id, delay_id=0) }}".replace('/0/', '/' + delayId + '/');
+        
+        // Set delay start date if available
+        const startDateInput = document.getElementById('delay_start_date');
+        if (delayStartDate) {
+            startDateInput.value = delayStartDate;
+        } else {
+            // If no start date, use current time as default
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            startDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        // Set delay end date to now
+        const endDateInput = document.getElementById('delay_end_date');
+        const now = new Date();
+        // Format as YYYY-MM-DDTHH:mm for datetime-local input
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        endDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        
+        // Clear comment field
+        document.getElementById('delay_comment').value = '';
+    }
+</script>
 {% endblock %}
 

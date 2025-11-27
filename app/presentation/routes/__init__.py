@@ -53,6 +53,14 @@ def init_app(app):
         app.register_blueprint(maintenance_bp)
         logger.info("Registered maintenance main blueprint")
         
+        # Register maintenance event blueprint
+        try:
+            from .maintenance.maintenance_event import maintenance_event_bp
+            app.register_blueprint(maintenance_event_bp)
+            logger.info("Registered maintenance event blueprint")
+        except ImportError as e:
+            logger.debug(f"Maintenance event blueprint not available: {e}")
+        
         # Try to register sub-blueprints if they exist
         try:
             from .maintenance import (

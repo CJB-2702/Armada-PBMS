@@ -53,7 +53,7 @@
                     </p>
                 </div>
                 <div>
-                    <a href="{{ url_for('maintenance.view_maintenance_event', event_id=event.id) }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('maintenance_event.view_maintenance_event', event_id=event.id) }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left"></i> Back to View
                     </a>
                 </div>
@@ -303,8 +303,14 @@
                                                     <span class="badge bg-secondary ms-1">{{ part_demand.status }}</span>
                                                 </div>
                                                 <div class="btn-group btn-group-sm">
-                                                    {% if part_demand.status != 'Issued' %}
-                                                    <form method="POST" action="{{ url_for('maintenance.issue_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                                    {% if part_demand.status in ['Cancelled by Technician', 'Cancelled by Supply'] %}
+                                                    <form method="POST" action="{{ url_for('maintenance_event.undo_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Reset this part demand back to planned?')">
+                                                            <i class="bi bi-arrow-counterclockwise"></i> Undo
+                                                        </button>
+                                                    </form>
+                                                    {% elif part_demand.status != 'Issued' %}
+                                                    <form method="POST" action="{{ url_for('maintenance_event.issue_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
                                                         <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Issue this part?')">
                                                             <i class="bi bi-check"></i> Issue
                                                         </button>
@@ -455,10 +461,10 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('maintenance.view_maintenance_event', event_id=event.id) }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('maintenance_event.view_maintenance_event', event_id=event.id) }}" class="btn btn-outline-primary">
                             <i class="bi bi-eye"></i> View Event
                         </a>
-                        <a href="{{ url_for('maintenance.edit_maintenance_event', event_id=event.id) }}" class="btn btn-outline-warning">
+                        <a href="{{ url_for('maintenance_event.edit_maintenance_event', event_id=event.id) }}" class="btn btn-outline-warning">
                             <i class="bi bi-pencil"></i> Edit Event
                         </a>
                     </div>
@@ -568,8 +574,14 @@
                                     {% endif %}
                                 </div>
                                 <div class="btn-group btn-group-sm ms-2">
-                                    {% if part_demand.status != 'Issued' %}
-                                    <form method="POST" action="{{ url_for('maintenance.issue_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                    {% if part_demand.status in ['Cancelled by Technician', 'Cancelled by Supply'] %}
+                                    <form method="POST" action="{{ url_for('maintenance_event.undo_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Reset this part demand back to planned?')" title="Undo Cancellation">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                    {% elif part_demand.status != 'Issued' %}
+                                    <form method="POST" action="{{ url_for('maintenance_event.issue_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Issue this part?')" title="Issue Part">
                                             <i class="bi bi-check"></i>
                                         </button>
@@ -656,11 +668,22 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="status" id="modalTargetStatus">
                     <input type="hidden" name="action_id" id="modalActionId">
                     <p>Action: <strong id="modalActionName"></strong></p>
                     <p>Current Status: <span class="badge bg-secondary" id="modalCurrentStatus"></span></p>
-                    <p>New Status: <span class="badge bg-primary" id="modalNewStatus"></span></p>
+                    
+                    <div class="mb-3">
+                        <label for="modalTargetStatus" class="form-label">New Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="modalTargetStatus" name="status" required>
+                            <option value="">-- Select Status --</option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Complete">Complete</option>
+                            <option value="Failed">Failed</option>
+                            <option value="Skipped">Skipped</option>
+                            <option value="Blocked">Blocked</option>
+                        </select>
+                    </div>
                     
                     <div class="mb-3" id="commentSection">
                         <label for="statusComment" class="form-label">Comment <span class="text-danger" id="commentRequired">*</span></label>
@@ -688,45 +711,31 @@
                         </div>
                     </div>
                     
-                    <!-- Part Demand Management for Failed -->
-                    <div class="mb-3" id="failedPartDemandsSection" style="display: none;">
+                    <!-- Part Demand Management for Failed/Skipped -->
+                    <div class="mb-3" id="partDemandsSection" style="display: none;">
                         <div class="card border-warning">
                             <div class="card-header bg-warning bg-opacity-10 py-2">
                                 <small class="fw-bold text-warning">
-                                    <i class="bi bi-exclamation-triangle"></i> Part Demand Management
+                                    <i class="bi bi-box-seam"></i> Part Demand Management
                                 </small>
                             </div>
                             <div class="card-body py-2">
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="duplicatePartDemands" name="duplicate_part_demands" value="true">
+                                    <input class="form-check-input" type="radio" name="part_demand_action" id="partDemandLeaveAsIs" value="leave_as_is" checked>
+                                    <label class="form-check-label" for="partDemandLeaveAsIs">
+                                        Leave part demands as is
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="part_demand_action" id="duplicatePartDemands" value="duplicate">
                                     <label class="form-check-label" for="duplicatePartDemands">
                                         Duplicate all part demands (parts may have been consumed during failure)
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="cancelPartDemandsFailed" name="cancel_part_demands" value="true">
-                                    <label class="form-check-label" for="cancelPartDemandsFailed">
-                                        Cancel all non-issued part demands (task failed before start)
-                                    </label>
-                                </div>
-                                <small class="text-muted">You can select both options if needed.</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Part Demand Management for Skipped -->
-                    <div class="mb-3" id="skippedPartDemandsSection" style="display: none;">
-                        <div class="card border-secondary">
-                            <div class="card-header bg-secondary bg-opacity-10 py-2">
-                                <small class="fw-bold text-secondary">
-                                    <i class="bi bi-skip-forward"></i> Part Demand Management
-                                </small>
-                            </div>
-                            <div class="card-body py-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="cancelPartDemandsSkipped" name="cancel_part_demands" value="true" checked>
-                                    <label class="form-check-label" for="cancelPartDemandsSkipped">
-                                        Cancel all non-issued part demands
+                                    <input class="form-check-input" type="radio" name="part_demand_action" id="cancelPartDemands" value="cancel">
+                                    <label class="form-check-label" for="cancelPartDemands">
+                                        Cancel all non-issued part demands (task failed before start or was skipped)
                                     </label>
                                 </div>
                             </div>
@@ -874,11 +883,11 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="editEstimatedDuration" class="form-label">Estimated Duration (hours)</label>
-                            <input type="number" step="0.1" min="0" class="form-control" id="editEstimatedDuration" name="estimated_duration">
+                            <input type="number" min="0" class="form-control" id="editEstimatedDuration" name="estimated_duration">
                         </div>
                         <div class="col-md-6">
                             <label for="editExpectedBillableHours" class="form-label">Expected Billable Hours</label>
-                            <input type="number" step="0.1" min="0" class="form-control" id="editExpectedBillableHours" name="expected_billable_hours">
+                            <input type="number" min="0" class="form-control" id="editExpectedBillableHours" name="expected_billable_hours">
                         </div>
                     </div>
                     
@@ -915,7 +924,7 @@
 <div class="modal fade" id="completeMaintenanceModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('maintenance.complete_maintenance', event_id=event.id) }}">
+            <form method="POST" action="{{ url_for('maintenance_event.complete_maintenance', event_id=event.id) }}">
                 <div class="modal-header">
                     <h5 class="modal-title">Complete Maintenance</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -961,7 +970,7 @@
 <div class="modal fade" id="createDelayModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('maintenance.create_delay', event_id=event.id) }}">
+            <form method="POST" action="{{ url_for('maintenance_event.create_delay', event_id=event.id) }}">
                 <div class="modal-header">
                     <h5 class="modal-title">Place in Delay</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -979,6 +988,15 @@
                     <div class="mb-3">
                         <label for="delayReason" class="form-label">Reason <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="delayReason" name="delay_reason" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="delayStartDate" class="form-label">Delay Start Time</label>
+                        <input type="datetime-local" 
+                               class="form-control" 
+                               id="delayStartDate" 
+                               name="delay_start_date"
+                               required>
                     </div>
                     
                     <div class="mb-3">
@@ -1087,71 +1105,133 @@ document.getElementById('actionStatusModal').addEventListener('show.bs.modal', f
     const actionId = button.getAttribute('data-action-id');
     const actionName = button.getAttribute('data-action-name');
     const currentStatus = button.getAttribute('data-current-status');
-    const targetStatus = button.getAttribute('data-target-status');
+    const suggestedStatus = button.getAttribute('data-target-status') || ''; // Optional, for backward compatibility
     
     const modal = this;
     modal.querySelector('#modalActionId').value = actionId;
     modal.querySelector('#modalActionName').textContent = actionName;
     modal.querySelector('#modalCurrentStatus').textContent = currentStatus;
-    modal.querySelector('#modalNewStatus').textContent = targetStatus;
-    modal.querySelector('#modalTargetStatus').value = targetStatus;
+    
+    const statusSelect = modal.querySelector('#modalTargetStatus');
+    statusSelect.value = suggestedStatus; // Set suggested status if provided
     
     const form = modal.querySelector('#actionStatusForm');
     form.action = `/maintenance/maintenance-event/{{ event.id }}/action/${actionId}/update-status`;
     
-    // Show/hide comment requirement
-    const requiresComment = targetStatus === 'Blocked' || targetStatus === 'Failed' || 
-                           (['Complete', 'Failed'].includes(currentStatus) && ['Complete', 'Failed'].includes(targetStatus));
     const commentSection = modal.querySelector('#commentSection');
     const commentRequired = modal.querySelector('#commentRequired');
     const commentHelp = modal.querySelector('#commentHelp');
     const commentField = modal.querySelector('#statusComment');
     const editedCommentField = modal.querySelector('#editedComment');
     
-    commentSection.style.display = 'block';  // Always show comment section
-    if (requiresComment) {
-        commentField.required = true;
-        commentRequired.style.display = 'inline';
-        commentHelp.textContent = 'A comment is required for this status change. You can edit it before submitting.';
-    } else {
-        commentField.required = false;
-        commentRequired.style.display = 'none';
-        commentHelp.textContent = 'You can add a comment (optional). If you edit it, it will be marked as human-created.';
+    // Store original generated comment for comparison
+    let generatedComment = '';
+    let isUserEdited = false;
+    
+    // Function to generate comment based on status transition
+    function generateComment(fromStatus, toStatus) {
+        const statusTransitions = {
+            'Not Started -> In Progress': 'Action started',
+            'In Progress -> Complete': 'Action completed successfully',
+            'In Progress -> Failed': 'Action failed',
+            'In Progress -> Blocked': 'Action blocked',
+            'In Progress -> Skipped': 'Action skipped',
+            'Blocked -> In Progress': 'Action resumed after being blocked',
+            'Complete -> Failed': 'Action status changed from Complete to Failed',
+            'Failed -> Complete': 'Action status changed from Failed to Complete',
+            'Complete -> In Progress': 'Action reset to In Progress for retry',
+            'Failed -> In Progress': 'Action reset to In Progress for retry',
+            'Skipped -> In Progress': 'Action reset to In Progress',
+        };
+        
+        const transitionKey = `${fromStatus} -> ${toStatus}`;
+        return statusTransitions[transitionKey] || `Status changed from ${fromStatus} to ${toStatus}`;
     }
     
-    // Set default comment text
-    const defaultComment = `Status changed from ${currentStatus} to ${targetStatus}`;
-    commentField.value = defaultComment;
-    editedCommentField.value = '';
-    
-    // Track if comment is edited - remove old listener and add new one
-    const commentInputHandler = function() {
-        if (this.value !== defaultComment) {
-            editedCommentField.value = this.value;
-        } else {
+    // Function to update comment based on selected status
+    function updateComment() {
+        const selectedStatus = statusSelect.value;
+        if (!selectedStatus) {
+            commentField.value = '';
+            generatedComment = '';
+            editedCommentField.value = '';
+            isUserEdited = false;
+            return;
+        }
+        
+        generatedComment = generateComment(currentStatus, selectedStatus);
+        
+        // Only update if user hasn't edited, or if they're changing the status again
+        if (!isUserEdited || commentField.value === '') {
+            commentField.value = generatedComment;
             editedCommentField.value = '';
         }
-    };
-    // Remove any existing listener
-    commentField.removeEventListener('input', commentInputHandler);
-    commentField.addEventListener('input', commentInputHandler);
+        
+        // Check comment requirements
+        const requiresComment = selectedStatus === 'Blocked' || selectedStatus === 'Failed' || 
+                               (['Complete', 'Failed'].includes(currentStatus) && ['Complete', 'Failed'].includes(selectedStatus));
+        
+        if (requiresComment) {
+            commentField.required = true;
+            commentRequired.style.display = 'inline';
+            commentHelp.textContent = 'A comment is required for this status change. You can edit it before submitting.';
+        } else {
+            commentField.required = false;
+            commentRequired.style.display = 'none';
+            commentHelp.textContent = 'You can add a comment (optional). If you edit it, it will be marked as human-created.';
+        }
+        
+        // Show/hide part demand management section
+        const partDemandsSection = modal.querySelector('#partDemandsSection');
+        partDemandsSection.style.display = (selectedStatus === 'Failed' || selectedStatus === 'Skipped') ? 'block' : 'none';
+        
+        // Reset radio buttons when showing
+        if (partDemandsSection.style.display === 'block') {
+            modal.querySelector('#partDemandLeaveAsIs').checked = true;
+        }
+        
+        // Show/hide complete part demands section
+        const completeSection = modal.querySelector('#completePartDemandsSection');
+        completeSection.style.display = selectedStatus === 'Complete' ? 'block' : 'none';
+        
+        // Show billable hours for completion states
+        const billableSection = modal.querySelector('#billableHoursSection');
+        billableSection.style.display = ['Complete', 'Failed'].includes(selectedStatus) ? 'block' : 'none';
+        
+        // Show completion notes for completion states
+        const notesSection = modal.querySelector('#completionNotesSection');
+        notesSection.style.display = ['Complete', 'Failed', 'Skipped'].includes(selectedStatus) ? 'block' : 'none';
+    }
     
-    // Show/hide part demand management sections
-    const completeSection = modal.querySelector('#completePartDemandsSection');
-    const failedSection = modal.querySelector('#failedPartDemandsSection');
-    const skippedSection = modal.querySelector('#skippedPartDemandsSection');
+    // Track if comment is edited - use a single handler that checks the current generated comment
+    function handleCommentInput() {
+        if (this.value !== generatedComment && generatedComment !== '') {
+            isUserEdited = true;
+            editedCommentField.value = this.value;
+        } else {
+            isUserEdited = false;
+            editedCommentField.value = '';
+        }
+    }
     
-    completeSection.style.display = targetStatus === 'Complete' ? 'block' : 'none';
-    failedSection.style.display = targetStatus === 'Failed' ? 'block' : 'none';
-    skippedSection.style.display = targetStatus === 'Skipped' ? 'block' : 'none';
+    // Remove any existing listeners and add new one
+    commentField.removeEventListener('input', handleCommentInput);
+    commentField.addEventListener('input', handleCommentInput);
     
-    // Show billable hours for completion states
-    const billableSection = modal.querySelector('#billableHoursSection');
-    billableSection.style.display = ['Complete', 'Failed'].includes(targetStatus) ? 'block' : 'none';
+    // Update comment when status changes
+    statusSelect.removeEventListener('change', updateComment);
+    statusSelect.addEventListener('change', updateComment);
     
-    // Show completion notes for completion states
-    const notesSection = modal.querySelector('#completionNotesSection');
-    notesSection.style.display = ['Complete', 'Failed', 'Skipped'].includes(targetStatus) ? 'block' : 'none';
+    // Initialize on modal open
+    commentField.value = '';
+    generatedComment = '';
+    editedCommentField.value = '';
+    isUserEdited = false;
+    
+    // Generate comment if suggested status is provided
+    if (suggestedStatus) {
+        updateComment();
+    }
 });
 
 // Edit Action Modal Handler
@@ -1275,6 +1355,24 @@ document.addEventListener('DOMContentLoaded', function () {
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+    
+    // Set delay start time to now when create delay modal opens
+    const createDelayModal = document.getElementById('createDelayModal');
+    if (createDelayModal) {
+        createDelayModal.addEventListener('show.bs.modal', function () {
+            const delayStartDateInput = document.getElementById('delayStartDate');
+            if (delayStartDateInput) {
+                const now = new Date();
+                // Format as YYYY-MM-DDTHH:mm for datetime-local input
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                delayStartDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

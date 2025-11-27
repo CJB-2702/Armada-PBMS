@@ -62,6 +62,23 @@ class MaintenanceContext:
             self._event_context = EventContext(self._struct.event_id)
         return self._event_context
     
+    def _sync_event_status(self):
+        """
+        Sync Event.status with MaintenanceActionSet.status.
+        Maps maintenance statuses to event statuses.
+        """
+        if not self._struct.event_id:
+            return
+        
+        event = Event.query.get(self._struct.event_id)
+        if not event:
+            return
+        
+        # Map maintenance status to event status
+        maintenance_status = self.maintenance_action_set.status
+        if maintenance_status:
+            event.status = maintenance_status
+
     # Management methods
     def start(self, user_id: Optional[int] = None) -> 'MaintenanceContext':
         """
@@ -78,6 +95,7 @@ class MaintenanceContext:
             self.maintenance_action_set.start_date = datetime.utcnow()
             if user_id:
                 self.maintenance_action_set.assigned_by_id = user_id
+            self._sync_event_status()
             db.session.commit()
             self.refresh()
         return self
@@ -100,6 +118,7 @@ class MaintenanceContext:
                 self.maintenance_action_set.completed_by_id = user_id
             if notes:
                 self.maintenance_action_set.completion_notes = notes
+            self._sync_event_status()
             db.session.commit()
             self.refresh()
         return self
@@ -120,6 +139,7 @@ class MaintenanceContext:
             self.maintenance_action_set.end_date = datetime.utcnow()
             if notes:
                 self.maintenance_action_set.completion_notes = notes
+            self._sync_event_status()
             db.session.commit()
             self.refresh()
         return self
@@ -166,12 +186,59 @@ class MaintenanceContext:
             self.maintenance_action_set.status = 'Delayed'
             if delay_notes:
                 self.maintenance_action_set.delay_notes = delay_notes
+            self._sync_event_status()
         
         db.session.add(delay)
         db.session.commit()
         self.refresh()
         
         return delay
+    
+    def end_delay(
+        self, 
+        delay_id: int, 
+        user_id: Optional[int] = None,
+        delay_start_date: Optional[datetime] = None,
+        delay_end_date: Optional[datetime] = None
+    ) -> 'MaintenanceContext':
+        """
+        End an active delay and update maintenance status back to In Progress.
+        
+        Args:
+            delay_id: ID of the delay to end
+            user_id: ID of user ending the delay
+            delay_start_date: Optional start date to update (if provided)
+            delay_end_date: Optional end date to set (defaults to now if not provided)
+            
+        Returns:
+            self for chaining
+        """
+        delay = MaintenanceDelay.query.get(delay_id)
+        if not delay:
+            return self
+        
+        if delay.delay_end_date:
+            # Delay already ended
+            return self
+        
+        # Update delay start date if provided
+        if delay_start_date:
+            delay.delay_start_date = delay_start_date
+        
+        # End the delay - use provided end date or default to now
+        delay.delay_end_date = delay_end_date if delay_end_date else datetime.utcnow()
+        if user_id:
+            delay.updated_by_id = user_id
+        
+        # Update maintenance status back to In Progress if currently Delayed
+        if self.maintenance_action_set.status == 'Delayed':
+            self.maintenance_action_set.status = 'In Progress'
+            self._sync_event_status()
+        
+        db.session.commit()
+        self.refresh()
+        
+        return self
     
     def add_comment(self, user_id: int, content: str, is_private: bool = False) -> 'MaintenanceContext':
         """
@@ -254,7 +321,7 @@ class MaintenanceContext:
     
     def update_actual_billable_hours_auto(self) -> bool:
         """
-        Auto-update actual_billable_hours if calculated sum is greater than current value.
+        Auto-update actual_billable_hours if calculated sum of all individual actions is greater than current value.
         This implements the auto-update behavior when action billable hours change.
         
         Returns:
@@ -340,81 +407,6 @@ class MaintenanceContext:
         
         return None
     
-    # Query methods
-    @staticmethod
-    def get_all() -> List['MaintenanceContext']:
-        """
-        Get all maintenance action sets.
-        
-        Returns:
-            List of MaintenanceContext instances
-        """
-        action_sets = MaintenanceActionSet.query.all()
-        return [MaintenanceContext(mas) for mas in action_sets]
-    
-    @staticmethod
-    def get_by_status(status: str) -> List['MaintenanceContext']:
-        """
-        Get maintenance action sets by status.
-        
-        Args:
-            status: Status to filter by
-            
-        Returns:
-            List of MaintenanceContext instances
-        """
-        action_sets = MaintenanceActionSet.query.filter_by(status=status).all()
-        return [MaintenanceContext(mas) for mas in action_sets]
-    
-    @staticmethod
-    def get_by_asset(asset_id: int) -> List['MaintenanceContext']:
-        """
-        Get maintenance action sets by asset.
-        
-        Args:
-            asset_id: Asset ID to filter by
-            
-        Returns:
-            List of MaintenanceContext instances
-        """
-        action_sets = MaintenanceActionSet.query.filter_by(asset_id=asset_id).all()
-        return [MaintenanceContext(mas) for mas in action_sets]
-    
-    @staticmethod
-    def get_by_user(user_id: int, assigned: bool = True) -> List['MaintenanceContext']:
-        """
-        Get maintenance action sets by assigned user.
-        
-        Args:
-            user_id: User ID to filter by
-            assigned: If True, filter by assigned_user_id; if False, filter by completed_by_id
-            
-        Returns:
-            List of MaintenanceContext instances
-        """
-        if assigned:
-            action_sets = MaintenanceActionSet.query.filter_by(assigned_user_id=user_id).all()
-        else:
-            action_sets = MaintenanceActionSet.query.filter_by(completed_by_id=user_id).all()
-        return [MaintenanceContext(mas) for mas in action_sets]
-    
-    @staticmethod
-    def get_by_event_id(event_id: int) -> Optional['MaintenanceContext']:
-        """
-        Get maintenance action set by event ID.
-        Since there's only one MaintenanceActionSet per Event (ONE-TO-ONE), returns single instance.
-        
-        Args:
-            event_id: Event ID
-            
-        Returns:
-            MaintenanceContext instance or None if not found
-        """
-        struct = MaintenanceActionSetStruct.from_event_id(event_id)
-        if struct:
-            return MaintenanceContext(struct)
-        return None
-    
     def to_dict(self) -> Dict[str, Any]:
         """
         Serialize maintenance action set to dictionary.
@@ -481,34 +473,163 @@ class MaintenanceContext:
         Returns:
             self for chaining
         """
-        if task_name is not None:
-            self.maintenance_action_set.task_name = task_name
-        if description is not None:
-            self.maintenance_action_set.description = description
-        if estimated_duration is not None:
-            self.maintenance_action_set.estimated_duration = estimated_duration
-        if asset_id is not None:
-            self.maintenance_action_set.asset_id = asset_id if asset_id else None
-        if maintenance_plan_id is not None:
-            self.maintenance_action_set.maintenance_plan_id = maintenance_plan_id if maintenance_plan_id else None
-        if status is not None:
-            self.maintenance_action_set.status = status
-        if priority is not None:
-            self.maintenance_action_set.priority = priority
-        if planned_start_datetime is not None:
-            self.maintenance_action_set.planned_start_datetime = planned_start_datetime
-        if safety_review_required is not None:
-            self.maintenance_action_set.safety_review_required = safety_review_required
-        if staff_count is not None:
-            self.maintenance_action_set.staff_count = staff_count if staff_count else None
-        if labor_hours is not None:
-            self.maintenance_action_set.labor_hours = labor_hours if labor_hours else None
-        if completion_notes is not None:
-            self.maintenance_action_set.completion_notes = completion_notes
+        # Map field names to their values and processing functions
+        # Fields that need falsy-to-None conversion
+        falsy_to_none_fields = {'asset_id', 'maintenance_plan_id', 'staff_count', 'labor_hours'}
+        # Fields that are nullable and can be explicitly set to None (to clear them)
+        nullable_fields = {'estimated_duration', 'description', 'planned_start_datetime', 'completion_notes'}
+        
+        field_mappings = {
+            'task_name': task_name,
+            'description': description,
+            'estimated_duration': estimated_duration,
+            'asset_id': asset_id,
+            'maintenance_plan_id': maintenance_plan_id,
+            'status': status,
+            'priority': priority,
+            'planned_start_datetime': planned_start_datetime,
+            'safety_review_required': safety_review_required,
+            'staff_count': staff_count,
+            'labor_hours': labor_hours,
+            'completion_notes': completion_notes,
+        }
+        
+        # Iterate through mappings and set values
+        # Only update fields that were explicitly provided (in field_mappings with non-None value, or nullable fields that can be None)
+        for field_name, value in field_mappings.items():
+            # Skip if not provided (None and not in nullable fields list)
+            # For nullable fields, allow None to clear the field
+            if value is not None or field_name in nullable_fields:
+                # Handle fields that need falsy-to-None conversion
+                final_value = (value if value else None) if field_name in falsy_to_none_fields else value
+                setattr(self.maintenance_action_set, field_name, final_value)
+                # Special handling for status to sync event status
+                if field_name == 'status':
+                    self._sync_event_status()
         
         db.session.commit()
         self.refresh()
         return self
+    
+    def _calculate_sequence_order(
+        self,
+        insert_position: str = 'end',
+        after_action_id: Optional[int] = None
+    ) -> int:
+        """
+        Calculate sequence order for new action based on insert position.
+        
+        Args:
+            insert_position: 'end', 'beginning', or 'after'
+            after_action_id: Action ID to insert after (if 'after')
+            
+        Returns:
+            Calculated sequence_order
+            
+        Raises:
+            ValueError: If insert_position is invalid or after_action_id not found
+        """
+        actions = self._struct.actions
+        if not actions:
+            return 1
+        
+        if insert_position == 'end':
+            max_sequence = max([a.sequence_order for a in actions], default=0)
+            return max_sequence + 1
+        elif insert_position == 'beginning':
+            return 1
+        elif insert_position == 'after':
+            if not after_action_id:
+                raise ValueError("after_action_id required when insert_position is 'after'")
+            
+            # Find target action
+            target_action = None
+            for action in actions:
+                if action.id == after_action_id:
+                    target_action = action
+                    break
+            
+            if not target_action:
+                raise ValueError(f"Action {after_action_id} not found in maintenance event")
+            
+            return target_action.sequence_order + 1
+        else:
+            raise ValueError(f"Invalid insert_position: {insert_position}")
+    
+    def _renumber_actions_atomic(self) -> None:
+        """
+        Renumber all actions atomically to ensure no gaps or duplicates.
+        Actions are sorted by current sequence_order and assigned consecutive orders starting at 1.
+        """
+        actions = sorted(self._struct.actions, key=lambda a: a.sequence_order)
+        for idx, action in enumerate(actions, start=1):
+            action.sequence_order = idx
+        db.session.commit()
+        self.refresh()
+    
+    def update_delay(
+        self,
+        delay_id: int,
+        delay_type: Optional[str] = None,
+        delay_reason: Optional[str] = None,
+        delay_start_date: Optional[datetime] = None,
+        delay_end_date: Optional[datetime] = None,
+        delay_billable_hours: Optional[float] = None,
+        delay_notes: Optional[str] = None,
+        priority: Optional[str] = None
+    ) -> MaintenanceDelay:
+        """
+        Update delay details.
+        
+        Args:
+            delay_id: Delay ID to update
+            delay_type: Update delay type
+            delay_reason: Update delay reason
+            delay_start_date: Update start date
+            delay_end_date: Update end date (ending delay)
+            delay_billable_hours: Update billable hours
+            delay_notes: Update notes
+            priority: Update priority
+            
+        Returns:
+            Updated MaintenanceDelay instance
+            
+        Raises:
+            ValueError: If delay not found or doesn't belong to this maintenance event
+        """
+        delay = MaintenanceDelay.query.get(delay_id)
+        if not delay:
+            raise ValueError(f"Delay {delay_id} not found")
+        
+        if delay.maintenance_action_set_id != self._maintenance_action_set_id:
+            raise ValueError(f"Delay {delay_id} does not belong to this maintenance event")
+        
+        # Update fields
+        if delay_type is not None:
+            delay.delay_type = delay_type
+        if delay_reason is not None:
+            delay.delay_reason = delay_reason
+        if delay_start_date is not None:
+            delay.delay_start_date = delay_start_date
+        if delay_end_date is not None:
+            delay.delay_end_date = delay_end_date
+        if delay_billable_hours is not None:
+            delay.delay_billable_hours = delay_billable_hours
+        if delay_notes is not None:
+            delay.delay_notes = delay_notes
+        if priority is not None:
+            delay.priority = priority
+        
+        # If ending delay, update maintenance status
+        if delay_end_date is not None and delay.delay_end_date:
+            if self.maintenance_action_set.status == 'Delayed':
+                self.maintenance_action_set.status = 'In Progress'
+                self._sync_event_status()
+        
+        db.session.commit()
+        self.refresh()
+        
+        return delay
     
     def refresh(self):
         """Refresh cached data from database"""

@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Maintenance Event - Mockup</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .event-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .action-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #dee2e6;
+        }
+        .action-card.not-started {
+            border-left-color: #6c757d;
+        }
+        .action-card.in-progress {
+            border-left-color: #0dcaf0;
+            background-color: #f0f9ff;
+        }
+        .action-card.completed {
+            border-left-color: #198754;
+            background-color: #f0fdf4;
+        }
+        .detail-row {
+            border-bottom: 1px solid #e9ecef;
+            padding: 0.5rem 0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .action-item:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+        .action-item.selected {
+            background-color: #cfe2ff;
+            border-left: 4px solid #0d6efd;
+        }
+        /* Responsive borders for Action Editor Panel */
+        @media (min-width: 992px) {
+            .action-editor-panel .border-responsive {
+                border-right: 1px solid #dee2e6 !important;
+                border-bottom: none !important;
+            }
+        }
+        @media (max-width: 991.98px) {
+            .action-editor-panel .border-responsive {
+                border-right: none !important;
+                border-bottom: 1px solid #dee2e6 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Event Header -->
+        <div class="event-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-pencil-square"></i> Edit Maintenance Event
+                    </h1>
+                    <p class="mb-0 opacity-75">
+                        <span class="badge bg-light text-dark me-2" style="font-size: 1.1rem; padding: 0.5rem 0.75rem;">In Progress</span>
+                        <span>Monthly PM - Generator #12345</span>
+                    </p>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Back to View
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upper Content Panels -->
+        <div class="row mb-4">
+            <!-- Left Panel: Maintenance Event Details + Event Activity -->
+            <div class="col-lg-8 col-md-8">
+                <div class="row">
+                    <!-- Event Details -->
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Maintenance Event Details</h5>
+                            </div>
+                    <div class="card-body">
+                        <form method="POST" action="#">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="task_name" class="form-label">Task Name <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="task_name"
+                                           name="task_name"
+                                           value="Monthly PM - Generator"
+                                           required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="estimated_duration" class="form-label">Estimated Duration (hours)</label>
+                                    <input type="number"
+                                           step="0.1"
+                                           class="form-control"
+                                           id="estimated_duration"
+                                           name="estimated_duration"
+                                           value="4.0">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control"
+                                          id="description"
+                                          name="description"
+                                          rows="3"
+                                          placeholder="Describe this maintenance task...">Monthly preventive maintenance for generator unit</textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="asset_id" class="form-label">Asset</label>
+                                    <select id="asset_id" name="asset_id" class="form-select">
+                                        <option value="">-- None --</option>
+                                        <option value="1" selected>Generator #12345 (SN: GEN-2023-001)</option>
+                                        <option value="2">Generator #12346 (SN: GEN-2023-002)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="maintenance_plan_id" class="form-label">Maintenance Plan</label>
+                                    <select id="maintenance_plan_id" name="maintenance_plan_id" class="form-select">
+                                        <option value="">-- None --</option>
+                                        <option value="1" selected>Monthly PM Plan</option>
+                                        <option value="2">Quarterly Inspection Plan</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select id="status" name="status" class="form-select">
+                                        <option value="Planned">Planned</option>
+                                        <option value="In Progress" selected>In Progress</option>
+                                        <option value="Complete">Complete</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                        <option value="Delayed">Delayed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="priority" class="form-label">Priority</label>
+                                    <select id="priority" name="priority" class="form-select">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High" selected>High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="planned_start_datetime" class="form-label">Planned Start</label>
+                                    <input type="datetime-local"
+                                           class="form-control"
+                                           id="planned_start_datetime"
+                                           name="planned_start_datetime"
+                                           value="2024-01-15T08:00">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="safety_review_required" 
+                                           name="safety_review_required"
+                                           checked>
+                                    <label class="form-check-label" for="safety_review_required">
+                                        Safety Review Required
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="staff_count" class="form-label">Staff Count</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="staff_count"
+                                           name="staff_count"
+                                           value="2">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="labor_hours" class="form-label">Labor Hours</label>
+                                    <input type="number"
+                                           step="0.1"
+                                           class="form-control"
+                                           id="labor_hours"
+                                           name="labor_hours"
+                                           value="4.0">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="completion_notes" class="form-label">Completion Notes</label>
+                                <textarea class="form-control"
+                                          id="completion_notes"
+                                          name="completion_notes"
+                                          rows="3"
+                                          placeholder="Add completion notes..."></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Save Changes
+                                </button>
+                                <a href="#" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Activity -->
+                    <div class="col-12">
+                        <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-activity"></i>
+                                Event Activity
+                            </span>
+                            <small class="text-muted">
+                                maintenance · 2024-01-15 08:00
+                            </small>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="event-comments-tab"
+                                        data-bs-toggle="tab" data-bs-target="#event-comments-pane"
+                                        type="button" role="tab" aria-controls="event-comments-pane"
+                                        aria-selected="true">
+                                    Comments (3)
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="event-attachments-tab"
+                                        data-bs-toggle="tab" data-bs-target="#event-attachments-pane"
+                                        type="button" role="tab" aria-controls="event-attachments-pane"
+                                        aria-selected="false">
+                                    Attachments
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="event-metadata-tab"
+                                        data-bs-toggle="tab" data-bs-target="#event-metadata-pane"
+                                        type="button" role="tab" aria-controls="event-metadata-pane"
+                                        aria-selected="false">
+                                    Metadata
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Comments tab -->
+                            <div class="tab-pane fade show active" id="event-comments-pane"
+                                 role="tabpanel" aria-labelledby="event-comments-tab">
+                                <details open>
+                                    <summary class="mb-3" style="cursor: pointer;">
+                                        <strong>Show / Hide Comments</strong>
+                                    </summary>
+
+                                    <!-- Add Comment Form -->
+                                    <form method="POST" action="#" class="mb-3">
+                                        <div class="mb-2">
+                                            <label for="comment-content" class="form-label">Comment</label>
+                                            <textarea class="form-control"
+                                                      id="comment-content"
+                                                      name="content"
+                                                      rows="3"
+                                                      placeholder="Add a comment..." required></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Attachments (optional)</label>
+                                            <input type="file" name="attachments" multiple class="form-control form-control-sm">
+                                            <small class="text-muted">You can attach documents, images, or other files.</small>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="is_private" id="comment-private">
+                                            <label class="form-check-label" for="comment-private">
+                                                Private (visible only to you and admins)
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                                            <i class="bi bi-plus-circle"></i> Add Comment
+                                        </button>
+                                    </form>
+
+                                    <hr>
+
+                                    <!-- Comments List -->
+                                    <div style="max-height: 400px; overflow-y: auto;">
+                                        <div class="comment-box mb-3 pb-3 border-bottom">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <strong>John Doe</strong>
+                                                    <span class="badge bg-primary ms-1" title="Human-made comment">
+                                                        <i class="bi bi-person"></i> Human
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted">
+                                                    2024-01-15 09:30
+                                                </small>
+                                            </div>
+                                            <p class="mb-2">Maintenance event created and assigned to technician.</p>
+                                        </div>
+                                        <div class="comment-box mb-3 pb-3 border-bottom">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <strong>System</strong>
+                                                    <span class="badge bg-info ms-1" title="Machine-generated comment">
+                                                        <i class="bi bi-robot"></i> Auto
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted">
+                                                    2024-01-15 10:15
+                                                </small>
+                                            </div>
+                                            <p class="mb-2">Action #1 status changed from "Not Started" to "In Progress".</p>
+                                        </div>
+                                        <div class="comment-box mb-3">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <strong>Jane Smith</strong>
+                                                    <span class="badge bg-primary ms-1" title="Human-made comment">
+                                                        <i class="bi bi-person"></i> Human
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted">
+                                                    2024-01-15 11:00
+                                                </small>
+                                            </div>
+                                            <p class="mb-2">Part demand for Bearing Grease submitted for approval.</p>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- Attachments tab -->
+                            <div class="tab-pane fade" id="event-attachments-pane"
+                                 role="tabpanel" aria-labelledby="event-attachments-tab">
+                                <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">
+                                                <i class="bi bi-paperclip"></i> maintenance_report.pdf
+                                            </div>
+                                            <small class="text-muted">
+                                                From comment by John Doe on 2024-01-15 09:30
+                                            </small>
+                                        </div>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="#" class="btn btn-outline-secondary" target="_blank">
+                                                View
+                                            </a>
+                                            <a href="#" class="btn btn-outline-primary">
+                                                Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Metadata tab -->
+                            <div class="tab-pane fade" id="event-metadata-pane"
+                                 role="tabpanel" aria-labelledby="event-metadata-tab">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Event ID:</dt>
+                                    <dd class="col-sm-8"><code>7</code></dd>
+
+                                    <dt class="col-sm-4">Type:</dt>
+                                    <dd class="col-sm-8">maintenance</dd>
+
+                                    <dt class="col-sm-4">Description:</dt>
+                                    <dd class="col-sm-8">Monthly PM - Generator</dd>
+
+                                    <dt class="col-sm-4">Created:</dt>
+                                    <dd class="col-sm-8">
+                                        2024-01-15 08:00
+                                    </dd>
+
+                                    <dt class="col-sm-4">Created By:</dt>
+                                    <dd class="col-sm-8">
+                                        John Doe
+                                    </dd>
+
+                                    <dt class="col-sm-4">Asset:</dt>
+                                    <dd class="col-sm-8">
+                                        <a href="#">Generator #12345</a>
+                                    </dd>
+
+                                    <dt class="col-sm-4">Location:</dt>
+                                    <dd class="col-sm-8">
+                                        <a href="#">Main Building</a>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Quick Actions and Delays -->
+            <div class="col-lg-4 col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Event
+                            </a>
+                            <a href="#" class="btn btn-outline-success">
+                                <i class="bi bi-tools"></i> Do Work
+                            </a>
+                            <button type="button" class="btn btn-outline-warning">
+                                <i class="bi bi-pause-circle"></i> Delay Reviewer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delays Card -->
+                <div class="card mb-4 border-warning">
+                    <div class="card-header bg-warning bg-opacity-10">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle text-warning"></i> Delays (2)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Active Delay -->
+                        <div class="mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-warning me-2">Work in Delay</span>
+                                    <span class="badge bg-warning">High</span>
+                                    <span class="badge bg-danger ms-2">Active</span>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-link p-0" onclick="toggleDelayEdit(1)" style="color: #ffc107;">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-link p-0" onclick="alert('Delete delay - full page reload')" style="color: #dc3545;">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="small">
+                                <p class="mb-1"><strong>Reason:</strong> Waiting for replacement bearing to arrive from supplier</p>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-calendar"></i> Started: 2024-01-15 10:30
+                                </p>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-hourglass-split"></i> Expected: 2024-01-17 14:00
+                                </p>
+                                <p class="mb-0 text-muted">
+                                    <i class="bi bi-clock"></i> Billable Hours: 0.5
+                                </p>
+                                <p class="mb-0 mt-1 text-muted small">Part ordered on 2024-01-15. Expected delivery by 2024-01-17.</p>
+                            </div>
+                            <!-- Dropdown Edit Panel -->
+                            <div id="delayEditPanel1" class="mt-2 p-2 border rounded" style="display: none; background-color: #fff3cd;">
+                                <form method="POST" action="#">
+                                    <input type="hidden" name="delay_id" value="1">
+                                    <div class="mb-2">
+                                        <label class="form-label small">Delay Type</label>
+                                        <select class="form-select form-select-sm" name="delay_type">
+                                            <option value="Work in Delay" selected>Work in Delay</option>
+                                            <option value="Cancellation Requested">Cancellation Requested</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Priority</label>
+                                        <select class="form-select form-select-sm" name="priority">
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High" selected>High</option>
+                                            <option value="Critical">Critical</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Reason <span class="text-danger">*</span></label>
+                                        <textarea class="form-control form-control-sm" name="delay_reason" rows="2" required>Waiting for replacement bearing to arrive from supplier</textarea>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Start Date/Time</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" name="delay_start_date" value="2024-01-15T10:30">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">End Date/Time</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" name="delay_end_date">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Expected Resolution Date</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" name="expected_resolution_date" value="2024-01-17T14:00">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Billable Hours</label>
+                                        <input type="number" step="0.1" class="form-control form-control-sm" name="delay_billable_hours" value="0.5">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Delay Notes</label>
+                                        <textarea class="form-control form-control-sm" name="delay_notes" rows="2">Part ordered on 2024-01-15. Expected delivery by 2024-01-17.</textarea>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-check-circle"></i> Submit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleDelayEdit(1)">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Historical Delay -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-danger me-2">Cancellation Requested</span>
+                                    <span class="badge bg-secondary">Medium</span>
+                                    <span class="badge bg-success ms-2">Ended</span>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-link p-0" onclick="toggleDelayEdit(2)" style="color: #ffc107;">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-link p-0" onclick="alert('Delete delay - full page reload')" style="color: #dc3545;">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="small">
+                                <p class="mb-1"><strong>Reason:</strong> Asset scheduled for decommissioning</p>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-calendar"></i> Started: 2024-01-10 09:00
+                                </p>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-calendar-check"></i> Ended: 2024-01-12 15:30
+                                </p>
+                                <p class="mb-0 text-muted">
+                                    <i class="bi bi-clock"></i> Billable Hours: 0.0
+                                </p>
+                                <p class="mb-0 mt-1 text-muted small">Cancellation request was reviewed and maintenance was resumed</p>
+                            </div>
+                            <!-- Dropdown Edit Panel -->
+                            <div id="delayEditPanel2" class="mt-2 p-2 border rounded" style="display: none; background-color: #fff3cd;">
+                                <form method="POST" action="#">
+                                    <input type="hidden" name="delay_id" value="2">
+                                    <div class="mb-2">
+                                        <label class="form-label small">Delay Type</label>
+                                        <select class="form-select form-select-sm" name="delay_type">
+                                            <option value="Work in Delay">Work in Delay</option>
+                                            <option value="Cancellation Requested" selected>Cancellation Requested</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Priority</label>
+                                        <select class="form-select form-select-sm" name="priority">
+                                            <option value="Low">Low</option>
+                                            <option value="Medium" selected>Medium</option>
+                                            <option value="High">High</option>
+                                            <option value="Critical">Critical</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Reason <span class="text-danger">*</span></label>
+                                        <textarea class="form-control form-control-sm" name="delay_reason" rows="2" required>Asset scheduled for decommissioning</textarea>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Start Date/Time</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" name="delay_start_date" value="2024-01-10T09:00">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">End Date/Time</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" name="delay_end_date" value="2024-01-12T15:30">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Expected Resolution Date</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" name="expected_resolution_date">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Billable Hours</label>
+                                        <input type="number" step="0.1" class="form-control form-control-sm" name="delay_billable_hours" value="0.0">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Delay Notes</label>
+                                        <textarea class="form-control form-control-sm" name="delay_notes" rows="2">Cancellation request was reviewed and maintenance was resumed</textarea>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-check-circle"></i> Submit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleDelayEdit(2)">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Part Demands Summary Card -->
+                <div class="card mb-4 border-primary">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <h5 class="mb-0">
+                            <i class="bi bi-box-seam text-primary"></i> Part Demands Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Action #3</span>
+                                        <strong>Bearing Grease</strong>
+                                        <span class="text-muted ms-2">x 0.5 units</span>
+                                    </div>
+                                    <span class="badge bg-warning">Pending Manager Approval</span>
+                                </div>
+                            </div>
+                            <div class="list-group-item px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Action #5</span>
+                                        <strong>Bearing Temperature Sensor</strong>
+                                        <span class="text-muted ms-2">x 1 unit</span>
+                                    </div>
+                                    <span class="badge bg-success">Issued</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tools Summary Card -->
+                <div class="card mb-4 border-info">
+                    <div class="card-header bg-info bg-opacity-10">
+                        <h5 class="mb-0">
+                            <i class="bi bi-tools text-info"></i> Tools Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Action #3</span>
+                                        <strong>Infrared Thermometer</strong>
+                                        <span class="text-muted ms-2 small">(Temperature Measurement Tool)</span>
+                                    </div>
+                                    <span class="badge bg-info">Assigned</span>
+                                </div>
+                            </div>
+                            <div class="list-group-item px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-secondary me-2">Action #5</span>
+                                        <strong>Torque Wrench</strong>
+                                        <span class="text-muted ms-2 small">(Mechanical Tool)</span>
+                                    </div>
+                                    <span class="badge bg-secondary">Planned</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION EDITOR PANEL -->
+        <div class="row">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> ACTION EDITOR PANEL</h5>
+                </div>
+                        <div class="card-body p-0">
+                            <div class="row g-0 action-editor-panel" style="min-height: 500px;">
+                                <!-- Left Panel: Condensed Action List -->
+                                <div class="col-lg-4 col-md-12 border-responsive">
+                                    <div class="p-3">
+                                        <h6 class="fw-bold mb-3"><i class="bi bi-list-ul"></i> Action Details</h6>
+                                        <div class="list-group list-group-flush">
+                                            <!-- Action 1 - Condensed -->
+                                            <div class="list-group-item action-item px-2 py-2" style="cursor: pointer;" onclick="selectAction(1)">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#1</span>
+                                                            <strong class="small">Initial Inspection</strong>
+                                                            <span class="badge bg-success ms-2 small">Complete</span>
+                                                        </div>
+                                                        <small class="text-muted">Est: 0.5h</small>
+                                                    </div>
+                                                    <div class="btn-group-vertical btn-group-sm ms-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-up" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-down" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action 2 - Condensed -->
+                                            <div class="list-group-item action-item px-2 py-2" style="cursor: pointer;" onclick="selectAction(2)">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#2</span>
+                                                            <strong class="small">Check Oil Level</strong>
+                                                            <span class="badge bg-success ms-2 small">Complete</span>
+                                                        </div>
+                                                        <small class="text-muted">Est: 0.25h</small>
+                                                    </div>
+                                                    <div class="btn-group-vertical btn-group-sm ms-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-up" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-down" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action 3 - Condensed (Selected) -->
+                                            <div class="list-group-item action-item selected px-2 py-2" style="cursor: pointer; background-color: #cfe2ff;" onclick="selectAction(3)">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#3</span>
+                                                            <strong class="small">Inspect Bearings</strong>
+                                                            <span class="badge bg-primary ms-2 small">In Progress</span>
+                                                        </div>
+                                                        <small class="text-muted">Est: 0.5h</small>
+                                                    </div>
+                                                    <div class="btn-group-vertical btn-group-sm ms-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-up" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-down" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action 4 - Condensed -->
+                                            <div class="list-group-item action-item px-2 py-2" style="cursor: pointer;" onclick="selectAction(4)">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#4</span>
+                                                            <strong class="small">Test Run Generator</strong>
+                                                            <span class="badge bg-secondary ms-2 small">Not Started</span>
+                                                        </div>
+                                                        <small class="text-muted">Est: 1.0h</small>
+                                                    </div>
+                                                    <div class="btn-group-vertical btn-group-sm ms-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-up" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-down" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action 5 - Condensed -->
+                                            <div class="list-group-item action-item px-2 py-2" style="cursor: pointer;" onclick="selectAction(5)">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#5</span>
+                                                            <strong class="small">Replace Air Filter</strong>
+                                                            <span class="badge bg-secondary ms-2 small">Not Started</span>
+                                                        </div>
+                                                        <small class="text-muted">Est: 0.3h</small>
+                                                    </div>
+                                                    <div class="btn-group-vertical btn-group-sm ms-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-up" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled style="padding: 2px 6px;">
+                                                            <i class="bi bi-arrow-down" style="font-size: 0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr class="my-3">
+                                    </div>
+                                </div>
+
+                                <!-- Middle Panel: Action Edit Form -->
+                                <div class="col-lg-4 col-md-12 border-responsive">
+                                    <div class="p-3">
+                                        <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square"></i> Action</h6>
+                                        <h5 class="fw-bold mb-4">Form Details</h5>
+                                        
+                                        <form id="actionEditForm">
+                                            <div class="mb-3">
+                                                <label for="editActionName" class="form-label">Action Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="editActionName" value="Inspect Bearings" required>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="editActionDescription" class="form-label">Description</label>
+                                                <textarea class="form-control" id="editActionDescription" rows="3">Check bearing condition, temperature, and lubrication. Verify no unusual noise or vibration.</textarea>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="editStatus" class="form-label">Status</label>
+                                                    <select class="form-select" id="editStatus">
+                                                        <option value="Not Started">Not Started</option>
+                                                        <option value="In Progress" selected>In Progress</option>
+                                                        <option value="Complete">Complete</option>
+                                                        <option value="Failed">Failed</option>
+                                                        <option value="Skipped">Skipped</option>
+                                                        <option value="Blocked">Blocked</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editSequenceOrder" class="form-label">Sequence Order</label>
+                                                    <input type="number" min="1" class="form-control" id="editSequenceOrder" value="3">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="editEstimatedDuration" class="form-label">Estimated Duration (hours)</label>
+                                                    <input type="number" step="0.1" class="form-control" id="editEstimatedDuration" value="0.5">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editExpectedBillableHours" class="form-label">Expected Billable Hours</label>
+                                                    <input type="number" step="0.1" class="form-control" id="editExpectedBillableHours" value="0.5">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="editScheduledStartTime" class="form-label">Scheduled Start Time</label>
+                                                    <input type="datetime-local" class="form-control" id="editScheduledStartTime">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editStartTime" class="form-label">Start Time</label>
+                                                    <input type="datetime-local" class="form-control" id="editStartTime" value="2024-01-15T09:15">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="editEndTime" class="form-label">End Time</label>
+                                                    <input type="datetime-local" class="form-control" id="editEndTime">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="editBillableHours" class="form-label">Billable Hours</label>
+                                                    <input type="number" step="0.1" class="form-control" id="editBillableHours">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="editSafetyNotes" class="form-label">Safety Notes</label>
+                                                <textarea class="form-control" id="editSafetyNotes" rows="2">Ensure equipment is powered off and locked out before inspection. Use appropriate PPE.</textarea>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="editCompletionNotes" class="form-label">Completion Notes</label>
+                                                <textarea class="form-control" id="editCompletionNotes" rows="2"></textarea>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="editNotes" class="form-label">Notes</label>
+                                                <textarea class="form-control" id="editNotes" rows="2"></textarea>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-start gap-2 mt-4">
+                                                <button type="button" class="btn btn-danger" style="width: 25%;" onclick="alert('Delete action - full page reload')">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                                <button type="button" class="btn btn-primary" style="width: 75%;" onclick="alert('Submit changes - full page reload')">
+                                                    <i class="bi bi-check-circle"></i> Submit
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Right Panel: Part Demands and Tools -->
+                                <div class="col-lg-4 col-md-12">
+                                    <div class="p-3">
+                                        <!-- Part Demands Section -->
+                                        <div class="card mb-3 border-info">
+                                            <div class="card-header bg-info bg-opacity-10">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-box-seam"></i> Part Demands
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Part Demands List -->
+                                                <div class="list-group list-group-flush mb-3">
+                                                    <div class="list-group-item px-0 py-2">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex align-items-center mb-1">
+                                                                    <strong>Bearing Grease</strong>
+                                                                    <span class="badge bg-warning ms-2 small">Pending Manager Approval</span>
+                                                                    <span class="badge bg-danger ms-1 small">High</span>
+                                                                </div>
+                                                                <div class="small text-muted">
+                                                                    <div><i class="bi bi-upc"></i> Part #: GR-BRG-001</div>
+                                                                    <div><i class="bi bi-tag"></i> Category: Lubricants</div>
+                                                                    <div><i class="bi bi-building"></i> Manufacturer: Mobil</div>
+                                                                    <div><i class="bi bi-123"></i> Quantity: 0.5 units (liters)</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex gap-1">
+                                                                <button type="button" class="btn btn-sm btn-link p-0" onclick="togglePartDemandEdit(1)" style="color: #ffc107;">
+                                                                    <i class="bi bi-pencil-fill"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-link p-0" onclick="alert('Delete part demand - full page reload')" style="color: #dc3545;">
+                                                                    <i class="bi bi-trash-fill"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Dropdown Edit Panel -->
+                                                        <div id="partDemandEditPanel1" class="mt-2 p-2 border rounded" style="display: none; background-color: #fff3cd;">
+                                                            <form method="POST" action="#">
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Part ID</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="part_id" value="456" required>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Quantity</label>
+                                                                    <input type="number" step="0.1" min="0.1" class="form-control form-control-sm" name="quantity_required" value="0.5" required>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Status</label>
+                                                                    <select class="form-select form-select-sm" name="status">
+                                                                        <option value="Pending Manager Approval" selected>Pending Manager Approval</option>
+                                                                        <option value="Pending Inventory Approval">Pending Inventory Approval</option>
+                                                                        <option value="Ordered">Ordered</option>
+                                                                        <option value="Issued">Issued</option>
+                                                                        <option value="Rejected">Rejected</option>
+                                                                        <option value="Backordered">Backordered</option>
+                                                                        <option value="Cancelled by Technician">Cancelled by Technician</option>
+                                                                        <option value="Cancelled by Supply">Cancelled by Supply</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Priority</label>
+                                                                    <select class="form-select form-select-sm" name="priority">
+                                                                        <option value="Low">Low</option>
+                                                                        <option value="Medium">Medium</option>
+                                                                        <option value="High" selected>High</option>
+                                                                        <option value="Critical">Critical</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Notes</label>
+                                                                    <textarea class="form-control form-control-sm" name="notes" rows="2" placeholder="Notes...">Required for bearing maintenance</textarea>
+                                                                </div>
+                                                                <div class="d-flex gap-2">
+                                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                                        <i class="bi bi-check-circle"></i> Submit
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="togglePartDemandEdit(1)">
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div class="list-group-item px-0 py-2">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex align-items-center mb-1">
+                                                                    <strong>Bearing Temperature Sensor</strong>
+                                                                    <span class="badge bg-success ms-2 small">Issued</span>
+                                                                    <span class="badge bg-info ms-1 small">Medium</span>
+                                                                </div>
+                                                                <div class="small text-muted">
+                                                                    <div><i class="bi bi-upc"></i> Part #: SNS-TEMP-BRG-2024</div>
+                                                                    <div><i class="bi bi-tag"></i> Category: Sensors</div>
+                                                                    <div><i class="bi bi-building"></i> Manufacturer: Honeywell</div>
+                                                                    <div><i class="bi bi-123"></i> Quantity: 1 unit (each)</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex gap-1">
+                                                                <button type="button" class="btn btn-sm btn-link p-0" onclick="togglePartDemandEdit(2)" style="color: #ffc107;">
+                                                                    <i class="bi bi-pencil-fill"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-link p-0" onclick="alert('Delete part demand - full page reload')" style="color: #dc3545;">
+                                                                    <i class="bi bi-trash-fill"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Dropdown Edit Panel -->
+                                                        <div id="partDemandEditPanel2" class="mt-2 p-2 border rounded" style="display: none; background-color: #fff3cd;">
+                                                            <form method="POST" action="#">
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Part ID</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="part_id" value="789" required>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Quantity</label>
+                                                                    <input type="number" step="0.1" min="0.1" class="form-control form-control-sm" name="quantity_required" value="1" required>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Status</label>
+                                                                    <select class="form-select form-select-sm" name="status">
+                                                                        <option value="Pending Manager Approval">Pending Manager Approval</option>
+                                                                        <option value="Pending Inventory Approval">Pending Inventory Approval</option>
+                                                                        <option value="Ordered">Ordered</option>
+                                                                        <option value="Issued" selected>Issued</option>
+                                                                        <option value="Rejected">Rejected</option>
+                                                                        <option value="Backordered">Backordered</option>
+                                                                        <option value="Cancelled by Technician">Cancelled by Technician</option>
+                                                                        <option value="Cancelled by Supply">Cancelled by Supply</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Priority</label>
+                                                                    <select class="form-select form-select-sm" name="priority">
+                                                                        <option value="Low">Low</option>
+                                                                        <option value="Medium" selected>Medium</option>
+                                                                        <option value="High">High</option>
+                                                                        <option value="Critical">Critical</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Notes</label>
+                                                                    <textarea class="form-control form-control-sm" name="notes" rows="2" placeholder="Notes...">Replacement sensor for temperature monitoring</textarea>
+                                                                </div>
+                                                                <div class="d-flex gap-2">
+                                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                                        <i class="bi bi-check-circle"></i> Submit
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="togglePartDemandEdit(2)">
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Add Part Demand Form -->
+                                                <div class="border-top pt-3">
+                                                    <details style="background-color: #d1e7dd; padding: 0.5rem; border-radius: 0.25rem;">
+                                                        <summary class="small fw-bold mb-2" style="cursor: pointer;">
+                                                            <i class="bi bi-plus-circle"></i> Add Part Demand
+                                                        </summary>
+                                                        <div class="mt-2">
+                                                            <form method="POST" action="#">
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Part ID</label>
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input type="number" class="form-control" name="part_id" placeholder="Part ID" required>
+                                                                        <a href="/parts" target="_blank" class="btn btn-outline-secondary" title="Open Parts Lookup">
+                                                                            <i class="bi bi-search"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Quantity</label>
+                                                                    <input type="number" step="0.1" min="0.1" class="form-control form-control-sm" name="quantity_required" placeholder="Quantity" required>
+                                                                </div>
+                                                                <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                                    <i class="bi bi-plus-circle"></i> Submit
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </details>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tools Section -->
+                                        <div class="card mb-3 border-primary">
+                                            <div class="card-header bg-primary bg-opacity-10">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-tools"></i> Tools
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Tools List -->
+                                                <div class="list-group list-group-flush mb-3">
+                                                    <div class="list-group-item px-0 py-2">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex align-items-center mb-1">
+                                                                    <strong>Infrared Thermometer</strong>
+                                                                    <span class="badge bg-info ms-2 small">Assigned</span>
+                                                                    <span class="badge bg-warning ms-1 small">High</span>
+                                                                </div>
+                                                                <div class="small text-muted">
+                                                                    <div><i class="bi bi-tag"></i> Temperature Measurement Tool</div>
+                                                                    <div><i class="bi bi-building"></i> Fluke Corporation</div>
+                                                                    <div><i class="bi bi-upc"></i> Model: FLUKE-62MAX</div>
+                                                                    <div><i class="bi bi-123"></i> Quantity: 1</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex gap-1">
+                                                                <button type="button" class="btn btn-sm btn-link p-0" onclick="toggleToolEdit(1)" style="color: #ffc107;">
+                                                                    <i class="bi bi-pencil-fill"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-link p-0" onclick="alert('Delete tool - full page reload')" style="color: #dc3545;">
+                                                                    <i class="bi bi-trash-fill"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Tool Edit Panel (hidden by default) -->
+                                                        <div id="toolEditPanel1" style="display: none; background-color: #fff3cd; padding: 0.75rem; border-radius: 0.25rem; margin-top: 0.5rem;">
+                                                            <form method="POST" action="#">
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Tool ID</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="tool_id" value="123" required>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Quantity</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="quantity_required" value="1" min="1" required>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Status</label>
+                                                                    <select class="form-select form-select-sm" name="status">
+                                                                        <option value="Planned">Planned</option>
+                                                                        <option value="Assigned" selected>Assigned</option>
+                                                                        <option value="Returned">Returned</option>
+                                                                        <option value="Missing">Missing</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Priority</label>
+                                                                    <select class="form-select form-select-sm" name="priority">
+                                                                        <option value="Low">Low</option>
+                                                                        <option value="Medium">Medium</option>
+                                                                        <option value="High" selected>High</option>
+                                                                        <option value="Critical">Critical</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Notes</label>
+                                                                    <textarea class="form-control form-control-sm" name="notes" rows="2">Required for bearing temperature check</textarea>
+                                                                </div>
+                                                                <div class="d-flex gap-2">
+                                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                                        <i class="bi bi-check-circle"></i> Submit
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleToolEdit(1)">
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Add Tool Form -->
+                                                <div class="border-top pt-3">
+                                                    <details style="background-color: #d1e7dd; padding: 0.5rem; border-radius: 0.25rem;">
+                                                        <summary class="small fw-bold mb-2" style="cursor: pointer;">
+                                                            <i class="bi bi-plus-circle"></i> Add Tool
+                                                        </summary>
+                                                        <div class="mt-2">
+                                                            <form method="POST" action="#">
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">Tool ID</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="tool_id" placeholder="Tool ID" required>
+                                                                </div>
+                                                                <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                                    <i class="bi bi-plus-circle"></i> Submit
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </details>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+        <!-- Action Creator Portal -->
+        <div class="row">
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info bg-opacity-10">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle text-info"></i> Action Creator Portal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Creation Method Tabs -->
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="creator-template-tab" data-bs-toggle="tab" data-bs-target="#creator-template-pane" type="button" role="tab">
+                                <i class="bi bi-file-earmark-text"></i> From Template
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="creator-proto-tab" data-bs-toggle="tab" data-bs-target="#creator-proto-pane" type="button" role="tab">
+                                <i class="bi bi-box"></i> From Proto Action
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="creator-current-tab" data-bs-toggle="tab" data-bs-target="#creator-current-pane" type="button" role="tab">
+                                <i class="bi bi-list-check"></i> From Current Action Set
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="creator-blank-tab" data-bs-toggle="tab" data-bs-target="#creator-blank-pane" type="button" role="tab">
+                                <i class="bi bi-file-plus"></i> Blank Action
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Template Action Tab -->
+                        <div class="tab-pane fade show active" id="creator-template-pane" role="tabpanel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-file-earmark-text"></i> Select Template Action
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Search -->
+                                    <div class="mb-3">
+                                        <label for="templateSearch" class="form-label">Search Templates</label>
+                                        <input type="text" class="form-control" id="templateSearch" placeholder="Type to filter by action name or description..." value="Inspect">
+                                        <small class="text-muted">Searching template action sets and their action items</small>
+                                    </div>
+
+                                    <!-- Template Action Sets List -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Template Action Sets</label>
+                                        <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="list-group-item action-item selected">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">Monthly PM - Generator</h6>
+                                                        <small class="text-muted">Template action set with 8 actions</small>
+                                                    </div>
+                                                    <span class="badge bg-primary">8 actions</span>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item action-item">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">Quarterly Inspection</h6>
+                                                        <small class="text-muted">Template action set with 12 actions</small>
+                                                    </div>
+                                                    <span class="badge bg-primary">12 actions</span>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item action-item">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">Annual Overhaul</h6>
+                                                        <small class="text-muted">Template action set with 25 actions</small>
+                                                    </div>
+                                                    <span class="badge bg-primary">25 actions</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Template Action Items List -->
+                                    <div>
+                                        <label class="form-label fw-bold">Action Items in Selected Template</label>
+                                        <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="list-group-item action-item selected">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#3</span>
+                                                            <h6 class="mb-0">Inspect Bearings</h6>
+                                                        </div>
+                                                        <small class="text-muted">Check bearing condition, temperature, and lubrication</small>
+                                                        <div class="mt-1">
+                                                            <span class="badge bg-info">Est: 0.5h</span>
+                                                            <span class="badge bg-warning ms-1">Safety Notes</span>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                        <i class="bi bi-check-circle"></i> Select
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item action-item">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#4</span>
+                                                            <h6 class="mb-0">Check Oil Level</h6>
+                                                        </div>
+                                                        <small class="text-muted">Verify oil level and condition</small>
+                                                        <div class="mt-1">
+                                                            <span class="badge bg-info">Est: 0.25h</span>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                        <i class="bi bi-check-circle"></i> Select
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item action-item">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="badge bg-secondary me-2">#5</span>
+                                                            <h6 class="mb-0">Test Run Generator</h6>
+                                                        </div>
+                                                        <small class="text-muted">Perform 30-minute test run under load</small>
+                                                        <div class="mt-1">
+                                                            <span class="badge bg-info">Est: 1.0h</span>
+                                                            <span class="badge bg-warning ms-1">Safety Notes</span>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                        <i class="bi bi-check-circle"></i> Select
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proto Action Tab -->
+                        <div class="tab-pane fade" id="creator-proto-pane" role="tabpanel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-box"></i> Select Proto Action
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Search -->
+                                    <div class="mb-3">
+                                        <label for="protoSearch" class="form-label">Search Proto Actions</label>
+                                        <input type="text" class="form-control" id="protoSearch" placeholder="Type to filter by action name or description..." value="">
+                                        <small class="text-muted">Searching reusable proto action library</small>
+                                    </div>
+
+                                    <!-- Proto Actions List -->
+                                    <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                                        <div class="list-group-item action-item selected">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">Replace Filter Element</h6>
+                                                    <small class="text-muted">Standard procedure for replacing filter elements</small>
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-info">Est: 0.5h</span>
+                                                        <span class="badge bg-success ms-1">2 Parts</span>
+                                                        <span class="badge bg-primary ms-1">1 Tool</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                    <i class="bi bi-check-circle"></i> Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item action-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">Lubricate Bearings</h6>
+                                                    <small class="text-muted">Apply appropriate lubricant to bearing surfaces</small>
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-info">Est: 0.25h</span>
+                                                        <span class="badge bg-warning ms-1">Safety Notes</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                    <i class="bi bi-check-circle"></i> Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item action-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">Check Fluid Levels</h6>
+                                                    <small class="text-muted">Verify all fluid levels are within specifications</small>
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-info">Est: 0.3h</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                    <i class="bi bi-check-circle"></i> Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Action Set Tab -->
+                        <div class="tab-pane fade" id="creator-current-pane" role="tabpanel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-list-check"></i> Select from Current Action Set
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Search -->
+                                    <div class="mb-3">
+                                        <label for="currentSearch" class="form-label">Search Current Actions</label>
+                                        <input type="text" class="form-control" id="currentSearch" placeholder="Type to filter by action name or description..." value="">
+                                        <small class="text-muted">Searching actions in the current maintenance event</small>
+                                    </div>
+
+                                    <!-- Current Actions List -->
+                                    <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                                        <div class="list-group-item action-item selected">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <span class="badge bg-secondary me-2">#2</span>
+                                                        <h6 class="mb-0">Check Oil Level</h6>
+                                                        <span class="badge bg-success ms-2">Complete</span>
+                                                    </div>
+                                                    <small class="text-muted">Verify oil level and condition. Check for contamination.</small>
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-info">Est: 0.25h</span>
+                                                        <span class="badge bg-success ms-1">2 Parts</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                    <i class="bi bi-check-circle"></i> Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item action-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <span class="badge bg-secondary me-2">#3</span>
+                                                        <h6 class="mb-0">Inspect Bearings</h6>
+                                                        <span class="badge bg-primary ms-2">In Progress</span>
+                                                    </div>
+                                                    <small class="text-muted">Check bearing condition, temperature, and lubrication</small>
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-info">Est: 0.5h</span>
+                                                        <span class="badge bg-warning ms-1">Safety Notes</span>
+                                                        <span class="badge bg-success ms-1">1 Part</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                                    <i class="bi bi-check-circle"></i> Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="bi bi-info-circle"></i> <strong>Note:</strong> Copying from current actions will duplicate the action including part demands and tools. Status will reset to "Not Started".
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Blank Action Tab -->
+                        <div class="tab-pane fade" id="creator-blank-pane" role="tabpanel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-file-plus"></i> Create Blank Action
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">Create a new action from scratch. All fields will be empty and ready for manual entry.</p>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i> <strong>Note:</strong> You'll be able to fill in all action details after creation.
+                                    </div>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal">
+                                        <i class="bi bi-plus-circle"></i> Create Blank Action
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Edit Before Insert Modal -->
+        <div class="modal fade" id="editBeforeInsertModal" tabindex="-1" aria-labelledby="editBeforeInsertModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editBeforeInsertModalLabel">
+                            <i class="bi bi-pencil-square"></i> Edit Action Before Insert
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="actionInsertForm">
+                            <!-- Action Preview/Edit Section -->
+                            <div class="card mb-3 border-primary">
+                                <div class="card-header bg-primary bg-opacity-10">
+                                    <h6 class="mb-0">Action Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="actionName" class="form-label">Action Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="actionName" value="Inspect Bearings" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="actionDescription" class="form-label">Description</label>
+                                        <textarea class="form-control" id="actionDescription" rows="3">Check bearing condition, temperature, and lubrication. Verify no unusual noise or vibration.</textarea>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="estimatedDuration" class="form-label">Estimated Duration (hours)</label>
+                                            <input type="number" step="0.1" class="form-control" id="estimatedDuration" value="0.5">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="expectedBillableHours" class="form-label">Expected Billable Hours</label>
+                                            <input type="number" step="0.1" class="form-control" id="expectedBillableHours" value="0.5">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="safetyNotes" class="form-label">Safety Notes</label>
+                                        <textarea class="form-control" id="safetyNotes" rows="2">Ensure equipment is powered off and locked out before inspection. Use appropriate PPE.</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label">Notes</label>
+                                        <textarea class="form-control" id="notes" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part Demands Preview -->
+                            <div class="card mb-3 border-info">
+                                <div class="card-header bg-info bg-opacity-10">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-box-seam"></i> Part Demands (from source)
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <div class="list-group-item py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>Bearing Grease</strong>
+                                                    <span class="text-muted ms-2">x 0.5 units</span>
+                                                </div>
+                                                <span class="badge bg-info">Will be copied</span>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>Bearing Temperature Sensor</strong>
+                                                    <span class="text-muted ms-2">x 1 unit</span>
+                                                </div>
+                                                <span class="badge bg-info">Will be copied</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tools Preview -->
+                            <div class="card mb-3 border-primary">
+                                <div class="card-header bg-primary bg-opacity-10">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-tools"></i> Tools (from source)
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <div class="list-group-item py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>Infrared Thermometer</strong>
+                                                </div>
+                                                <span class="badge bg-info">Will be copied</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Configuration Options -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-gear"></i> Configuration Options
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="linkToSource" checked>
+                                            <label class="form-check-label" for="linkToSource">
+                                                <strong>Link to source template/proto/action</strong>
+                                            </label>
+                                            <small class="form-text text-muted d-block">
+                                                Maintains reference to original for future updates
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Copy Options</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="copyPartDemands" checked>
+                                            <label class="form-check-label" for="copyPartDemands">
+                                                Copy part demands from source
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="copyTools" checked>
+                                            <label class="form-check-label" for="copyTools">
+                                                Copy tool requirements from source
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="copySafetyNotes" checked>
+                                            <label class="form-check-label" for="copySafetyNotes">
+                                                Copy safety notes
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Insert Position</label>
+                                        <select class="form-select" id="insertPosition">
+                                            <option value="end" selected>At the end (after last action)</option>
+                                            <option value="beginning">At the beginning (before first action)</option>
+                                            <option value="after">After specific action</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3" id="afterActionSelect" style="display: none;">
+                                        <label class="form-label fw-bold">After Which Action?</label>
+                                        <select class="form-select">
+                                            <option value="">-- Select Action --</option>
+                                            <option value="1">#1 - Initial Inspection</option>
+                                            <option value="2">#2 - Check Oil Level</option>
+                                            <option value="3">#3 - Inspect Bearings</option>
+                                            <option value="4">#4 - Test Run Generator</option>
+                                            <option value="5">#5 - Replace Air Filter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="alert('Action would be inserted here - full page reload')">
+                            <i class="bi bi-plus-circle"></i> Insert Action
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+        
+        
+    </div>
+    
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Handle insert position change
+        document.getElementById('insertPosition').addEventListener('change', function() {
+            const afterSelect = document.getElementById('afterActionSelect');
+            if (this.value === 'after') {
+                afterSelect.style.display = 'block';
+            } else {
+                afterSelect.style.display = 'none';
+            }
+        });
+
+        // Handle action selection (for two-panel layout)
+        function selectAction(actionId) {
+            // Remove selected class from all actions
+            document.querySelectorAll('.action-item').forEach(item => {
+                item.classList.remove('selected');
+                item.style.backgroundColor = '';
+            });
+            
+            // Add selected class to clicked action
+            event.currentTarget.classList.add('selected');
+            event.currentTarget.style.backgroundColor = '#cfe2ff';
+            
+            // In real implementation, this would load the action data into the form
+            // For mockup, we'll just show an alert
+            console.log('Selected action:', actionId);
+        }
+
+        // Toggle part demand edit panel
+        function togglePartDemandEdit(partDemandId) {
+            const panel = document.getElementById('partDemandEditPanel' + partDemandId);
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        // Toggle delay edit panel
+        function toggleDelayEdit(delayId) {
+            const panel = document.getElementById('delayEditPanel' + delayId);
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        // Toggle tool edit panel
+        function toggleToolEdit(toolId) {
+            const panel = document.getElementById('toolEditPanel' + toolId);
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+

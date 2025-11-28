@@ -102,6 +102,37 @@ This document outlines required updates to the event activity module and EventCo
 - Visual indicators: Show edited/deleted status appropriately
 - Ensure automated comments show user attribution (created_by)
 
+### 7. Edit History Workflow
+
+**Requirement**: Users who have edited a comment should be able to view their own edit history in the edit modal.
+
+**Implementation Approach:**
+- Add method to Comment model: `get_edit_history()` - Returns all previous versions of the comment (following `previous_comment_id` chain backwards)
+- The method should return a list of all previous versions, ordered chronologically (oldest first)
+- Include the original comment in the history chain
+- Update edit route (`/comments/<comment_id>/edit`) to return edit history data when requested
+- Add edit history section to the edit modal:
+  - Collapsible/expandable section showing "Edit History" 
+  - Display each previous version with:
+    - Version number (e.g., "Original", "Edit 1", "Edit 2")
+    - Content preview
+    - Timestamp (created_at)
+    - User who created that version (created_by)
+  - Only visible to the comment creator (same user who can edit)
+  - Styled as a timeline or list showing the progression of edits
+
+**Data Model Support:**
+- Use `previous_comment_id` relationship to traverse the edit chain backwards
+- Query all comments in the chain where `previous_comment_id` links them together
+- Include comments where `user_viewable = "edit"` in the history (these are hidden from main view but visible in history)
+
+**UI/UX Considerations:**
+- Edit history section should be collapsible (default collapsed to keep modal clean)
+- Show count of edits in the header (e.g., "Edit History (3 versions)")
+- Each version should show a clear diff or side-by-side comparison if possible
+- Use visual indicators (timeline, version badges) to show progression
+- Make it clear which version is the current one being edited
+
 ## Implementation Notes
 
 ### Migration Strategy
@@ -134,9 +165,14 @@ This document outlines required updates to the event activity module and EventCo
 ## Questions to Resolve
 
 1. Should `user_viewable` have exactly three states (null, "deleted", "edit") or more?
+just three
 2. Should we keep `is_edited`, `edited_at`, `edited_by_id` for backward compatibility, or fully migrate to previous_comment_id approach?
+fully migrate
 3. What should happen to existing comments with `is_private = True` during migration?
+just delete the column no actions
+
 4. Should there be an admin view that can see deleted comments and previous edits for audit purposes?
+not now
 
 
 

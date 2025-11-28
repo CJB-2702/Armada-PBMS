@@ -1,0 +1,1114 @@
+<div class="card mb-4" id="event-widget-card" 
+     x-data="eventWidget({{ event.id }}, {{ current_user.id }})"
+     x-init="console.log('Alpine.js initialized for event widget', {{ event.id }})">
+    <div class="card-header">
+        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+            <span>
+                <i class="bi bi-activity"></i>
+                Event Activity
+            </span>
+            <small class="text-muted">
+                {{ event.event_type }} · {{ event.timestamp.strftime('%Y-%m-%d %H:%M') if event.timestamp else 'No timestamp' }}
+            </small>
+        </h5>
+    </div>
+    <div class="card-body">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="event-comments-tab"
+                        data-bs-toggle="tab" data-bs-target="#event-comments-pane"
+                        type="button" role="tab" aria-controls="event-comments-pane"
+                        aria-selected="true">
+                    Comments ({{ comments|length }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="event-attachments-tab"
+                        data-bs-toggle="tab" data-bs-target="#event-attachments-pane"
+                        type="button" role="tab" aria-controls="event-attachments-pane"
+                        aria-selected="false">
+                    Attachments
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="event-metadata-tab"
+                        data-bs-toggle="tab" data-bs-target="#event-metadata-pane"
+                        type="button" role="tab" aria-controls="event-metadata-pane"
+                        aria-selected="false">
+                    Metadata
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Comments tab -->
+            <div class="tab-pane fade show active" id="event-comments-pane"
+                 role="tabpanel" aria-labelledby="event-comments-tab"
+                 x-init="setTimeout(() => scrollToBottom(), 300)"
+                 @shown.bs.tab="setTimeout(() => scrollToBottom(), 100)">
+                <details open>
+                    <summary class="mb-3" style="cursor: pointer;">
+                        <strong>Show / Hide Comments</strong>
+                    </summary>
+
+                    <!-- Filter Section -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            {% if filter_human_only|default(false) %}
+                                <a href="{{ url_for('comments.event_widget', event_id=event.id) }}"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   hx-get="{{ url_for('comments.event_widget', event_id=event.id) }}"
+                                   hx-target="#event-widget-card"
+                                   hx-swap="outerHTML"
+                                   id="human-filter-btn-{{ event.id }}">
+                                    <i class="bi bi-funnel-fill"></i> Show All Comments
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('comments.event_widget', event_id=event.id, human_only='true') }}"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   hx-get="{{ url_for('comments.event_widget', event_id=event.id, human_only='true') }}"
+                                   hx-target="#event-widget-card"
+                                   hx-swap="outerHTML"
+                                   id="human-filter-btn-{{ event.id }}">
+                                    <i class="bi bi-funnel"></i> Show Human Comments Only
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div id="comments-list-container" style="max-height: 400px; overflow-y: auto;" class="mb-3">
+                        {% if comments %}
+                            {% for comment in comments %}
+                            <div class="comment-box" 
+                                 id="comment-{{ comment.id }}"
+                                 data-comment-id="{{ comment.id }}">
+                                <!-- Comment Header -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted" 
+                                               x-text="formatDateTime('{{ comment.created_at.isoformat() if comment.created_at else '' }}')">
+                                        </small>
+                                        <strong>{{ comment.created_by.username if comment.created_by else 'Unknown' }}</strong>
+                                        {% if comment.is_human_made %}
+                                            <span class="badge bg-primary" title="Human-made comment">
+                                                <i class="bi bi-person"></i> Human
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-info" title="Machine-generated comment">
+                                                <i class="bi bi-robot"></i> Auto
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Comment Actions (inline with header) -->
+                                    <div class="d-flex gap-1">
+                                        <button 
+                                            class="btn btn-sm btn-outline-secondary" 
+                                            @click="replyToComment({{ comment.id }}, '{{ comment.get_content_preview(50)|e }}')"
+                                            title="Reply to this comment">
+                                            <i class="bi bi-reply"></i>
+                                        </button>
+                                        {% if comment.created_by_id == current_user.id %}
+                                        <button 
+                                            class="btn btn-sm btn-outline-info" 
+                                            @click="viewCommentMetadata({{ comment.id }})"
+                                            title="View comment metadata">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button 
+                                            class="btn btn-sm btn-outline-primary" 
+                                            @click="startEdit({{ comment.id }})"
+                                            title="Edit this comment">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button 
+                                            class="btn btn-sm btn-outline-danger" 
+                                            @click="deleteComment({{ comment.id }})"
+                                            title="Delete this comment">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Reply Indicator (only shows reference to initial comment, not nested) -->
+                                {% if comment.replied_to_comment_id and comment.replied_to_comment %}
+                                <div class="reply-indicator mb-2">
+                                    <i class="bi bi-reply"></i> 
+                                    Replying to 
+                                    <a href="#" 
+                                       class="reply-link"
+                                       @click.prevent="scrollToComment({{ comment.replied_to_comment_id }})">
+                                        {{ comment.replied_to_comment.get_content_preview(30) }}
+                                    </a>
+                                    <span class="text-muted"> by {{ comment.replied_to_comment.created_by.username if comment.replied_to_comment.created_by else 'Unknown' }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Comment Content -->
+                                <p class="mb-2 comment-content">{{ comment.content }}</p>
+
+                                {% if comment.comment_attachments %}
+                                <div class="comment-attachments mt-2">
+                                    <small class="text-muted d-block mb-2"><strong>Attachments:</strong></small>
+                                    <div class="row">
+                                        {% for ca in comment.comment_attachments %}
+                                        {% set att = ca.attachment %}
+                                        <div class="col-6 col-md-4 mb-2">
+                                            <div class="card attachment-mini-card">
+                                                {% if att.is_image() %}
+                                                    <a href="{{ url_for('attachments.view', attachment_id=att.id) }}"
+                                                       target="_blank"
+                                                       class="d-flex justify-content-center">
+                                                        <img src="{{ url_for('attachments.view', attachment_id=att.id) }}"
+                                                             class="img-thumbnail"
+                                                             alt="{{ att.filename }}"
+                                                             style="width: 100px; height: 100px; object-fit: cover;">
+                                                    </a>
+                                                {% elif att.is_viewable_as_text() %}
+                                                    <div class="card-img-top bg-light" style="height: 100px; overflow: hidden;">
+                                                        <div class="p-2">
+                                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                                <i class="bi {{ att.get_file_icon() }} text-muted"></i>
+                                                                <small class="text-muted">{{ att.get_file_size_display() }}</small>
+                                                            </div>
+                                                            <div class="text-preview"
+                                                                 hx-get="{{ url_for('attachments.preview', attachment_id=att.id) }}"
+                                                                 hx-trigger="load"
+                                                                 hx-swap="innerHTML"
+                                                                 style="font-size: 0.7rem; line-height: 1.2; max-height: 70px; overflow: hidden;">
+                                                                <div class="text-center text-muted">
+                                                                    <i class="bi bi-hourglass-split"></i> Loading preview...
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                                         style="height: 100px;">
+                                                        <i class="bi {{ att.get_file_icon() }} fs-3 text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div class="card-body p-2">
+                                                    <h6 class="card-title text-truncate small mb-1">{{ att.filename }}</h6>
+                                                    <p class="card-text small text-muted mb-1">
+                                                        {{ att.get_file_size_display() }}
+                                                    </p>
+                                                    <div class="btn-group btn-group-sm w-100" role="group">
+                                                        <a href="{{ url_for('attachments.download', attachment_id=att.id) }}"
+                                                           class="btn btn-outline-primary btn-sm">
+                                                            <i class="bi bi-download"></i>
+                                                        </a>
+                                                        {% if att.is_image() or att.is_viewable_as_text() %}
+                                                        <a href="{{ url_for('attachments.view', attachment_id=att.id) }}"
+                                                           class="btn btn-outline-secondary btn-sm" target="_blank">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center mb-0">No comments yet</p>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <!-- Add Comment Section (at bottom) -->
+                    <div class="add-comment-section">
+                        <h6 class="mb-3">
+                            <i class="bi bi-plus-circle"></i> Add Comment
+                        </h6>
+                        
+                        <!-- Reply Context -->
+                        <div x-show="replyContext.active" class="alert alert-info mb-3" x-transition>
+                            <strong>Replying to:</strong>
+                            <span x-text="replyContext.text"></span>
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-link float-end" 
+                                @click="cancelReply()">
+                                Cancel
+                            </button>
+                        </div>
+                        
+                        <form method="POST"
+                              action="{{ url_for('comments.create', event_id=event.id) }}"
+                              hx-post="{{ url_for('comments.create', event_id=event.id) }}{% if filter_human_only|default(false) %}?human_only=true{% endif %}"
+                              hx-target="#event-widget-card"
+                              hx-swap="outerHTML"
+                              enctype="multipart/form-data">
+                            <input type="hidden" name="replied_to_comment_id" :value="replyContext.commentId || ''">
+                            <div class="mb-2">
+                                <label for="comment-content-{{ event.id }}" class="form-label">Comment</label>
+                                <textarea class="form-control"
+                                          id="comment-content-{{ event.id }}"
+                                          name="content"
+                                          rows="3"
+                                          placeholder="Add a comment..." required></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Attachments (optional)</label>
+                                <input type="file" name="attachments" multiple class="form-control form-control-sm">
+                                <small class="text-muted">You can attach documents, images, or other files.</small>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-circle"></i> Add Comment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Attachments tab -->
+            <div class="tab-pane fade" id="event-attachments-pane"
+                 role="tabpanel" aria-labelledby="event-attachments-tab">
+                {% set has_attachments = false %}
+                <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                    {% for comment in comments %}
+                        {% for ca in comment.comment_attachments %}
+                            {% set has_attachments = true %}
+                            {% set att = ca.attachment %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">
+                                        <i class="bi bi-paperclip"></i> {{ att.filename }}
+                                    </div>
+                                    <small class="text-muted">
+                                        From comment by {{ comment.created_by.username if comment.created_by else 'Unknown' }}
+                                        on {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                    </small>
+                                </div>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('attachments.view', attachment_id=att.id) }}"
+                                       class="btn btn-outline-secondary" target="_blank">
+                                        View
+                                    </a>
+                                    <a href="{{ url_for('attachments.download', attachment_id=att.id) }}"
+                                       class="btn btn-outline-primary">
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    {% if not has_attachments %}
+                        <p class="text-muted text-center mb-0">No attachments for this event.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Metadata tab -->
+            <div class="tab-pane fade" id="event-metadata-pane"
+                 role="tabpanel" aria-labelledby="event-metadata-tab">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Event ID:</dt>
+                    <dd class="col-sm-8"><code>{{ event.id }}</code></dd>
+
+                    <dt class="col-sm-4">Type:</dt>
+                    <dd class="col-sm-8">{{ event.event_type }}</dd>
+
+                    <dt class="col-sm-4">Description:</dt>
+                    <dd class="col-sm-8">{{ event.description }}</dd>
+
+                    <dt class="col-sm-4">Created:</dt>
+                    <dd class="col-sm-8">
+                        {{ event.created_at.strftime('%Y-%m-%d %H:%M') if event.created_at else 'N/A' }}
+                    </dd>
+
+                    <dt class="col-sm-4">Created By:</dt>
+                    <dd class="col-sm-8">
+                        {{ event.created_by.username if event.created_by else 'System' }}
+                    </dd>
+
+                    <dt class="col-sm-4">Asset:</dt>
+                    <dd class="col-sm-8">
+                        {% if event.asset %}
+                            <a href="{{ url_for('core_assets.detail', asset_id=event.asset.id) }}">
+                                {{ event.asset.name }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Location:</dt>
+                    <dd class="col-sm-8">
+                        {% if event.major_location %}
+                            <a href="{{ url_for('locations.detail', location_id=event.major_location.id) }}">
+                                {{ event.major_location.name }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.comment-box {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 12px;
+    transition: background-color 0.2s;
+}
+
+.comment-box:hover {
+    background-color: #f8f9fa;
+}
+
+.comment-box:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.reply-indicator {
+    padding: 6px 10px;
+    background-color: #e7f3ff;
+    border-left: 3px solid #0d6efd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+}
+
+.reply-indicator a {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.reply-indicator a:hover {
+    text-decoration: underline;
+}
+
+.comment-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.add-comment-section {
+    border-top: 2px solid #dee2e6;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.highlight-comment {
+    background-color: #fff3cd !important;
+    animation: highlight-fade 2s ease-out;
+}
+
+@keyframes highlight-fade {
+    0% {
+        background-color: #fff3cd;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.comment-attachments {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.attachment-mini-card {
+    transition: transform 0.2s ease-in-out;
+    border: 1px solid #dee2e6;
+}
+
+.attachment-mini-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Edit History Styles */
+.edit-history-timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.edit-history-item {
+    position: relative;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.edit-history-item.current-version {
+    background-color: #e7f3ff;
+    border-left-color: #0d6efd;
+}
+
+.edit-history-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 30px;
+    width: 2px;
+    height: calc(100% + 12px);
+    background-color: #dee2e6;
+}
+
+.edit-history-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    color: #495057;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 8px;
+    background-color: white;
+    border-radius: 3px;
+    border: 1px solid #dee2e6;
+}
+
+.edit-history-item.current-version .edit-history-content {
+    border-color: #0d6efd;
+}
+</style>
+
+<script>
+function eventWidget(eventId, currentUserId) {
+    return {
+        eventId: eventId,
+        currentUserId: currentUserId,
+        replyContext: {
+            active: false,
+            commentId: null,
+            text: ''
+        },
+        
+        formatDateTime(isoString) {
+            if (!isoString) return 'Unknown time';
+            
+            try {
+                // Parse ISO string (handles both with and without timezone)
+                const date = new Date(isoString);
+                if (isNaN(date.getTime())) return 'Invalid date';
+                
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                
+                // Show relative time for recent comments
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                
+                const diffHours = Math.floor(diffMins / 60);
+                if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                
+                // For older comments, show formatted date in user's local timezone
+                return date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting date:', e);
+                return 'Invalid date';
+            }
+        },
+        
+        replyToComment(commentId, commentPreview) {
+            // Find the initial comment (not nested) by traversing up the reply chain
+            // For now, we'll use the commentId directly, but in a real implementation,
+            // we'd need to fetch the comment and find its initial parent
+            this.replyContext.active = true;
+            this.replyContext.commentId = commentId;
+            this.replyContext.text = commentPreview || 'this comment';
+            
+            // Scroll to add comment section
+            setTimeout(() => {
+                const section = document.querySelector('.add-comment-section');
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 100);
+        },
+        
+        cancelReply() {
+            this.replyContext.active = false;
+            this.replyContext.commentId = null;
+            this.replyContext.text = '';
+        },
+        
+        startEdit(commentId) {
+            // Open edit modal
+            const editModal = document.getElementById('editCommentModal');
+            const editModalData = Alpine.$data(editModal);
+            editModalData.loadComment(commentId);
+            const modalInstance = new bootstrap.Modal(editModal);
+            modalInstance.show();
+        },
+        
+        deleteComment(commentId) {
+            if (!confirm('Are you sure you want to delete this comment?')) return;
+            
+            fetch(`/comments/${commentId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload widget via HTMX
+                    if (typeof htmx !== 'undefined') {
+                        htmx.ajax('GET', `/events/${this.eventId}/widget`, {
+                            target: '#event-widget-card',
+                            swap: 'outerHTML'
+                        });
+                    } else {
+                        // Fallback: reload page
+                        window.location.reload();
+                    }
+                } else {
+                    response.json().then(data => {
+                        alert(data.error || 'Error deleting comment');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting comment');
+            });
+        },
+        
+        scrollToComment(commentId) {
+            const element = document.getElementById(`comment-${commentId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.classList.add('highlight-comment');
+                setTimeout(() => {
+                    element.classList.remove('highlight-comment');
+                }, 2000);
+            }
+        },
+        
+        scrollToBottom() {
+            const container = document.getElementById('comments-list-container');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        },
+        
+        startEdit(commentId) {
+            // Open edit modal
+            const editModal = document.getElementById('editCommentModal');
+            const editModalData = Alpine.$data(editModal);
+            editModalData.loadComment(commentId);
+            const modalInstance = new bootstrap.Modal(editModal);
+            modalInstance.show();
+        },
+        
+        viewCommentMetadata(commentId) {
+            // Open comment metadata modal
+            const metadataModal = document.getElementById('commentMetadataModal');
+            const metadataModalData = Alpine.$data(metadataModal);
+            metadataModalData.loadMetadata(commentId);
+            const modalInstance = new bootstrap.Modal(metadataModal);
+            modalInstance.show();
+        }
+    };
+}
+
+// Alpine.js component for edit comment modal
+function editCommentModule() {
+    return {
+        commentId: null,
+        content: '',
+        editHistory: [],
+        showHistory: false,
+        
+        async loadComment(commentId) {
+            this.commentId = commentId;
+            
+            // Get content from DOM first (for immediate display)
+            const commentElement = document.querySelector(`#comment-${commentId}`);
+            const contentElement = commentElement ? commentElement.querySelector('.comment-content') : null;
+            if (contentElement) {
+                this.content = contentElement.textContent.trim();
+            }
+            
+            // Fetch full comment data and edit history
+            try {
+                const response = await fetch(`/comments/${commentId}/edit`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch comment data');
+                }
+                const data = await response.json();
+                
+                this.content = data.content || this.content;
+                this.editHistory = data.edit_history || [];
+                
+                // Debug: log edit history to check timestamps
+                if (this.editHistory.length > 0) {
+                    console.log('Edit history loaded:', this.editHistory);
+                    this.editHistory.forEach((version, idx) => {
+                        console.log(`Version ${idx} created_at:`, version.created_at, 'Type:', typeof version.created_at);
+                    });
+                }
+                
+                // Update form action
+                this.updateFormAction();
+            } catch (error) {
+                console.error('Error fetching comment data:', error);
+                // Still allow editing with content from DOM
+                this.updateFormAction();
+            }
+        },
+        
+        updateFormAction() {
+            // Update form action when comment is loaded
+            const form = document.getElementById('editCommentForm');
+            if (form && this.commentId) {
+                const editUrl = `/comments/${this.commentId}/edit`;
+                form.action = editUrl;
+                // Update HTMX attributes - ensure they're set correctly
+                form.setAttribute('hx-post', editUrl);
+            }
+        },
+        
+        handleFormSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            if (!form || !this.commentId) {
+                alert('Error: Comment ID not set');
+                return false;
+            }
+            
+            // Ensure form action is set
+            const editUrl = `/comments/${this.commentId}/edit`;
+            form.action = editUrl;
+            
+            // Store reference to this component for the event handler
+            const self = this;
+            
+            // Set up one-time event listener for successful swap
+            const swapHandler = (e) => {
+                // Check if this swap is for the event-widget-card
+                if (e.detail.target && e.detail.target.id === 'event-widget-card') {
+                    // Close modal after swap completes
+                    setTimeout(() => {
+                        self.closeModal();
+                    }, 50);
+                    // Remove the event listener after handling
+                    document.removeEventListener('htmx:afterSwap', swapHandler);
+                }
+            };
+            
+            // Listen for HTMX swap completion
+            document.addEventListener('htmx:afterSwap', swapHandler);
+            
+            // Use HTMX to submit the form
+            if (typeof htmx !== 'undefined') {
+                // Use HTMX ajax to submit
+                htmx.ajax('POST', editUrl, {
+                    values: {
+                        content: this.content
+                    },
+                    target: '#event-widget-card',
+                    swap: 'outerHTML',
+                    headers: {
+                        'HX-Request': 'true'
+                    }
+                }).catch((error) => {
+                    console.error('Error updating comment:', error);
+                    alert('Error updating comment. Please try again.');
+                    // Remove event listener on error
+                    document.removeEventListener('htmx:afterSwap', swapHandler);
+                });
+            } else {
+                // Fallback: submit normally
+                form.submit();
+            }
+            
+            return false;
+        },
+        
+        closeModal() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCommentModal'));
+            if (modal) {
+                modal.hide();
+            }
+            // Reset form state after a short delay to allow modal to close
+            setTimeout(() => {
+                this.reset();
+            }, 300);
+        },
+        
+        formatDate(dateString) {
+            // Handle null, undefined, empty string, or string 'null'
+            if (!dateString || dateString === '' || dateString === 'null' || dateString === null || dateString === undefined) {
+                return 'No date';
+            }
+            
+            // Convert to string if it's not already
+            const dateStr = String(dateString).trim();
+            if (!dateStr || dateStr === 'null' || dateStr === 'undefined') {
+                return 'No date';
+            }
+            
+            try {
+                // Parse the date - JavaScript Date constructor handles ISO 8601 format
+                const date = new Date(dateStr);
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date string:', dateStr, 'Type:', typeof dateString);
+                    return 'No date';
+                }
+                
+                // Format the date
+                return date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear(),
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting date:', e, 'Date string:', dateString, 'Type:', typeof dateString);
+                return 'No date';
+            }
+        },
+        
+        reset() {
+            this.commentId = null;
+            this.content = '';
+            this.editHistory = [];
+            this.showHistory = false;
+        }
+    };
+}
+
+// Alpine.js component for edit history modal
+function editHistoryModule() {
+    return {
+        commentId: null,
+        editHistory: [],
+        loading: false,
+        
+        async loadHistory(commentId) {
+            this.commentId = commentId;
+            this.loading = true;
+            this.editHistory = [];
+            
+            try {
+                const response = await fetch(`/comments/${commentId}/edit`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch edit history');
+                }
+                const data = await response.json();
+                this.editHistory = data.edit_history || [];
+                
+                // Debug: log edit history to check timestamps
+                if (this.editHistory.length > 0) {
+                    console.log('Edit history loaded:', this.editHistory);
+                    this.editHistory.forEach((version, idx) => {
+                        console.log(`Version ${idx} created_at:`, version.created_at, 'Type:', typeof version.created_at);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching edit history:', error);
+                alert('Error loading edit history');
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        formatDate(dateString) {
+            // Handle null, undefined, empty string, or string 'null'
+            if (!dateString || dateString === '' || dateString === 'null' || dateString === null || dateString === undefined) {
+                return 'No date';
+            }
+            
+            // Convert to string if it's not already
+            const dateStr = String(dateString).trim();
+            if (!dateStr || dateStr === 'null' || dateStr === 'undefined') {
+                return 'No date';
+            }
+            
+            try {
+                // Parse the date - JavaScript Date constructor handles ISO 8601 format
+                const date = new Date(dateStr);
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date string:', dateStr, 'Type:', typeof dateString);
+                    return 'No date';
+                }
+                
+                // Format the date
+                return date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear(),
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting date:', e, 'Date string:', dateString, 'Type:', typeof dateString);
+                return 'No date';
+            }
+        },
+        
+        reset() {
+            this.commentId = null;
+            this.editHistory = [];
+            this.loading = false;
+        }
+    };
+}
+
+// Alpine.js component for comment metadata modal
+function commentMetadataModule() {
+    return {
+        commentId: null,
+        metadata: null,
+        loading: false,
+        jsonString: '',
+        
+        async loadMetadata(commentId) {
+            this.commentId = commentId;
+            this.loading = true;
+            this.metadata = null;
+            this.jsonString = '';
+            
+            try {
+                const response = await fetch(`/comments/${commentId}/metadata`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch comment metadata');
+                }
+                const data = await response.json();
+                this.metadata = data;
+                // Format JSON with indentation for display
+                this.jsonString = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error fetching comment metadata:', error);
+                alert('Error loading comment metadata');
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        copyToClipboard() {
+            if (this.jsonString) {
+                navigator.clipboard.writeText(this.jsonString).then(() => {
+                    // Show temporary feedback
+                    const btn = event.target.closest('button');
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-outline-secondary');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy to clipboard');
+                });
+            }
+        },
+        
+        reset() {
+            this.commentId = null;
+            this.metadata = null;
+            this.jsonString = '';
+            this.loading = false;
+        }
+    };
+}
+</script>
+
+<!-- Edit Comment Modal -->
+<div class="modal fade" id="editCommentModal" tabindex="-1" x-data="editCommentModule()">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="editCommentForm" method="POST" 
+                  action=""
+                  enctype="multipart/form-data"
+                  @submit.prevent="handleFormSubmit($event)">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Comment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" @click="reset()"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_content" class="form-label">Comment</label>
+                        <textarea class="form-control" id="edit_content" name="content" rows="4" required x-model="content"></textarea>
+                    </div>
+                    
+                    <!-- Edit History Section -->
+                    <div class="mb-3" x-show="editHistory.length > 1" x-transition>
+                        <div class="card">
+                            <div class="card-header">
+                                <button class="btn btn-link text-decoration-none p-0 w-100 text-start" type="button" 
+                                        @click="showHistory = !showHistory">
+                                    <i class="bi bi-clock-history"></i> 
+                                    <span>Edit History (<span x-text="editHistory.length"></span> versions)</span>
+                                    <i class="bi float-end" :class="showHistory ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                </button>
+                            </div>
+                            <div x-show="showHistory" x-transition>
+                                <div class="card-body">
+                                    <div class="edit-history-timeline">
+                                        <template x-for="(version, index) in editHistory" :key="version.id">
+                                            <div class="edit-history-item" :class="{ 'current-version': version.is_current }">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <small class="text-muted me-2" x-text="formatDate(version.created_at)"></small>
+                                                        <span>
+                                                            <strong x-text="index === 0 ? 'Original' : 'Edit ' + index"></strong>
+                                                            <span x-show="version.is_current" class="badge bg-primary ms-2">Current</span>
+                                                        </span>
+                                                    </div>
+                                                    <small class="text-muted" x-text="'by ' + version.created_by_username"></small>
+                                                </div>
+                                                <div class="edit-history-content" x-text="version.content"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reset()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Comment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit History Modal -->
+<div class="modal fade" id="editHistoryModal" tabindex="-1" x-data="editHistoryModule()">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-clock-history"></i> Edit History
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" @click="reset()"></button>
+            </div>
+            <div class="modal-body">
+                <div x-show="loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading edit history...</p>
+                </div>
+                
+                <div x-show="!loading && editHistory.length === 0" class="text-center py-4">
+                    <i class="bi bi-info-circle fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No edit history available for this comment.</p>
+                </div>
+                
+                <div x-show="!loading && editHistory.length > 0">
+                    <div class="edit-history-timeline">
+                        <template x-for="(version, index) in editHistory" :key="version.id">
+                            <div class="edit-history-item" :class="{ 'current-version': version.is_current }">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-muted me-2" x-text="formatDate(version.created_at)"></small>
+                                        <span>
+                                            <strong x-text="index === 0 ? 'Original' : 'Edit ' + index"></strong>
+                                            <span x-show="version.is_current" class="badge bg-primary ms-2">Current</span>
+                                        </span>
+                                    </div>
+                                    <small class="text-muted" x-text="'by ' + version.created_by_username"></small>
+                                </div>
+                                <div class="edit-history-content" x-text="version.content"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reset()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comment Metadata Modal -->
+<div class="modal fade" id="commentMetadataModal" tabindex="-1" x-data="commentMetadataModule()">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle"></i> Comment Metadata
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" @click="reset()"></button>
+            </div>
+            <div class="modal-body">
+                <div x-show="loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading comment metadata...</p>
+                </div>
+                
+                <div x-show="!loading && metadata" class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Comment ID: <span x-text="metadata.id"></span></h6>
+                        <button class="btn btn-sm btn-outline-secondary" @click="copyToClipboard()" title="Copy JSON to clipboard">
+                            <i class="bi bi-clipboard"></i> Copy JSON
+                        </button>
+                    </div>
+                    <pre class="bg-light p-3 rounded border" style="max-height: 500px; overflow-y: auto; font-size: 0.85rem;"><code x-text="jsonString"></code></pre>
+                </div>
+                
+                <div x-show="!loading && !metadata" class="text-center py-4">
+                    <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No metadata available for this comment.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reset()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Ensure Alpine.js re-initializes after HTMX swaps the event-widget-card
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target && evt.detail.target.id === 'event-widget-card') {
+        // Force Alpine to re-scan the swapped content
+        if (typeof Alpine !== 'undefined') {
+            Alpine.initTree(evt.detail.target);
+            console.log('Alpine.js re-initialized after HTMX swap');
+        }
+    }
+});
+</script>

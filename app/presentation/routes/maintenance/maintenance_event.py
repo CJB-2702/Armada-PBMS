@@ -610,36 +610,21 @@ def edit_action(event_id, action_id):
             return redirect(url_for('maintenance_event.work_maintenance_event', event_id=event_id))
         
         # ===== BUSINESS LOGIC SECTION =====
-        # Get maintenance struct and contexts
+        # Get maintenance struct and context
         maintenance_struct = MaintenanceActionSetStruct.from_event_id(event_id)
         if not maintenance_struct or not maintenance_struct.event_id:
             flash('Maintenance event not found', 'error')
             return redirect(url_for('maintenance_event.work_maintenance_event', event_id=event_id))
         
-        event_context = EventContext(maintenance_struct.event_id)
-        action_context = ActionContext(action)
-        
-        # Apply updates using ActionContext
-        action_context.edit_action(**updates)
-        
-        # Generate comment if status changed or reset
-        comment_parts = []
-        if reset_to_in_progress and old_status in ['Complete', 'Failed', 'Skipped']:
-            comment_parts.append(f"Status reset from {old_status} to In Progress (for retry)")
-        elif updates.get('status') and updates['status'] != old_status:
-            comment_parts.append(f"Status changed from {old_status} to {updates['status']}")
-        
-        if comment_parts:
-            comment_text = f"[Action: {action.action_name}] " + ". ".join(comment_parts) + f" by {current_user.username}"
-            event_context.add_comment(
-                user_id=current_user.id,
-                content=comment_text,
-                is_human_made=True
-            )
-        
-        # Auto-update MaintenanceActionSet billable hours if sum is greater
+        # Delegate all business logic to MaintenanceContext
         maintenance_context = MaintenanceContext(maintenance_struct)
-        maintenance_context.update_actual_billable_hours_auto()
+        maintenance_context.edit_action(
+            action_id=action_id,
+            user_id=current_user.id,
+            username=current_user.username,
+            updates=updates,
+            old_status=old_status
+        )
         
         flash('Action updated successfully', 'success')
         

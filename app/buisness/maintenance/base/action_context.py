@@ -153,9 +153,7 @@ class ActionContext:
             
             db.session.commit()
             self.refresh()
-            
-            # Auto-update maintenance action set billable hours if sum is greater
-            self._update_maintenance_billable_hours_auto()
+
         return self
     
     def mark_failed(
@@ -216,9 +214,7 @@ class ActionContext:
             
             db.session.commit()
             self.refresh()
-            
-            # Auto-update maintenance action set billable hours if sum is greater
-            self._update_maintenance_billable_hours_auto()
+
         return self
     
     def mark_skipped(
@@ -252,8 +248,7 @@ class ActionContext:
             db.session.commit()
             self.refresh()
             
-            # Auto-update maintenance action set billable hours if sum is greater
-            self._update_maintenance_billable_hours_auto()
+
         return self
     
     # Statistics
@@ -462,25 +457,9 @@ class ActionContext:
         db.session.commit()
         self.refresh()
         
-        # Auto-update maintenance action set billable hours if billable_hours was changed
-        if billable_hours is not None:
-            self._update_maintenance_billable_hours_auto()
         return self
     
-    def _update_maintenance_billable_hours_auto(self):
-        """
-        Internal helper to auto-update maintenance action set billable hours.
-        Called after action billable hours are modified.
-        """
-        try:
-            from app.buisness.maintenance.base.maintenance_context import MaintenanceContext
-            maintenance_context = MaintenanceContext(self.action.maintenance_action_set_id)
-            maintenance_context.update_actual_billable_hours_auto()
-        except Exception:
-            # Silently fail if maintenance context cannot be created
-            # This prevents breaking action operations if there's an issue
-            pass
-    
+
     def refresh(self):
         """Refresh cached data from database"""
         self._struct.refresh()

@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Activity Modal Mockup</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .comment-box {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 12px;
+            transition: background-color 0.2s;
+        }
+        
+        .comment-box:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .comment-box:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .reply-indicator {
+            padding: 6px 10px;
+            background-color: #e7f3ff;
+            border-left: 3px solid #0d6efd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .reply-indicator a {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .reply-indicator a:hover {
+            text-decoration: underline;
+        }
+        
+        .deleted-comment {
+            opacity: 0.6;
+            background-color: #f8f9fa;
+            border-left: 3px solid #dc3545;
+            padding-left: 12px;
+        }
+        
+        .deleted-comment .comment-content {
+            font-style: italic;
+            color: #6c757d;
+        }
+        
+        .undo-delete-banner {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .undo-delete-banner .countdown {
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .edit-mode {
+            background-color: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding-left: 12px;
+        }
+        
+        .highlight-comment {
+            background-color: #fff3cd !important;
+            animation: highlight-fade 2s ease-out;
+        }
+        
+        @keyframes highlight-fade {
+            0% {
+                background-color: #fff3cd;
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+        
+        .comment-attachments {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .attachment-mini-card {
+            transition: transform 0.2s ease-in-out;
+            border: 1px solid #dee2e6;
+        }
+        
+        .attachment-mini-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .add-comment-section {
+            border-top: 2px solid #dee2e6;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <!-- Event Activity Widget Card (matching event_widget.html structure) -->
+                <div class="card mb-4" id="event-widget-card" x-data="eventActivityWidget()">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-activity"></i>
+                                Event Activity
+                            </span>
+                            <small class="text-muted">
+                                Maintenance Event · 2024-01-15 14:30
+                            </small>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="event-comments-tab"
+                                        data-bs-toggle="tab" data-bs-target="#event-comments-pane"
+                                        type="button" role="tab" aria-controls="event-comments-pane"
+                                        aria-selected="true">
+                                    Comments (<span x-text="getVisibleCommentsCount()"></span>)
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="event-attachments-tab"
+                                        data-bs-toggle="tab" data-bs-target="#event-attachments-pane"
+                                        type="button" role="tab" aria-controls="event-attachments-pane"
+                                        aria-selected="false">
+                                    Attachments
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="event-metadata-tab"
+                                        data-bs-toggle="tab" data-bs-target="#event-metadata-pane"
+                                        type="button" role="tab" aria-controls="event-metadata-pane"
+                                        aria-selected="false">
+                                    Metadata
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Comments tab -->
+                            <div class="tab-pane fade show active" id="event-comments-pane"
+                                 role="tabpanel" aria-labelledby="event-comments-tab"
+                                 x-init="setTimeout(() => scrollToBottom(), 300)"
+                                 @shown.bs.tab="setTimeout(() => scrollToBottom(), 100)">
+                                <details open>
+                                    <summary class="mb-3" style="cursor: pointer;">
+                                        <strong>Show / Hide Comments</strong>
+                                    </summary>
+
+                                    <!-- Filter Section -->
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary" 
+                                                    @click="toggleHumanFilter()">
+                                                <i class="bi" :class="showHumanOnly ? 'bi-funnel-fill' : 'bi-funnel'"></i> 
+                                                <span x-text="showHumanOnly ? 'Show All Comments' : 'Show Human Comments Only'"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Comments List (Oldest First, Newest at Bottom) -->
+                                    <div id="comments-list-container" 
+                                         style="max-height: 400px; overflow-y: auto;" 
+                                         class="mb-3">
+                                        <div x-show="getFilteredComments().length === 0" class="text-center text-muted py-4">
+                                            <i class="bi bi-chat fs-1 opacity-50"></i>
+                                            <p class="mt-2 mb-0">No comments yet</p>
+                                        </div>
+                                        
+                                        <template x-for="comment in getFilteredComments()" :key="comment.id">
+                                            <div 
+                                                :class="['comment-box', comment.deleted ? 'deleted-comment' : '', comment.editing ? 'edit-mode' : '']"
+                                                :id="'comment-' + comment.id"
+                                                x-show="!comment.deleted || comment.showUndoBanner">
+                                                
+                                                <!-- Undo Delete Banner -->
+                                                <div x-show="comment.deleted && comment.showUndoBanner" class="undo-delete-banner">
+                                                    <span>
+                                                        <i class="bi bi-exclamation-triangle"></i> 
+                                                        Comment deleted. 
+                                                        <span class="countdown" x-text="formatTimeRemaining(comment.deletedAt)"></span> remaining to undo.
+                                                    </span>
+                                                    <button class="btn btn-sm btn-warning" @click="undoDelete(comment.id)">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Undo
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- Comment Header -->
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <small class="text-muted" x-text="formatDateTime(comment.created_at)"></small>
+                                                        <strong x-text="comment.created_by"></strong>
+                                                        <span x-show="comment.is_human_made" class="badge bg-primary" title="Human-made comment">
+                                                            <i class="bi bi-person"></i> Human
+                                                        </span>
+                                                        <span x-show="!comment.is_human_made" class="badge bg-info" title="Machine-generated comment">
+                                                            <i class="bi bi-robot"></i> Auto
+                                                        </span>
+                                                    </div>
+                                                    <!-- Comment Actions (inline with header) -->
+                                                    <div x-show="!comment.editing && (!comment.deleted || comment.showUndoBanner)" 
+                                                         class="d-flex gap-1">
+                                                        <button 
+                                                            class="btn btn-sm btn-outline-secondary" 
+                                                            @click="replyToComment(comment.id)"
+                                                            title="Reply to this comment">
+                                                            <i class="bi bi-reply"></i>
+                                                        </button>
+                                                        <template x-if="comment.can_edit">
+                                                            <button 
+                                                                class="btn btn-sm btn-outline-primary" 
+                                                                @click="startEdit(comment.id)"
+                                                                title="Edit this comment">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="comment.can_delete">
+                                                            <button 
+                                                                class="btn btn-sm btn-outline-danger" 
+                                                                @click="deleteComment(comment.id)"
+                                                                title="Delete this comment">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Reply Indicator (only shows reference to initial comment, not nested) -->
+                                                <div x-show="comment.replied_to_comment_id" class="reply-indicator">
+                                                    <i class="bi bi-reply"></i> 
+                                                    Replying to 
+                                                    <a href="#" 
+                                                       @click.prevent="scrollToComment(comment.replied_to_comment_id)"
+                                                       x-text="getInitialCommentPreview(comment.replied_to_comment_id)">
+                                                    </a>
+                                                    <span class="text-muted" x-text="' by ' + getInitialCommentAuthor(comment.replied_to_comment_id)"></span>
+                                                </div>
+                                                
+                                                <!-- Comment Content (Edit Mode) -->
+                                                <div x-show="comment.editing">
+                                                    <textarea 
+                                                        class="form-control mb-2" 
+                                                        rows="3" 
+                                                        x-model="comment.editContent"
+                                                        style="resize: vertical;">
+                                                    </textarea>
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <button class="btn btn-sm btn-primary" @click="saveEdit(comment.id)" title="Save">
+                                                            <i class="bi bi-check"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-secondary" @click="cancelEdit(comment.id)" title="Cancel">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Comment Content (View Mode) -->
+                                                <p x-show="!comment.editing && !comment.deleted" class="mb-2" x-text="comment.content"></p>
+                                                
+                                                <!-- Comment Attachments (mockup) -->
+                                                <div x-show="comment.attachments && comment.attachments.length > 0" class="comment-attachments mt-2">
+                                                    <small class="text-muted d-block mb-2"><strong>Attachments:</strong></small>
+                                                    <div class="row">
+                                                        <template x-for="att in comment.attachments" :key="att.id">
+                                                            <div class="col-6 col-md-4 mb-2">
+                                                                <div class="card attachment-mini-card">
+                                                                    <div class="card-body p-2">
+                                                                        <h6 class="card-title text-truncate small mb-1" x-text="att.filename"></h6>
+                                                                        <p class="card-text small text-muted mb-1" x-text="att.size"></p>
+                                                                        <div class="btn-group btn-group-sm w-100" role="group">
+                                                                            <button class="btn btn-outline-primary btn-sm">
+                                                                                <i class="bi bi-download"></i>
+                                                                            </button>
+                                                                            <button class="btn btn-outline-secondary btn-sm">
+                                                                                <i class="bi bi-eye"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Add Comment Section (at bottom) -->
+                                    <div class="add-comment-section">
+                                        <h6 class="mb-3">
+                                            <i class="bi bi-plus-circle"></i> Add Comment
+                                        </h6>
+                                        
+                                        <!-- Reply Context -->
+                                        <div x-show="replyContext.active" class="alert alert-info mb-3" x-transition>
+                                            <strong>Replying to:</strong>
+                                            <span x-text="replyContext.text"></span>
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-sm btn-link float-end" 
+                                                @click="cancelReply()">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        
+                                        <form @submit.prevent="addComment()">
+                                            <div class="mb-2">
+                                                <label for="comment-content" class="form-label">Comment</label>
+                                                <textarea 
+                                                    class="form-control"
+                                                    id="comment-content"
+                                                    name="content"
+                                                    rows="3"
+                                                    placeholder="Add a comment..."
+                                                    required
+                                                    x-model="newComment.content">
+                                                </textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Attachments (optional)</label>
+                                                <input type="file" name="attachments" multiple class="form-control form-control-sm">
+                                                <small class="text-muted">You can attach documents, images, or other files.</small>
+                                            </div>
+                                            <div class="d-flex justify-content-end">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-plus-circle"></i> Add Comment
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- Attachments tab -->
+                            <div class="tab-pane fade" id="event-attachments-pane"
+                                 role="tabpanel" aria-labelledby="event-attachments-tab">
+                                <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                                    <template x-for="att in getAllAttachments()" :key="att.id">
+                                        <div class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">
+                                                    <i class="bi bi-paperclip"></i> <span x-text="att.filename"></span>
+                                                </div>
+                                                <small class="text-muted" x-text="'From comment by ' + att.commentAuthor + ' on ' + att.commentDate"></small>
+                                            </div>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-secondary" target="_blank">
+                                                    View
+                                                </button>
+                                                <button class="btn btn-outline-primary">
+                                                    Download
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div x-show="getAllAttachments().length === 0" class="text-center text-muted py-4">
+                                        <p class="mb-0">No attachments for this event.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Metadata tab -->
+                            <div class="tab-pane fade" id="event-metadata-pane"
+                                 role="tabpanel" aria-labelledby="event-metadata-tab">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Event ID:</dt>
+                                    <dd class="col-sm-8"><code>7</code></dd>
+
+                                    <dt class="col-sm-4">Type:</dt>
+                                    <dd class="col-sm-8">Maintenance Event</dd>
+
+                                    <dt class="col-sm-4">Description:</dt>
+                                    <dd class="col-sm-8">Sample maintenance event for mockup</dd>
+
+                                    <dt class="col-sm-4">Created:</dt>
+                                    <dd class="col-sm-8">2024-01-15 10:00</dd>
+
+                                    <dt class="col-sm-4">Created By:</dt>
+                                    <dd class="col-sm-8">System</dd>
+
+                                    <dt class="col-sm-4">Asset:</dt>
+                                    <dd class="col-sm-8">
+                                        <a href="#">Sample Asset</a>
+                                    </dd>
+
+                                    <dt class="col-sm-4">Location:</dt>
+                                    <dd class="col-sm-8">
+                                        <a href="#">Main Building</a>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function eventActivityWidget() {
+            return {
+                showHumanOnly: false,
+                
+                // Mock data - comments in descending order (newest first)
+                comments: [
+                    {
+                        id: 5,
+                        created_by: 'John Doe',
+                        content: 'This is the most recent comment. It was just posted.',
+                        created_at: new Date(Date.now() - 5 * 60000), // 5 minutes ago
+                        is_human_made: true,
+                        can_edit: true,
+                        can_delete: true,
+                        editing: false,
+                        editContent: '',
+                        deleted: false,
+                        deletedAt: null,
+                        showUndoBanner: false,
+                        replied_to_comment_id: null,
+                        attachments: []
+                    },
+                    {
+                        id: 4,
+                        created_by: 'Jane Smith',
+                        content: 'This is a reply to the first comment. It references the initial comment, not nested.',
+                        created_at: new Date(Date.now() - 15 * 60000), // 15 minutes ago
+                        is_human_made: true,
+                        can_edit: true,
+                        can_delete: true,
+                        editing: false,
+                        editContent: '',
+                        deleted: false,
+                        deletedAt: null,
+                        showUndoBanner: false,
+                        replied_to_comment_id: 1, // References initial comment
+                        attachments: []
+                    },
+                    {
+                        id: 3,
+                        created_by: 'System',
+                        content: 'Maintenance status changed to "In Progress"',
+                        created_at: new Date(Date.now() - 30 * 60000), // 30 minutes ago
+                        is_human_made: false,
+                        can_edit: false,
+                        can_delete: false,
+                        editing: false,
+                        editContent: '',
+                        deleted: false,
+                        deletedAt: null,
+                        showUndoBanner: false,
+                        replied_to_comment_id: null,
+                        attachments: []
+                    },
+                    {
+                        id: 2,
+                        created_by: 'Bob Wilson',
+                        content: 'This comment was deleted but can be undone for 5 minutes.',
+                        created_at: new Date(Date.now() - 45 * 60000), // 45 minutes ago
+                        is_human_made: true,
+                        can_edit: true,
+                        can_delete: true,
+                        editing: false,
+                        editContent: '',
+                        deleted: true,
+                        deletedAt: new Date(Date.now() - 2 * 60000), // Deleted 2 minutes ago
+                        showUndoBanner: true,
+                        replied_to_comment_id: null,
+                        attachments: []
+                    },
+                    {
+                        id: 1,
+                        created_by: 'Alice Johnson',
+                        content: 'This is the initial comment that others might reply to. It was posted first.',
+                        created_at: new Date(Date.now() - 60 * 60000), // 60 minutes ago
+                        is_human_made: true,
+                        can_edit: true,
+                        can_delete: true,
+                        editing: false,
+                        editContent: '',
+                        deleted: false,
+                        deletedAt: null,
+                        showUndoBanner: false,
+                        replied_to_comment_id: null,
+                        attachments: [
+                            { id: 1, filename: 'photo.jpg', size: '2.5 MB' }
+                        ]
+                    }
+                ],
+                
+                newComment: {
+                    content: '',
+                    attachments: []
+                },
+                
+                replyContext: {
+                    active: false,
+                    commentId: null,
+                    text: ''
+                },
+                
+                // Get comments sorted in ascending order (oldest first, newest last)
+                getSortedComments() {
+                    return [...this.comments].sort((a, b) => a.created_at - b.created_at);
+                },
+                
+                // Get filtered comments based on human filter
+                getFilteredComments() {
+                    let filtered = this.getSortedComments().filter(c => !c.deleted || c.showUndoBanner);
+                    if (this.showHumanOnly) {
+                        filtered = filtered.filter(c => c.is_human_made);
+                    }
+                    return filtered;
+                },
+                
+                // Get visible comments count
+                getVisibleCommentsCount() {
+                    return this.getFilteredComments().length;
+                },
+                
+                // Toggle human filter
+                toggleHumanFilter() {
+                    this.showHumanOnly = !this.showHumanOnly;
+                },
+                
+                // Format date and time
+                formatDateTime(date) {
+                    const d = new Date(date);
+                    const now = new Date();
+                    const diffMs = now - d;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    
+                    if (diffMins < 1) return 'Just now';
+                    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                    
+                    const diffHours = Math.floor(diffMins / 60);
+                    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                    
+                    return d.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    });
+                },
+                
+                // Format time remaining for undo
+                formatTimeRemaining(deletedAt) {
+                    if (!deletedAt) return '';
+                    const now = new Date();
+                    const deleted = new Date(deletedAt);
+                    const elapsed = Math.floor((now - deleted) / 1000); // seconds
+                    const remaining = 300 - elapsed; // 5 minutes = 300 seconds
+                    
+                    if (remaining <= 0) {
+                        return '0 seconds';
+                    }
+                    
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    
+                    if (mins > 0) {
+                        return `${mins}m ${secs}s`;
+                    }
+                    return `${secs}s`;
+                },
+                
+                // Get initial comment preview (for reply indicator)
+                getInitialCommentPreview(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (!comment) return 'deleted comment';
+                    const preview = comment.content.substring(0, 50);
+                    return preview.length < comment.content.length ? preview + '...' : preview;
+                },
+                
+                // Get initial comment author
+                getInitialCommentAuthor(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    return comment ? comment.created_by : 'Unknown';
+                },
+                
+                // Reply to a comment
+                replyToComment(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        // Find the initial comment (not nested)
+                        let initialCommentId = commentId;
+                        while (comment.replied_to_comment_id) {
+                            initialCommentId = comment.replied_to_comment_id;
+                            const parentComment = this.comments.find(c => c.id === initialCommentId);
+                            if (!parentComment || !parentComment.replied_to_comment_id) break;
+                            initialCommentId = parentComment.replied_to_comment_id;
+                        }
+                        
+                        const initialComment = this.comments.find(c => c.id === initialCommentId);
+                        if (initialComment) {
+                            this.replyContext.active = true;
+                            this.replyContext.commentId = initialCommentId; // Always reference initial comment
+                            this.replyContext.text = this.getInitialCommentPreview(initialCommentId);
+                            
+                            // Scroll to add comment section
+                            setTimeout(() => {
+                                document.querySelector('.add-comment-section').scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'nearest' 
+                                });
+                            }, 100);
+                        }
+                    }
+                },
+                
+                // Cancel reply
+                cancelReply() {
+                    this.replyContext.active = false;
+                    this.replyContext.commentId = null;
+                    this.replyContext.text = '';
+                },
+                
+                // Add new comment
+                addComment() {
+                    if (!this.newComment.content.trim()) return;
+                    
+                    const newId = Math.max(...this.comments.map(c => c.id)) + 1;
+                    const newComment = {
+                        id: newId,
+                        created_by: 'Current User',
+                        content: this.newComment.content,
+                        created_at: new Date(),
+                        is_human_made: true,
+                        can_edit: true,
+                        can_delete: true,
+                        editing: false,
+                        editContent: '',
+                        deleted: false,
+                        deletedAt: null,
+                        showUndoBanner: false,
+                        replied_to_comment_id: this.replyContext.commentId, // References initial comment
+                        attachments: []
+                    };
+                    
+                    this.comments.push(newComment);
+                    this.newComment.content = '';
+                    this.cancelReply();
+                    
+                    // Scroll to bottom to show new comment
+                    setTimeout(() => {
+                        this.scrollToBottom();
+                        const element = document.getElementById(`comment-${newId}`);
+                        if (element) {
+                            element.classList.add('highlight-comment');
+                            setTimeout(() => {
+                                element.classList.remove('highlight-comment');
+                            }, 2000);
+                        }
+                    }, 100);
+                },
+                
+                // Start editing a comment
+                startEdit(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        comment.editing = true;
+                        comment.editContent = comment.content;
+                    }
+                },
+                
+                // Save edit
+                saveEdit(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (comment && comment.editContent.trim()) {
+                        comment.content = comment.editContent;
+                        comment.editing = false;
+                        comment.editContent = '';
+                    }
+                },
+                
+                // Cancel edit
+                cancelEdit(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        comment.editing = false;
+                        comment.editContent = '';
+                    }
+                },
+                
+                // Delete comment
+                deleteComment(commentId) {
+                    if (!confirm('Are you sure you want to delete this comment?')) return;
+                    
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        comment.deleted = true;
+                        comment.deletedAt = new Date();
+                        comment.showUndoBanner = true;
+                        
+                        // Auto-hide undo banner after 5 minutes
+                        setTimeout(() => {
+                            comment.showUndoBanner = false;
+                        }, 5 * 60 * 1000);
+                    }
+                },
+                
+                // Undo delete
+                undoDelete(commentId) {
+                    const comment = this.comments.find(c => c.id === commentId);
+                    if (comment) {
+                        comment.deleted = false;
+                        comment.deletedAt = null;
+                        comment.showUndoBanner = false;
+                    }
+                },
+                
+                // Scroll to comment
+                scrollToComment(commentId) {
+                    const element = document.getElementById(`comment-${commentId}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.classList.add('highlight-comment');
+                        setTimeout(() => {
+                            element.classList.remove('highlight-comment');
+                        }, 2000);
+                    }
+                },
+                
+                // Scroll to bottom of comments list
+                scrollToBottom() {
+                    const container = document.getElementById('comments-list-container');
+                    if (container) {
+                        container.scrollTop = container.scrollHeight;
+                    }
+                },
+                
+                // Get all attachments from all comments
+                getAllAttachments() {
+                    const attachments = [];
+                    this.comments.forEach(comment => {
+                        if (comment.attachments && comment.attachments.length > 0) {
+                            comment.attachments.forEach(att => {
+                                attachments.push({
+                                    id: att.id,
+                                    filename: att.filename,
+                                    commentAuthor: comment.created_by,
+                                    commentDate: this.formatDateTime(comment.created_at)
+                                });
+                            });
+                        }
+                    });
+                    return attachments;
+                },
+                
+                // Update countdown timers and scroll to bottom on init
+                init() {
+                    // Scroll to bottom on initial load
+                    setTimeout(() => {
+                        this.scrollToBottom();
+                    }, 100);
+                    
+                    // Update undo countdown every second
+                    setInterval(() => {
+                        this.comments.forEach(comment => {
+                            if (comment.deleted && comment.showUndoBanner) {
+                                const now = new Date();
+                                const deleted = new Date(comment.deletedAt);
+                                const elapsed = Math.floor((now - deleted) / 1000);
+                                
+                                if (elapsed >= 300) { // 5 minutes passed
+                                    comment.showUndoBanner = false;
+                                }
+                            }
+                        });
+                    }, 1000);
+                }
+            };
+        }
+    </script>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

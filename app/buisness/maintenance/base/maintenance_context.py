@@ -240,84 +240,216 @@ class MaintenanceContext:
         
         return self
     
-    def add_comment(self, user_id: int, content: str, is_private: bool = False) -> 'MaintenanceContext':
+    def add_comment(self, user_id: int, content: str, is_human_made: bool = False) -> 'MaintenanceContext':
         """
         Add a comment to the associated event.
         
         Args:
             user_id: ID of user adding comment
             content: Comment content
-            is_private: Whether comment is private
+            is_human_made: Whether comment was manually inserted by a human (default: False)
             
         Returns:
             self for chaining
         """
         if self.event_context:
-            self.event_context.add_comment(user_id, content, is_private)
+            self.event_context.add_comment(user_id, content, is_human_made)
         return self
     
-    # Statistics
-    @property
-    def total_actions(self) -> int:
-        """Get total number of actions"""
-        return len(self._struct.actions)
-    
-    @property
-    def completed_actions(self) -> int:
-        """Get number of completed actions"""
-        return len([a for a in self._struct.actions if a.status == 'Complete'])
-    
-    @property
-    def completion_percentage(self) -> float:
-        """Get completion percentage of actions"""
-        if self.total_actions == 0:
-            return 0.0
-        return (self.completed_actions / self.total_actions) * 100
-    
-    @property
-    def total_part_demands(self) -> int:
-        """Get total number of part demands"""
-        return len(self._struct.part_demands)
-    
-    @property
-    def active_delays(self) -> List[MaintenanceDelay]:
-        """Get active delays (those without end date)"""
-        return [d for d in self._struct.delays if d.delay_end_date is None]
-    
-    def all_actions_in_terminal_states(self) -> bool:
+    def update_action_status(
+        self,
+        action_id: int,
+        user_id: int,
+        username: str,
+        new_status: str,
+        old_status: str,
+        final_comment: Optional[str] = None,
+        is_human_made: bool = False,
+        billable_hours: Optional[float] = None,
+        completion_notes: Optional[str] = None,
+        issue_part_demands: bool = False,
+        duplicate_part_demands: bool = False,
+        cancel_part_demands: bool = False
+    ) -> 'MaintenanceContext':
         """
-        Check if all actions are in terminal states (Complete, Failed, or Skipped).
+        Update action status by delegating to the appropriate ActionContext method.
         
-        Returns:
-            True if all actions are in terminal states, False otherwise
-        """
-        terminal_states = {'Complete', 'Failed', 'Skipped'}
-        if self.total_actions == 0:
-            return True  # No actions means all are "terminal" (vacuous truth)
-        return all(action.status in terminal_states for action in self._struct.actions)
-    
-    # Billable Hours Management
-    @property
-    def calculated_billable_hours(self) -> float:
-        """
-        Calculate sum of all action billable hours.
+        Determines which status update function to use (start, mark_complete, mark_failed, mark_skipped)
+        based on the status transition, then generates a comment on behalf of the action.
         
+        Args:
+            action_id: ID of the action to update
+            user_id: ID of user making the update
+            username: Username of user making the update (for comment attribution)
+            new_status: New status to set
+            old_status: Current status of the action
+            final_comment: Optional comment text to include
+            is_human_made: Whether the comment is human-made (default: False)
+            billable_hours: Optional billable hours for the action
+            completion_notes: Optional completion notes
+            issue_part_demands: If True, issue all part demands (for mark_complete)
+            duplicate_part_demands: If True, duplicate part demands (for mark_failed)
+            cancel_part_demands: If True, cancel part demands (for mark_failed or mark_skipped)
+            
         Returns:
-            Sum of all action.billable_hours (treating None as 0)
+            self for chaining
+            
+        Raises:
+            ValueError: If action not found or doesn't belong to this maintenance event
         """
-        return sum(a.billable_hours or 0 for a in self._struct.actions)
-    
-    @property
-    def actual_billable_hours(self) -> Optional[float]:
-        """
-        Get actual billable hours for the maintenance event.
+        from app.buisness.maintenance.base.action_context import ActionContext
+        from app import db
         
-        Returns:
-            Actual billable hours or None if not set or attribute doesn't exist
+        # Find the action in this maintenance event
+        action = None
+        for a in self._struct.actions:
+            if a.id == action_id:
+                action = a
+                break
+        
+        if not action:
+            raise ValueError(f"Action {action_id} not found in this maintenance event")
+        
+        # Get ActionContext for the action
+        action_context = ActionContext(action)
+        
+        # Determine which status update function to use based on status transition
+        status_changed = new_status != old_status
+        
+        if new_status == 'In Progress' and old_status == 'Not Started':
+            # Starting the action
+            action_context.start(user_id=user_id)
+            comment_text = f"[Action: {action.action_name}] Status changed from {old_status} to {new_status}"
+            
+        elif new_status == 'Complete':
+            # Completing the action
+            action_context.mark_complete(
+                user_id=user_id,
+                billable_hours=billable_hours,
+                notes=completion_notes,
+                issue_part_demands=issue_part_demands
+            )
+            comment_text = f"[Action: {action.action_name}] Status changed from {old_status} to {new_status}"
+            
+        elif new_status == 'Failed':
+            # Marking as failed
+            action_context.mark_failed(
+                user_id=user_id,
+                billable_hours=billable_hours,
+                notes=completion_notes,
+                duplicate_part_demands=duplicate_part_demands,
+                cancel_part_demands=cancel_part_demands
+            )
+            comment_text = f"[Action: {action.action_name}] Status changed from {old_status} to {new_status}"
+            
+        elif new_status == 'Skipped':
+            # Marking as skipped
+            action_context.mark_skipped(
+                user_id=user_id,
+                notes=completion_notes,
+                cancel_part_demands=cancel_part_demands
+            )
+            comment_text = f"[Action: {action.action_name}] Status changed from {old_status} to {new_status}"
+            
+        else:
+            # For other status changes, use edit_action
+            action_context.edit_action(status=new_status)
+            comment_text = f"[Action: {action.action_name}] Status changed from {old_status} to {new_status}"
+        
+
+        if final_comment:
+            comment_text = final_comment
+  
+        
+        # Generate comment on behalf of the action
+        self.add_comment(
+            user_id=user_id,
+            content=comment_text,
+            is_human_made=is_human_made
+        )
+        
+        db.session.commit()
+        
+        # Auto-update MaintenanceActionSet billable hours if sum is greater
+        self.update_actual_billable_hours_auto()
+        
+        return self
+    
+    def edit_action(
+        self,
+        action_id: int,
+        user_id: int,
+        username: str,
+        updates: Dict[str, Any],
+        old_status: Optional[str] = None
+    ) -> 'MaintenanceContext':
         """
-        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
-            return None
-        return self.maintenance_action_set.actual_billable_hours
+        Edit an action and handle all associated business logic.
+        
+        Applies updates to the action, generates comments for status changes,
+        and auto-updates billable hours. This centralizes all action editing
+        business logic in the maintenance context.
+        
+        Args:
+            action_id: ID of the action to edit
+            user_id: ID of user making the edit
+            username: Username of user making the edit (for comment attribution)
+            updates: Dictionary of field updates to apply (passed to ActionContext.edit_action)
+            old_status: Previous status of the action (for generating status change comments)
+            
+        Returns:
+            self for chaining
+            
+        Raises:
+            ValueError: If action not found or doesn't belong to this maintenance event
+        """
+        from app.buisness.maintenance.base.action_context import ActionContext
+        from app import db
+        
+        # Find the action in this maintenance event
+        action = None
+        for a in self._struct.actions:
+            if a.id == action_id:
+                action = a
+                break
+        
+        if not action:
+            raise ValueError(f"Action {action_id} not found in this maintenance event")
+        
+        # Get old status if not provided
+        if old_status is None:
+            old_status = action.status
+        
+        # Create ActionContext and apply updates
+        action_context = ActionContext(action)
+        action_context.edit_action(**updates)
+        
+        # Generate comment if status changed or reset
+        comment_parts = []
+        reset_to_in_progress = updates.get('reset_to_in_progress', False)
+        new_status = updates.get('status')
+        
+        if reset_to_in_progress and old_status in ['Complete', 'Failed', 'Skipped']:
+            comment_parts.append(f"Status reset from {old_status} to In Progress (for retry)")
+        elif new_status and new_status != old_status:
+            comment_parts.append(f"Status changed from {old_status} to {new_status}")
+        
+        # Add comment if status changed
+        if comment_parts:
+            comment_text = f"[Action: {action.action_name}] " + ". ".join(comment_parts) + f" by {username}"
+            self.add_action_comment(
+                action_id=action_id,
+                user_id=user_id,
+                content=comment_text,
+                is_human_made=True
+            )
+            db.session.commit()
+        
+        # Auto-update MaintenanceActionSet billable hours if sum is greater
+        self.update_actual_billable_hours_auto()
+        
+        return self
+    
     
     def update_actual_billable_hours_auto(self) -> bool:
         """
@@ -636,6 +768,73 @@ class MaintenanceContext:
         self._struct.refresh()
         self._event_context = None
     
+
+
+
+    # Statistics ================================
+    @property
+    def total_actions(self) -> int:
+        """Get total number of actions"""
+        return len(self._struct.actions)
+    
+    @property
+    def completed_actions(self) -> int:
+        """Get number of completed actions"""
+        return len([a for a in self._struct.actions if a.status == 'Complete'])
+    
+    @property
+    def completion_percentage(self) -> float:
+        """Get completion percentage of actions"""
+        if self.total_actions == 0:
+            return 0.0
+        return (self.completed_actions / self.total_actions) * 100
+    
+    @property
+    def total_part_demands(self) -> int:
+        """Get total number of part demands"""
+        return len(self._struct.part_demands)
+    
+    @property
+    def active_delays(self) -> List[MaintenanceDelay]:
+        """Get active delays (those without end date)"""
+        return [d for d in self._struct.delays if d.delay_end_date is None]
+    
+    def all_actions_in_terminal_states(self) -> bool:
+        """
+        Check if all actions are in terminal states (Complete, Failed, or Skipped).
+        
+        Returns:
+            True if all actions are in terminal states, False otherwise
+        """
+        terminal_states = {'Complete', 'Failed', 'Skipped'}
+        if self.total_actions == 0:
+            return True  # No actions means all are "terminal" (vacuous truth)
+        return all(action.status in terminal_states for action in self._struct.actions)
+    
+    # Billable Hours Management
+    @property
+    def calculated_billable_hours(self) -> float:
+        """
+        Calculate sum of all action billable hours.
+        
+        Returns:
+            Sum of all action.billable_hours (treating None as 0)
+        """
+        return sum(a.billable_hours or 0 for a in self._struct.actions)
+    
+    @property
+    def actual_billable_hours(self) -> Optional[float]:
+        """
+        Get actual billable hours for the maintenance event.
+        
+        Returns:
+            Actual billable hours or None if not set or attribute doesn't exist
+        """
+        if not hasattr(self.maintenance_action_set, 'actual_billable_hours'):
+            return None
+        return self.maintenance_action_set.actual_billable_hours
+
+
     def __repr__(self):
         return f'<MaintenanceContext id={self._maintenance_action_set_id} task_name="{self._struct.task_name}" status={self._struct.status}>'
 

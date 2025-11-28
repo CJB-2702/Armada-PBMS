@@ -191,7 +191,8 @@ class EventService:
     @staticmethod
     def get_human_comments(event_id: int) -> List[Comment]:
         """
-        Get only human-made comments for an event, ordered by creation date (newest first).
+        Get only human-made comments for an event, ordered by creation date (oldest first).
+        Filters out deleted comments and previous edits (hidden from users).
         
         This is a read-only presentation method for filtering comments in event views.
         
@@ -199,10 +200,24 @@ class EventService:
             event_id: Event ID
             
         Returns:
-            List of Comment objects that are human-made
+            List of Comment objects that are human-made (excluding deleted and previous edits), ordered chronologically
         """
-        return Comment.query.filter_by(
+        from sqlalchemy import or_
+        
+        query = Comment.query.filter_by(
             event_id=event_id,
             is_human_made=True
-        ).order_by(Comment.created_at.desc()).all()
+        )
+        
+        # Filter out deleted comments and previous edits
+        # Show only comments where user_viewable is None (visible)
+        query = query.filter(
+            or_(
+                Comment.user_viewable.is_(None),
+                ~Comment.user_viewable.in_(['deleted', 'edit'])
+            )
+        )
+        
+        # Order by creation date (oldest first) for chronological display
+        return query.order_by(Comment.created_at.asc()).all()
 

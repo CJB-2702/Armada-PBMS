@@ -1,6 +1,6 @@
-<div class="card mb-4" id="event-widget-card" 
-     x-data="eventWidget({{ event.id }}, {{ current_user.id }})"
-     x-init="console.log('Alpine.js initialized for event widget', {{ event.id }})">
+{# Helper to get comment data by comment id #}
+
+<div class="card mb-4" id="event-widget-card">
     <div class="card-header">
         <h5 class="mb-0 d-flex justify-content-between align-items-center">
             <span>
@@ -44,9 +44,7 @@
         <div class="tab-content">
             <!-- Comments tab -->
             <div class="tab-pane fade show active" id="event-comments-pane"
-                 role="tabpanel" aria-labelledby="event-comments-tab"
-                 x-init="setTimeout(() => scrollToBottom(), 300)"
-                 @shown.bs.tab="setTimeout(() => scrollToBottom(), 100)">
+                 role="tabpanel" aria-labelledby="event-comments-tab">
                 <details open>
                     <summary class="mb-3" style="cursor: pointer;">
                         <strong>Show / Hide Comments</strong>
@@ -80,142 +78,10 @@
                     <!-- Comments List -->
                     <div id="comments-list-container" style="max-height: 400px; overflow-y: auto;" class="mb-3">
                         {% if comments %}
-                            {% for comment in comments %}
-                            <div class="comment-box" 
-                                 id="comment-{{ comment.id }}"
-                                 data-comment-id="{{ comment.id }}">
-                                <!-- Comment Header -->
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <small class="text-muted" 
-                                               x-text="formatDateTime('{{ comment.created_at.isoformat() if comment.created_at else '' }}')">
-                                        </small>
-                                        <strong>{{ comment.created_by.username if comment.created_by else 'Unknown' }}</strong>
-                                        {% if comment.is_human_made %}
-                                            <span class="badge bg-primary" title="Human-made comment">
-                                                <i class="bi bi-person"></i> Human
-                                            </span>
-                                        {% else %}
-                                            <span class="badge bg-info" title="Machine-generated comment">
-                                                <i class="bi bi-robot"></i> Auto
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    <!-- Comment Actions (inline with header) -->
-                                    <div class="d-flex gap-1">
-                                        <button 
-                                            class="btn btn-sm btn-outline-secondary" 
-                                            @click="replyToComment({{ comment.id }}, '{{ comment.get_content_preview(50)|e }}')"
-                                            title="Reply to this comment">
-                                            <i class="bi bi-reply"></i>
-                                        </button>
-                                        {% if comment.created_by_id == current_user.id %}
-                                        <button 
-                                            class="btn btn-sm btn-outline-info" 
-                                            @click="viewCommentMetadata({{ comment.id }})"
-                                            title="View comment metadata">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button 
-                                            class="btn btn-sm btn-outline-primary" 
-                                            @click="startEdit({{ comment.id }})"
-                                            title="Edit this comment">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button 
-                                            class="btn btn-sm btn-outline-danger" 
-                                            @click="deleteComment({{ comment.id }})"
-                                            title="Delete this comment">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Reply Indicator (only shows reference to initial comment, not nested) -->
-                                {% if comment.replied_to_comment_id and comment.replied_to_comment %}
-                                <div class="reply-indicator mb-2">
-                                    <i class="bi bi-reply"></i> 
-                                    Replying to 
-                                    <a href="#" 
-                                       class="reply-link"
-                                       @click.prevent="scrollToComment({{ comment.replied_to_comment_id }})">
-                                        {{ comment.replied_to_comment.get_content_preview(30) }}
-                                    </a>
-                                    <span class="text-muted"> by {{ comment.replied_to_comment.created_by.username if comment.replied_to_comment.created_by else 'Unknown' }}</span>
-                                </div>
-                                {% endif %}
-                                
-                                <!-- Comment Content -->
-                                <p class="mb-2 comment-content">{{ comment.content }}</p>
-
-                                {% if comment.comment_attachments %}
-                                <div class="comment-attachments mt-2">
-                                    <small class="text-muted d-block mb-2"><strong>Attachments:</strong></small>
-                                    <div class="row">
-                                        {% for ca in comment.comment_attachments %}
-                                        {% set att = ca.attachment %}
-                                        <div class="col-6 col-md-4 mb-2">
-                                            <div class="card attachment-mini-card">
-                                                {% if att.is_image() %}
-                                                    <a href="{{ url_for('attachments.view', attachment_id=att.id) }}"
-                                                       target="_blank"
-                                                       class="d-flex justify-content-center">
-                                                        <img src="{{ url_for('attachments.view', attachment_id=att.id) }}"
-                                                             class="img-thumbnail"
-                                                             alt="{{ att.filename }}"
-                                                             style="width: 100px; height: 100px; object-fit: cover;">
-                                                    </a>
-                                                {% elif att.is_viewable_as_text() %}
-                                                    <div class="card-img-top bg-light" style="height: 100px; overflow: hidden;">
-                                                        <div class="p-2">
-                                                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                                                <i class="bi {{ att.get_file_icon() }} text-muted"></i>
-                                                                <small class="text-muted">{{ att.get_file_size_display() }}</small>
-                                                            </div>
-                                                            <div class="text-preview"
-                                                                 hx-get="{{ url_for('attachments.preview', attachment_id=att.id) }}"
-                                                                 hx-trigger="load"
-                                                                 hx-swap="innerHTML"
-                                                                 style="font-size: 0.7rem; line-height: 1.2; max-height: 70px; overflow: hidden;">
-                                                                <div class="text-center text-muted">
-                                                                    <i class="bi bi-hourglass-split"></i> Loading preview...
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                {% else %}
-                                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
-                                                         style="height: 100px;">
-                                                        <i class="bi {{ att.get_file_icon() }} fs-3 text-muted"></i>
-                                                    </div>
-                                                {% endif %}
-                                                <div class="card-body p-2">
-                                                    <h6 class="card-title text-truncate small mb-1">{{ att.filename }}</h6>
-                                                    <p class="card-text small text-muted mb-1">
-                                                        {{ att.get_file_size_display() }}
-                                                    </p>
-                                                    <div class="btn-group btn-group-sm w-100" role="group">
-                                                        <a href="{{ url_for('attachments.download', attachment_id=att.id) }}"
-                                                           class="btn btn-outline-primary btn-sm">
-                                                            <i class="bi bi-download"></i>
-                                                        </a>
-                                                        {% if att.is_image() or att.is_viewable_as_text() %}
-                                                        <a href="{{ url_for('attachments.view', attachment_id=att.id) }}"
-                                                           class="btn btn-outline-secondary btn-sm" target="_blank">
-                                                            <i class="bi bi-eye"></i>
-                                                        </a>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                            {% endfor %}
+                            <!-- Pre-rendered Modals for each comment (only if user owns the comment) -->
+                        {% for comment in pre_rendered_comments %}
+                        {{ comment | safe }}
+                        {% endfor %}
                         {% else %}
                             <p class="text-muted text-center mb-0">No comments yet</p>
                         {% endif %}
@@ -229,14 +95,14 @@
                             <i class="bi bi-plus-circle"></i> Add Comment
                         </h6>
                         
-                        <!-- Reply Context -->
-                        <div x-show="replyContext.active" class="alert alert-info mb-3" x-transition>
+                        <!-- Reply Context (hidden by default, shown via JS) -->
+                        <div id="reply-context" class="alert alert-info mb-3" style="display: none;">
                             <strong>Replying to:</strong>
-                            <span x-text="replyContext.text"></span>
+                            <span id="reply-context-text"></span>
                             <button 
                                 type="button" 
                                 class="btn btn-sm btn-link float-end" 
-                                @click="cancelReply()">
+                                id="cancel-reply-btn">
                                 Cancel
                             </button>
                         </div>
@@ -247,7 +113,7 @@
                               hx-target="#event-widget-card"
                               hx-swap="outerHTML"
                               enctype="multipart/form-data">
-                            <input type="hidden" name="replied_to_comment_id" :value="replyContext.commentId || ''">
+                            <input type="hidden" name="replied_to_comment_id" id="replied_to_comment_id" value="">
                             <div class="mb-2">
                                 <label for="comment-content-{{ event.id }}" class="form-label">Comment</label>
                                 <textarea class="form-control"
@@ -358,6 +224,8 @@
         </div>
     </div>
 </div>
+
+
 
 <style>
 .comment-box {
@@ -485,60 +353,89 @@
 </style>
 
 <script>
-function eventWidget(eventId, currentUserId) {
-    return {
-        eventId: eventId,
-        currentUserId: currentUserId,
-        replyContext: {
-            active: false,
-            commentId: null,
-            text: ''
-        },
-        
-        formatDateTime(isoString) {
-            if (!isoString) return 'Unknown time';
-            
-            try {
-                // Parse ISO string (handles both with and without timezone)
-                const date = new Date(isoString);
-                if (isNaN(date.getTime())) return 'Invalid date';
-                
-                const now = new Date();
-                const diffMs = now - date;
-                const diffMins = Math.floor(diffMs / 60000);
-                
-                // Show relative time for recent comments
-                if (diffMins < 1) return 'Just now';
-                if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-                
-                const diffHours = Math.floor(diffMins / 60);
-                if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-                
-                const diffDays = Math.floor(diffHours / 24);
-                if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-                
-                // For older comments, show formatted date in user's local timezone
-                return date.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                });
-            } catch (e) {
-                console.error('Error formatting date:', e);
-                return 'Invalid date';
+// Minimal JavaScript for reply functionality and scroll preservation
+(function() {
+    // Store scroll position before HTMX swap
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        const container = document.getElementById('comments-list-container');
+        if (container && evt.detail.target && evt.detail.target.id === 'event-widget-card') {
+            sessionStorage.setItem('comments-scroll-position', container.scrollTop);
+        }
+    });
+
+    // Restore scroll position after HTMX swap
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target && evt.detail.target.id === 'event-widget-card') {
+            const container = document.getElementById('comments-list-container');
+            if (container) {
+                const savedScroll = sessionStorage.getItem('comments-scroll-position');
+                if (savedScroll !== null) {
+                    setTimeout(() => {
+                        container.scrollTop = parseInt(savedScroll, 10);
+                        sessionStorage.removeItem('comments-scroll-position');
+                    }, 50);
+                } else {
+                    // Scroll to bottom on initial load
+                    setTimeout(() => {
+                        container.scrollTop = container.scrollHeight;
+                    }, 100);
+                }
             }
-        },
+        }
         
-        replyToComment(commentId, commentPreview) {
-            // Find the initial comment (not nested) by traversing up the reply chain
-            // For now, we'll use the commentId directly, but in a real implementation,
-            // we'd need to fetch the comment and find its initial parent
-            this.replyContext.active = true;
-            this.replyContext.commentId = commentId;
-            this.replyContext.text = commentPreview || 'this comment';
+        // Close any open Bootstrap modals after successful swap
+        // This handles edit/delete operations that swap comment elements
+        const target = evt.detail.target;
+        const xhr = evt.detail.xhr;
+        const isSuccessful = xhr && xhr.status >= 200 && xhr.status < 300;
+        
+        // Close modals if target is a comment element and response was successful
+        if (isSuccessful && target) {
+            const targetId = target.id || (target.getAttribute && target.getAttribute('id'));
+            if (targetId && targetId.startsWith('comment-')) {
+                // Close all open modals
+                const openModals = document.querySelectorAll('.modal.show');
+                openModals.forEach(function(modal) {
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                });
+            }
+        }
+    });
+    
+    // Handle successful delete operations - close modals even if target element was removed
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        const xhr = evt.detail.xhr;
+        const isSuccessful = xhr && xhr.status >= 200 && xhr.status < 300;
+        const path = evt.detail.pathInfo?.requestPath || '';
+        
+        // If this was a delete request and it was successful, close modals
+        // This handles the case where the comment element is removed (empty response)
+        if (isSuccessful && path.includes('/delete')) {
+            setTimeout(function() {
+                const openModals = document.querySelectorAll('.modal.show');
+                openModals.forEach(function(modal) {
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                });
+            }, 50); // Small delay to ensure swap completes
+        }
+    });
+
+    // Reply button functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.reply-btn')) {
+            const btn = e.target.closest('.reply-btn');
+            const commentId = btn.getAttribute('data-comment-id');
+            const preview = btn.getAttribute('data-comment-preview');
+            
+            document.getElementById('replied_to_comment_id').value = commentId;
+            document.getElementById('reply-context-text').textContent = preview || 'this comment';
+            document.getElementById('reply-context').style.display = 'block';
             
             // Scroll to add comment section
             setTimeout(() => {
@@ -547,58 +444,19 @@ function eventWidget(eventId, currentUserId) {
                     section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             }, 100);
-        },
+        }
         
-        cancelReply() {
-            this.replyContext.active = false;
-            this.replyContext.commentId = null;
-            this.replyContext.text = '';
-        },
+        if (e.target.closest('#cancel-reply-btn')) {
+            document.getElementById('replied_to_comment_id').value = '';
+            document.getElementById('reply-context').style.display = 'none';
+        }
         
-        startEdit(commentId) {
-            // Open edit modal
-            const editModal = document.getElementById('editCommentModal');
-            const editModalData = Alpine.$data(editModal);
-            editModalData.loadComment(commentId);
-            const modalInstance = new bootstrap.Modal(editModal);
-            modalInstance.show();
-        },
-        
-        deleteComment(commentId) {
-            if (!confirm('Are you sure you want to delete this comment?')) return;
-            
-            fetch(`/comments/${commentId}/delete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Reload widget via HTMX
-                    if (typeof htmx !== 'undefined') {
-                        htmx.ajax('GET', `/events/${this.eventId}/widget`, {
-                            target: '#event-widget-card',
-                            swap: 'outerHTML'
-                        });
-                    } else {
-                        // Fallback: reload page
-                        window.location.reload();
-                    }
-                } else {
-                    response.json().then(data => {
-                        alert(data.error || 'Error deleting comment');
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error deleting comment');
-            });
-        },
-        
-        scrollToComment(commentId) {
-            const element = document.getElementById(`comment-${commentId}`);
+        // Scroll to comment functionality
+        if (e.target.closest('.scroll-to-comment')) {
+            e.preventDefault();
+            const link = e.target.closest('.scroll-to-comment');
+            const commentId = link.getAttribute('data-comment-id');
+            const element = document.getElementById('comment-' + commentId);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 element.classList.add('highlight-comment');
@@ -606,322 +464,14 @@ function eventWidget(eventId, currentUserId) {
                     element.classList.remove('highlight-comment');
                 }, 2000);
             }
-        },
-        
-        scrollToBottom() {
-            const container = document.getElementById('comments-list-container');
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
-        },
-        
-        startEdit(commentId) {
-            // Open edit modal
-            const editModal = document.getElementById('editCommentModal');
-            const editModalData = Alpine.$data(editModal);
-            editModalData.loadComment(commentId);
-            const modalInstance = new bootstrap.Modal(editModal);
-            modalInstance.show();
-        },
-        
-        viewCommentMetadata(commentId) {
-            // Open comment metadata modal
-            const metadataModal = document.getElementById('commentMetadataModal');
-            const metadataModalData = Alpine.$data(metadataModal);
-            metadataModalData.loadMetadata(commentId);
-            const modalInstance = new bootstrap.Modal(metadataModal);
-            modalInstance.show();
         }
-    };
-}
-
-// Alpine.js component for edit comment modal
-function editCommentModule() {
-    return {
-        commentId: null,
-        content: '',
-        editHistory: [],
-        showHistory: false,
         
-        async loadComment(commentId) {
-            this.commentId = commentId;
-            
-            // Get content from DOM first (for immediate display)
-            const commentElement = document.querySelector(`#comment-${commentId}`);
-            const contentElement = commentElement ? commentElement.querySelector('.comment-content') : null;
-            if (contentElement) {
-                this.content = contentElement.textContent.trim();
-            }
-            
-            // Fetch full comment data and edit history
-            try {
-                const response = await fetch(`/comments/${commentId}/edit`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch comment data');
-                }
-                const data = await response.json();
-                
-                this.content = data.content || this.content;
-                this.editHistory = data.edit_history || [];
-                
-                // Debug: log edit history to check timestamps
-                if (this.editHistory.length > 0) {
-                    console.log('Edit history loaded:', this.editHistory);
-                    this.editHistory.forEach((version, idx) => {
-                        console.log(`Version ${idx} created_at:`, version.created_at, 'Type:', typeof version.created_at);
-                    });
-                }
-                
-                // Update form action
-                this.updateFormAction();
-            } catch (error) {
-                console.error('Error fetching comment data:', error);
-                // Still allow editing with content from DOM
-                this.updateFormAction();
-            }
-        },
-        
-        updateFormAction() {
-            // Update form action when comment is loaded
-            const form = document.getElementById('editCommentForm');
-            if (form && this.commentId) {
-                const editUrl = `/comments/${this.commentId}/edit`;
-                form.action = editUrl;
-                // Update HTMX attributes - ensure they're set correctly
-                form.setAttribute('hx-post', editUrl);
-            }
-        },
-        
-        handleFormSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            if (!form || !this.commentId) {
-                alert('Error: Comment ID not set');
-                return false;
-            }
-            
-            // Ensure form action is set
-            const editUrl = `/comments/${this.commentId}/edit`;
-            form.action = editUrl;
-            
-            // Store reference to this component for the event handler
-            const self = this;
-            
-            // Set up one-time event listener for successful swap
-            const swapHandler = (e) => {
-                // Check if this swap is for the event-widget-card
-                if (e.detail.target && e.detail.target.id === 'event-widget-card') {
-                    // Close modal after swap completes
-                    setTimeout(() => {
-                        self.closeModal();
-                    }, 50);
-                    // Remove the event listener after handling
-                    document.removeEventListener('htmx:afterSwap', swapHandler);
-                }
-            };
-            
-            // Listen for HTMX swap completion
-            document.addEventListener('htmx:afterSwap', swapHandler);
-            
-            // Use HTMX to submit the form
-            if (typeof htmx !== 'undefined') {
-                // Use HTMX ajax to submit
-                htmx.ajax('POST', editUrl, {
-                    values: {
-                        content: this.content
-                    },
-                    target: '#event-widget-card',
-                    swap: 'outerHTML',
-                    headers: {
-                        'HX-Request': 'true'
-                    }
-                }).catch((error) => {
-                    console.error('Error updating comment:', error);
-                    alert('Error updating comment. Please try again.');
-                    // Remove event listener on error
-                    document.removeEventListener('htmx:afterSwap', swapHandler);
-                });
-            } else {
-                // Fallback: submit normally
-                form.submit();
-            }
-            
-            return false;
-        },
-        
-        closeModal() {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editCommentModal'));
-            if (modal) {
-                modal.hide();
-            }
-            // Reset form state after a short delay to allow modal to close
-            setTimeout(() => {
-                this.reset();
-            }, 300);
-        },
-        
-        formatDate(dateString) {
-            // Handle null, undefined, empty string, or string 'null'
-            if (!dateString || dateString === '' || dateString === 'null' || dateString === null || dateString === undefined) {
-                return 'No date';
-            }
-            
-            // Convert to string if it's not already
-            const dateStr = String(dateString).trim();
-            if (!dateStr || dateStr === 'null' || dateStr === 'undefined') {
-                return 'No date';
-            }
-            
-            try {
-                // Parse the date - JavaScript Date constructor handles ISO 8601 format
-                const date = new Date(dateStr);
-                
-                // Check if date is valid
-                if (isNaN(date.getTime())) {
-                    console.warn('Invalid date string:', dateStr, 'Type:', typeof dateString);
-                    return 'No date';
-                }
-                
-                // Format the date
-                return date.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: date.getFullYear(),
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                });
-            } catch (e) {
-                console.error('Error formatting date:', e, 'Date string:', dateString, 'Type:', typeof dateString);
-                return 'No date';
-            }
-        },
-        
-        reset() {
-            this.commentId = null;
-            this.content = '';
-            this.editHistory = [];
-            this.showHistory = false;
-        }
-    };
-}
-
-// Alpine.js component for edit history modal
-function editHistoryModule() {
-    return {
-        commentId: null,
-        editHistory: [],
-        loading: false,
-        
-        async loadHistory(commentId) {
-            this.commentId = commentId;
-            this.loading = true;
-            this.editHistory = [];
-            
-            try {
-                const response = await fetch(`/comments/${commentId}/edit`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch edit history');
-                }
-                const data = await response.json();
-                this.editHistory = data.edit_history || [];
-                
-                // Debug: log edit history to check timestamps
-                if (this.editHistory.length > 0) {
-                    console.log('Edit history loaded:', this.editHistory);
-                    this.editHistory.forEach((version, idx) => {
-                        console.log(`Version ${idx} created_at:`, version.created_at, 'Type:', typeof version.created_at);
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching edit history:', error);
-                alert('Error loading edit history');
-            } finally {
-                this.loading = false;
-            }
-        },
-        
-        formatDate(dateString) {
-            // Handle null, undefined, empty string, or string 'null'
-            if (!dateString || dateString === '' || dateString === 'null' || dateString === null || dateString === undefined) {
-                return 'No date';
-            }
-            
-            // Convert to string if it's not already
-            const dateStr = String(dateString).trim();
-            if (!dateStr || dateStr === 'null' || dateStr === 'undefined') {
-                return 'No date';
-            }
-            
-            try {
-                // Parse the date - JavaScript Date constructor handles ISO 8601 format
-                const date = new Date(dateStr);
-                
-                // Check if date is valid
-                if (isNaN(date.getTime())) {
-                    console.warn('Invalid date string:', dateStr, 'Type:', typeof dateString);
-                    return 'No date';
-                }
-                
-                // Format the date
-                return date.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: date.getFullYear(),
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                });
-            } catch (e) {
-                console.error('Error formatting date:', e, 'Date string:', dateString, 'Type:', typeof dateString);
-                return 'No date';
-            }
-        },
-        
-        reset() {
-            this.commentId = null;
-            this.editHistory = [];
-            this.loading = false;
-        }
-    };
-}
-
-// Alpine.js component for comment metadata modal
-function commentMetadataModule() {
-    return {
-        commentId: null,
-        metadata: null,
-        loading: false,
-        jsonString: '',
-        
-        async loadMetadata(commentId) {
-            this.commentId = commentId;
-            this.loading = true;
-            this.metadata = null;
-            this.jsonString = '';
-            
-            try {
-                const response = await fetch(`/comments/${commentId}/metadata`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch comment metadata');
-                }
-                const data = await response.json();
-                this.metadata = data;
-                // Format JSON with indentation for display
-                this.jsonString = JSON.stringify(data, null, 2);
-            } catch (error) {
-                console.error('Error fetching comment metadata:', error);
-                alert('Error loading comment metadata');
-            } finally {
-                this.loading = false;
-            }
-        },
-        
-        copyToClipboard() {
-            if (this.jsonString) {
-                navigator.clipboard.writeText(this.jsonString).then(() => {
-                    // Show temporary feedback
-                    const btn = event.target.closest('button');
+        // Copy JSON to clipboard
+        if (e.target.closest('.copy-json-btn')) {
+            const btn = e.target.closest('.copy-json-btn');
+            const jsonData = btn.getAttribute('data-json');
+            if (jsonData) {
+                navigator.clipboard.writeText(jsonData).then(() => {
                     const originalHtml = btn.innerHTML;
                     btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
                     btn.classList.add('btn-success');
@@ -936,179 +486,17 @@ function commentMetadataModule() {
                     alert('Failed to copy to clipboard');
                 });
             }
-        },
-        
-        reset() {
-            this.commentId = null;
-            this.metadata = null;
-            this.jsonString = '';
-            this.loading = false;
         }
-    };
-}
-</script>
-
-<!-- Edit Comment Modal -->
-<div class="modal fade" id="editCommentModal" tabindex="-1" x-data="editCommentModule()">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form id="editCommentForm" method="POST" 
-                  action=""
-                  enctype="multipart/form-data"
-                  @submit.prevent="handleFormSubmit($event)">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Comment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" @click="reset()"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="edit_content" class="form-label">Comment</label>
-                        <textarea class="form-control" id="edit_content" name="content" rows="4" required x-model="content"></textarea>
-                    </div>
-                    
-                    <!-- Edit History Section -->
-                    <div class="mb-3" x-show="editHistory.length > 1" x-transition>
-                        <div class="card">
-                            <div class="card-header">
-                                <button class="btn btn-link text-decoration-none p-0 w-100 text-start" type="button" 
-                                        @click="showHistory = !showHistory">
-                                    <i class="bi bi-clock-history"></i> 
-                                    <span>Edit History (<span x-text="editHistory.length"></span> versions)</span>
-                                    <i class="bi float-end" :class="showHistory ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-                                </button>
-                            </div>
-                            <div x-show="showHistory" x-transition>
-                                <div class="card-body">
-                                    <div class="edit-history-timeline">
-                                        <template x-for="(version, index) in editHistory" :key="version.id">
-                                            <div class="edit-history-item" :class="{ 'current-version': version.is_current }">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <div class="d-flex align-items-center">
-                                                        <small class="text-muted me-2" x-text="formatDate(version.created_at)"></small>
-                                                        <span>
-                                                            <strong x-text="index === 0 ? 'Original' : 'Edit ' + index"></strong>
-                                                            <span x-show="version.is_current" class="badge bg-primary ms-2">Current</span>
-                                                        </span>
-                                                    </div>
-                                                    <small class="text-muted" x-text="'by ' + version.created_by_username"></small>
-                                                </div>
-                                                <div class="edit-history-content" x-text="version.content"></div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reset()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Comment</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit History Modal -->
-<div class="modal fade" id="editHistoryModal" tabindex="-1" x-data="editHistoryModule()">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-clock-history"></i> Edit History
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" @click="reset()"></button>
-            </div>
-            <div class="modal-body">
-                <div x-show="loading" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Loading edit history...</p>
-                </div>
-                
-                <div x-show="!loading && editHistory.length === 0" class="text-center py-4">
-                    <i class="bi bi-info-circle fs-1 text-muted"></i>
-                    <p class="mt-2 text-muted">No edit history available for this comment.</p>
-                </div>
-                
-                <div x-show="!loading && editHistory.length > 0">
-                    <div class="edit-history-timeline">
-                        <template x-for="(version, index) in editHistory" :key="version.id">
-                            <div class="edit-history-item" :class="{ 'current-version': version.is_current }">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <small class="text-muted me-2" x-text="formatDate(version.created_at)"></small>
-                                        <span>
-                                            <strong x-text="index === 0 ? 'Original' : 'Edit ' + index"></strong>
-                                            <span x-show="version.is_current" class="badge bg-primary ms-2">Current</span>
-                                        </span>
-                                    </div>
-                                    <small class="text-muted" x-text="'by ' + version.created_by_username"></small>
-                                </div>
-                                <div class="edit-history-content" x-text="version.content"></div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reset()">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Comment Metadata Modal -->
-<div class="modal fade" id="commentMetadataModal" tabindex="-1" x-data="commentMetadataModule()">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-info-circle"></i> Comment Metadata
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" @click="reset()"></button>
-            </div>
-            <div class="modal-body">
-                <div x-show="loading" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Loading comment metadata...</p>
-                </div>
-                
-                <div x-show="!loading && metadata" class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0">Comment ID: <span x-text="metadata.id"></span></h6>
-                        <button class="btn btn-sm btn-outline-secondary" @click="copyToClipboard()" title="Copy JSON to clipboard">
-                            <i class="bi bi-clipboard"></i> Copy JSON
-                        </button>
-                    </div>
-                    <pre class="bg-light p-3 rounded border" style="max-height: 500px; overflow-y: auto; font-size: 0.85rem;"><code x-text="jsonString"></code></pre>
-                </div>
-                
-                <div x-show="!loading && !metadata" class="text-center py-4">
-                    <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
-                    <p class="mt-2 text-muted">No metadata available for this comment.</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="reset()">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// Ensure Alpine.js re-initializes after HTMX swaps the event-widget-card
-document.body.addEventListener('htmx:afterSwap', function(evt) {
-    if (evt.detail.target && evt.detail.target.id === 'event-widget-card') {
-        // Force Alpine to re-scan the swapped content
-        if (typeof Alpine !== 'undefined') {
-            Alpine.initTree(evt.detail.target);
-            console.log('Alpine.js re-initialized after HTMX swap');
+    });
+    
+    // Scroll to bottom on initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('comments-list-container');
+        if (container) {
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 300);
         }
-    }
-});
+    });
+})();
 </script>

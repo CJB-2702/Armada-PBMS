@@ -6,10 +6,118 @@ from app.data.core.event_info.comment import Comment
 from app.data.core.event_info.event import Event
 from app.buisness.core.event_context import EventContext
 from app.services.core.event_service import EventService
+from app.data.core.event_info.attachment import Attachment
 import json
 
 bp = Blueprint('comments', __name__)
 logger = get_logger("asset_management.routes.bp")
+
+
+def _prepare_comment_data(comment, user_id):
+    """
+    Prepare comment data with edit history and metadata for a single comment.
+    Only includes edit history and metadata if the user owns the comment.
+    
+    Args:
+        comment: Comment instance
+        user_id: ID of the current user
+        
+    Returns:
+        dict with 'comment', 'edit_history', and 'metadata' keys
+    """
+    comment_data = {
+        'comment': comment,
+        'edit_history': [],
+        'metadata': EventService.get_comment_json_string(comment.id),
+        'show_delete': comment.created_by_id == user_id,
+        'show_edit': comment.created_by_id == user_id,
+    }
+    
+    if comment.created_by_id == user_id:
+        # Get edit history
+        try:
+            history_comments = EventContext.get_comment_edit_history(comment)
+            comment_data['edit_history'] = [
+                {
+                    'id': h.id,
+                    'content': h.content,
+                    'created_at': h.created_at.isoformat() if h.created_at else None,
+                    'created_by_id': h.created_by_id,
+                    'created_by_username': h.created_by.username if h.created_by else None,
+                    'is_current': h.id == comment.id,
+                }
+                for h in history_comments
+            ]
+        except Exception as e:
+            logger.error(f"Error getting edit history for comment {comment.id}: {e}")
+            comment_data['edit_history'] = []
+
+    return comment_data
+
+
+def render_single_comment(comment, user_id, filter_human_only=False, current_user_obj=None):
+    """
+    Render a single comment box with its modals.
+    
+    Args:
+        comment: Comment instance
+        user_id: ID of the current user
+        filter_human_only: Whether human-only filter is active
+        current_user_obj: Current user object (for template access)
+        
+    Returns:
+        Rendered template response with just the comment box and its modals
+    """
+    comment_data = _prepare_comment_data(comment, user_id)
+    
+    return render_template(
+        'core/events/comment_item.html',
+        comment=comment,
+        comment_data=comment_data,
+        filter_human_only=filter_human_only,
+        current_user=current_user_obj or current_user,
+    )
+
+
+def render_event_activity(event_id, user_id, filter_human_only=None, event_context=None, status_code=200):
+    """
+    Render the event activity widget template with all necessary data.
+    
+    Args:
+        event_id: ID of the event
+        user_id: ID of the current user
+        filter_human_only: Optional bool to filter to human comments only.
+                          If None, will check request.args for 'human_only' parameter
+        event_context: Optional EventContext instance. If None, will create a new one
+        status_code: HTTP status code to return (default 200)
+        
+    Returns:
+        Rendered template response with the event activity widget
+    """
+    if event_context is None:
+        event_context = EventContext(event_id)
+    else:
+        event_context.refresh()  # Refresh to get latest comments
+    
+    # Determine filter state
+    if filter_human_only is None:
+        filter_human_only = request.args.get('human_only', 'false').lower() == 'true'
+    
+    # Get comments (filtered or all)
+    if filter_human_only:
+        comments = EventService.get_human_comments(event_id)
+    else:
+        comments = event_context.comments
+    
+
+    pre_rendered_comments = [render_single_comment(comment, user_id) for comment in comments]
+    return render_template(
+        'core/events/event_activity.html',
+        event=event_context.event,
+        comments=comments,
+        pre_rendered_comments=pre_rendered_comments,
+        filter_human_only=filter_human_only,
+    ), status_code
 
 
 @bp.route('/events/<int:event_id>/comments', methods=['POST'])
@@ -68,20 +176,7 @@ def create(event_id):
 
         # If this is an HTMX request, return the updated event widget instead of redirecting
         if request.headers.get('HX-Request'):
-            event_context.refresh()  # Refresh to get latest comments
-            # Preserve filter state if it was set
-            filter_human_only = request.args.get('human_only', 'false').lower() == 'true'
-            if filter_human_only:
-                # Use service for presentation-specific filtering
-                comments = EventService.get_human_comments(event_id)
-            else:
-                comments = event_context.comments
-            return render_template(
-                'core/events/event_activity.html',
-                event=event_context.event,
-                comments=comments,
-                filter_human_only=filter_human_only,
-            )
+            return render_event_activity(event_id, current_user.id, event_context=event_context)
 
         flash('Comment added successfully', 'success')
         return redirect(url_for('events.detail', event_id=event_id))
@@ -96,27 +191,12 @@ def create(event_id):
 @login_required
 def event_widget(event_id):
     """
-    Render the reusable Event widget (comments, attachments, metadata)
-    for the given event. Intended for embedding via HTMX on any page.
+    Get a single comment's data as JSON.
+    Always includes full metadata regardless of user.
+    Intended for embedding via HTMX on any page.
     """
-    event_context = EventContext(event_id)
-    
-    # Check if filtering to human comments only
-    filter_human_only = request.args.get('human_only', 'false').lower() == 'true'
-    
-    if filter_human_only:
-        # Use service for presentation-specific filtering
-        comments = EventService.get_human_comments(event_id)
-    else:
-        comments = event_context.comments
 
-    return render_template(
-        'core/events/event_activity.html',
-        event=event_context.event,
-        comments=comments,
-        filter_human_only=filter_human_only,
-    )
-
+    return render_event_activity(event_id, current_user.id)
 
 @bp.route('/comments/<int:comment_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -136,19 +216,10 @@ def edit(comment_id):
         if not content:
             flash('Comment content is required', 'error')
             if request.headers.get('HX-Request'):
-                # Return error response for HTMX
-                event_context.refresh()
-                filter_human_only = request.args.get('human_only', 'false').lower() == 'true'
-                if filter_human_only:
-                    comments = EventService.get_human_comments(comment.event_id)
-                else:
-                    comments = event_context.comments
-                return render_template(
-                    'core/events/event_activity.html',
-                    event=event_context.event,
-                    comments=comments,
-                    filter_human_only=filter_human_only,
-                ), 400
+                # Return the comment with error (form will show validation error)
+                return render_single_comment(comment, current_user.id, 
+                                            filter_human_only=request.args.get('human_only', 'false').lower() == 'true',
+                                            current_user_obj=current_user), 400
             return redirect(url_for('events.detail', event_id=comment.event_id))
 
         try:
@@ -164,37 +235,20 @@ def edit(comment_id):
             flash(str(e), 'error')
             db.session.rollback()
             if request.headers.get('HX-Request'):
-                # Return error response for HTMX
-                event_context.refresh()
-                filter_human_only = request.args.get('human_only', 'false').lower() == 'true'
-                if filter_human_only:
-                    comments = EventService.get_human_comments(comment.event_id)
-                else:
-                    comments = event_context.comments
-                return render_template(
-                    'core/events/event_activity.html',
-                    event=event_context.event,
-                    comments=comments,
-                    filter_human_only=filter_human_only,
-                ), 400
+                # Return the comment with error
+                return render_single_comment(comment, current_user.id,
+                                            filter_human_only=request.args.get('human_only', 'false').lower() == 'true',
+                                            current_user_obj=current_user), 400
             return redirect(url_for('events.detail', event_id=comment.event_id))
 
-        # If this is an HTMX request, return the updated event widget instead of redirecting
+        # If this is an HTMX request, return the updated comment instead of redirecting
         if request.headers.get('HX-Request'):
-            event_context.refresh()  # Refresh to get latest comments
-            # Preserve filter state if it was set
+            # Get the updated comment (it may be a new comment if edit created a new version)
+            event_context.refresh()
             filter_human_only = request.args.get('human_only', 'false').lower() == 'true'
-            if filter_human_only:
-                # Use service for presentation-specific filtering
-                comments = EventService.get_human_comments(comment.event_id)
-            else:
-                comments = event_context.comments
-            return render_template(
-                'core/events/event_activity.html',
-                event=event_context.event,
-                comments=comments,
-                filter_human_only=filter_human_only,
-            )
+            # Find the current version of the comment
+            updated_comment = Comment.query.get(new_comment.id) if new_comment else comment
+            return render_single_comment(updated_comment, current_user.id, filter_human_only, current_user_obj=current_user)
 
         return redirect(url_for('events.detail', event_id=comment.event_id))
 
@@ -281,6 +335,11 @@ def delete(comment_id):
 
     # Check if user can delete this comment
     if comment.created_by_id != current_user.id:
+        if request.headers.get('HX-Request'):
+            # Return error - keep the comment visible
+            return render_single_comment(comment, current_user.id,
+                                        filter_human_only=request.args.get('human_only', 'false').lower() == 'true',
+                                        current_user_obj=current_user), 403
         return jsonify({'error': 'You can only delete your own comments'}), 403
 
     try:
@@ -291,11 +350,20 @@ def delete(comment_id):
         )
         db.session.commit()
     except ValueError as e:
+        if request.headers.get('HX-Request'):
+            # Return error - keep the comment visible
+            return render_single_comment(comment, current_user.id,
+                                        filter_human_only=request.args.get('human_only', 'false').lower() == 'true',
+                                        current_user_obj=current_user), 400
         if request.headers.get('Content-Type') == 'application/json':
             return jsonify({'error': str(e)}), 400
         flash(str(e), 'error')
         db.session.rollback()
         return redirect(url_for('events.detail', event_id=comment.event_id))
+
+    # If this is an HTMX request, return empty response to remove the comment
+    if request.headers.get('HX-Request'):
+        return '', 200  # Empty response - HTMX will swap outerHTML with empty, effectively removing the element
 
     if request.headers.get('Content-Type') == 'application/json':
         return jsonify({'success': True})

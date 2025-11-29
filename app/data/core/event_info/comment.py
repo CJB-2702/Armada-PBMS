@@ -38,6 +38,11 @@ class Comment(UserCreatedBase):
     def __repr__(self):
         preview = self.get_content_preview(50)
         return f'<Comment {self.id}: {preview}>'
+    
+    def get_columns():
+        return super().get_columns() | {
+            'id', 'content', 'event_id', 'is_human_made', 'user_viewable', 'previous_comment_id', 'replied_to_comment_id'
+        }
 
 
 class CommentAttachment(VirtualAttachmentReference):

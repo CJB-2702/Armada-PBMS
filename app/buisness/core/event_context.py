@@ -405,7 +405,17 @@ class EventContext:
         # Link new comment to previous version
         new_comment.previous_comment_id = original_comment.id
         
-        db.session.flush()
+        db.session.flush()  # Flush to get new_comment.id
+        
+        # Move CommentAttachment records from original comment to new comment
+        comment_attachments = CommentAttachment.query.filter_by(
+            attached_to_id=original_comment.id
+        ).all()
+        
+        for comment_attachment in comment_attachments:
+            comment_attachment.attached_to_id = new_comment.id
+            comment_attachment.updated_by_id = user_id
+            # updated_at will be automatically updated by the model's onupdate handler
         
         return new_comment
     

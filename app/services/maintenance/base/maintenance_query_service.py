@@ -34,7 +34,7 @@ class MaintenanceQueryService:
             List of MaintenanceContext instances
         """
         action_sets = MaintenanceActionSet.query.all()
-        return [MaintenanceContext(mas) for mas in action_sets]
+        return [MaintenanceContext.from_maintenance_action_set(mas) for mas in action_sets]
     
     @staticmethod
     def get_maintenance_contexts_by_status(status: str) -> List[MaintenanceContext]:
@@ -48,7 +48,7 @@ class MaintenanceQueryService:
             List of MaintenanceContext instances
         """
         action_sets = MaintenanceActionSet.query.filter_by(status=status).all()
-        return [MaintenanceContext(mas) for mas in action_sets]
+        return [MaintenanceContext.from_maintenance_action_set(mas) for mas in action_sets]
     
     @staticmethod
     def get_maintenance_contexts_by_asset(asset_id: int) -> List[MaintenanceContext]:
@@ -62,7 +62,7 @@ class MaintenanceQueryService:
             List of MaintenanceContext instances
         """
         action_sets = MaintenanceActionSet.query.filter_by(asset_id=asset_id).all()
-        return [MaintenanceContext(mas) for mas in action_sets]
+        return [MaintenanceContext.from_maintenance_action_set(mas) for mas in action_sets]
     
     @staticmethod
     def get_maintenance_contexts_by_user(user_id: int, assigned: bool = True) -> List[MaintenanceContext]:
@@ -80,7 +80,7 @@ class MaintenanceQueryService:
             action_sets = MaintenanceActionSet.query.filter_by(assigned_user_id=user_id).all()
         else:
             action_sets = MaintenanceActionSet.query.filter_by(completed_by_id=user_id).all()
-        return [MaintenanceContext(mas) for mas in action_sets]
+        return [MaintenanceContext.from_maintenance_action_set(mas) for mas in action_sets]
     
     @staticmethod
     def get_maintenance_context_by_event_id(event_id: int) -> Optional[MaintenanceContext]:
@@ -94,10 +94,10 @@ class MaintenanceQueryService:
         Returns:
             MaintenanceContext instance or None if not found
         """
-        struct = MaintenanceActionSetStruct.from_event_id(event_id)
-        if struct:
-            return MaintenanceContext(struct)
-        return None
+        try:
+            return MaintenanceContext.from_event(event_id)
+        except ValueError:
+            raise ValueError(f"No maintenance action set found for event_id {event_id}")
     
     # MaintenancePlanContext query methods
     @staticmethod

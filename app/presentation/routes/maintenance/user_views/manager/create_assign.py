@@ -15,7 +15,7 @@ from app.data.core.major_location import MajorLocation
 logger = get_logger("asset_management.routes.maintenance.manager.create_assign")
 
 # Use the existing manager_bp from main.py
-from app.presentation.routes.maintenance.manager.main import manager_bp
+from app.presentation.routes.maintenance.user_views.manager.main import manager_bp
 
 
 @manager_bp.route('/create-assign')

@@ -304,13 +304,13 @@
                                                 </div>
                                                 <div class="btn-group btn-group-sm">
                                                     {% if part_demand.status in ['Cancelled by Technician', 'Cancelled by Supply'] %}
-                                                    <form method="POST" action="{{ url_for('maintenance_event.undo_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                                    <form method="POST" action="{{ url_for('maintenance.undo_part_demand', part_demand_id=part_demand.id) }}" class="d-inline">
                                                         <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Reset this part demand back to planned?')">
                                                             <i class="bi bi-arrow-counterclockwise"></i> Undo
                                                         </button>
                                                     </form>
                                                     {% elif part_demand.status != 'Issued' %}
-                                                    <form method="POST" action="{{ url_for('maintenance_event.issue_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                                    <form method="POST" action="{{ url_for('maintenance.issue_part_demand', part_demand_id=part_demand.id) }}" class="d-inline">
                                                         <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Issue this part?')">
                                                             <i class="bi bi-check"></i> Issue
                                                         </button>
@@ -575,13 +575,13 @@
                                 </div>
                                 <div class="btn-group btn-group-sm ms-2">
                                     {% if part_demand.status in ['Cancelled by Technician', 'Cancelled by Supply'] %}
-                                    <form method="POST" action="{{ url_for('maintenance_event.undo_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                    <form method="POST" action="{{ url_for('maintenance.undo_part_demand', part_demand_id=part_demand.id) }}" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Reset this part demand back to planned?')" title="Undo Cancellation">
                                             <i class="bi bi-arrow-counterclockwise"></i>
                                         </button>
                                     </form>
                                     {% elif part_demand.status != 'Issued' %}
-                                    <form method="POST" action="{{ url_for('maintenance_event.issue_part_demand', event_id=event.id, part_demand_id=part_demand.id) }}" class="d-inline">
+                                    <form method="POST" action="{{ url_for('maintenance.issue_part_demand', part_demand_id=part_demand.id) }}" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Issue this part?')" title="Issue Part">
                                             <i class="bi bi-check"></i>
                                         </button>
@@ -744,7 +744,7 @@
                     
                     <div class="mb-3" id="billableHoursSection">
                         <label for="statusBillableHours" class="form-label">Billable Hours</label>
-                        <input type="number" step="0.1" min="0" class="form-control" id="statusBillableHours" name="billable_hours">
+                        <input type="number" step="any" min="0" class="form-control" id="statusBillableHours" name="billable_hours">
                     </div>
                     
                     <div class="mb-3" id="completionNotesSection">
@@ -893,7 +893,7 @@
                     
                     <div class="mb-3">
                         <label for="editBillableHours" class="form-label">Billable Hours</label>
-                        <input type="number" step="0.1" min="0" class="form-control" id="editBillableHours" name="billable_hours">
+                        <input type="number" step="any" min="0" class="form-control" id="editBillableHours" name="billable_hours">
                     </div>
                     
                     <div class="mb-3">
@@ -950,7 +950,7 @@
                     
                     <div class="mb-3">
                         <label for="actualBillableHours" class="form-label">Actual Billable Hours <span class="text-danger">*</span></label>
-                        <input type="number" step="0.1" min="0.2" class="form-control" id="actualBillableHours" name="actual_billable_hours" 
+                        <input type="number" step="any" min="0.2" class="form-control" id="actualBillableHours" name="actual_billable_hours" 
                                value="{% if maintenance_context.actual_billable_hours %}{{ maintenance_context.actual_billable_hours }}{% else %}{{ maintenance_context.calculated_billable_hours }}{% endif %}" required>
                         <small class="text-muted">Sum of action billable hours: 
                             {{ "%.2f"|format(maintenance_context.calculated_billable_hours) }}h
@@ -1016,7 +1016,7 @@
                     
                     <div class="mb-3">
                         <label for="delayBillableHours" class="form-label">Billable Hours</label>
-                        <input type="number" step="0.1" min="0" class="form-control" id="delayBillableHours" name="delay_billable_hours">
+                        <input type="number" step="any" min="0" class="form-control" id="delayBillableHours" name="delay_billable_hours">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1053,7 +1053,7 @@
                     
                     <div class="mb-3">
                         <label for="quantityRequired" class="form-label">Quantity Required <span class="text-danger">*</span></label>
-                        <input type="number" step="0.1" min="0.1" class="form-control" id="quantityRequired" name="quantity_required" required>
+                        <input type="number" step="any" min="0.1" class="form-control" id="quantityRequired" name="quantity_required" required>
                     </div>
                     
                     <div class="mb-3">
@@ -1116,7 +1116,7 @@ document.getElementById('actionStatusModal').addEventListener('show.bs.modal', f
     statusSelect.value = suggestedStatus; // Set suggested status if provided
     
     const form = modal.querySelector('#actionStatusForm');
-    form.action = `/maintenance/maintenance-event/{{ event.id }}/action/${actionId}/update-status`;
+    form.action = `/maintenance/action/${actionId}/update-status`;
     
     const commentSection = modal.querySelector('#commentSection');
     const commentRequired = modal.querySelector('#commentRequired');
@@ -1316,7 +1316,7 @@ document.getElementById('editActionModal').addEventListener('show.bs.modal', fun
     
     // Set form action
     const form = modal.querySelector('#editActionForm');
-    form.action = `/maintenance/maintenance-event/{{ event.id }}/action/${actionId}/update`;
+    form.action = `/maintenance/action/${actionId}/update`;
 });
 
 // Add Part Demand Modal Handler
@@ -1330,7 +1330,7 @@ document.getElementById('addPartDemandModal').addEventListener('show.bs.modal', 
     modal.querySelector('#partDemandActionName').textContent = actionName;
     
     const form = modal.querySelector('#addPartDemandForm');
-    form.action = `/maintenance/maintenance-event/{{ event.id }}/action/${actionId}/part-demand/create`;
+    form.action = `/maintenance/action/${actionId}/part-demand/create`;
 });
 
 // Cancel Part Demand Modal Handler
@@ -1346,7 +1346,7 @@ document.getElementById('cancelPartDemandModal').addEventListener('show.bs.modal
     modal.querySelector('#cancelQuantity').textContent = quantity;
     
     const form = modal.querySelector('#cancelPartDemandForm');
-    form.action = `/maintenance/maintenance-event/{{ event.id }}/part-demand/${partDemandId}/cancel`;
+    form.action = `/maintenance/part-demand/${partDemandId}/cancel`;
 });
 
 // Initialize Bootstrap tooltips

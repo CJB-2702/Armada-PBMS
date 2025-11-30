@@ -638,7 +638,7 @@
     function setupEndDelayModal(delayId, delayStartDate) {
         // Set form action URL
         const form = document.getElementById('endDelayForm');
-        form.action = "{{ url_for('maintenance_event.end_delay', event_id=event.id, delay_id=0) }}".replace('/0/', '/' + delayId + '/');
+        form.action = "{{ url_for('maintenance.end_delay', delay_id=0) }}".replace('/0/', '/' + delayId + '/');
         
         // Set delay start date if available
         const startDateInput = document.getElementById('delay_start_date');

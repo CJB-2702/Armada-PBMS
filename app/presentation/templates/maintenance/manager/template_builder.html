@@ -138,7 +138,7 @@
                 </div>
                 <div class="col-md-3 mb-3">
                     <label for="estimated_duration" class="form-label">Estimated Duration (hours)</label>
-                    <input type="number" step="0.1" class="form-control" id="estimated_duration" 
+                    <input type="number" step="any" class="form-control" id="estimated_duration" 
                            name="estimated_duration" value="{{ builder.metadata.estimated_duration or '' }}">
                 </div>
             </div>
@@ -192,7 +192,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="estimated_duration" class="form-label">Estimated Duration (hours)</label>
-                            <input type="number" step="0.1" class="form-control" id="estimated_duration" name="estimated_duration">
+                            <input type="number" step="any" class="form-control" id="estimated_duration" name="estimated_duration">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -380,7 +380,7 @@
                                     <div class="col-md-6">
                                         <form method="POST" action="{{ url_for('template_builder.add_part_demand', builder_id=builder.builder_id, action_index=action.index) }}" class="d-flex gap-2">
                                             <input type="number" class="form-control form-control-sm" name="part_id" placeholder="Part ID" required>
-                                            <input type="number" step="0.1" class="form-control form-control-sm" name="quantity_required" placeholder="Qty" value="1" style="width: 80px;">
+                                            <input type="number" step="any" class="form-control form-control-sm" name="quantity_required" placeholder="Qty" value="1" style="width: 80px;">
                                             <button type="submit" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-plus"></i> Part
                                             </button>

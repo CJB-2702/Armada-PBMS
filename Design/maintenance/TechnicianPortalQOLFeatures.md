@@ -8,7 +8,8 @@ This document outlines quality of life (QoL) features for the technician portal,
 
 ### Single Event Quick Access Features
 
-These features provide direct links to individual events, not list views.
+These features provide direct links to individual events, not list views
+they also show information about the action list and event activity module with the comments collapsed
 
 ---
 

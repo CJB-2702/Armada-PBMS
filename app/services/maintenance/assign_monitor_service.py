@@ -364,21 +364,13 @@ class AssignMonitorService:
         Raises:
             ValueError: If event not found, technician not found, or invalid parameters
         """
-        # Get maintenance action set by event_id
-        maintenance_action_set = MaintenanceActionSet.query.filter_by(
-            event_id=event_id
-        ).first()
-        
-        if not maintenance_action_set:
-            raise ValueError(f"Maintenance event for event_id {event_id} not found")
-        
         # Validate technician
         technician = User.query.get(assigned_user_id)
         if not technician or not technician.is_active:
             raise ValueError(f"Technician {assigned_user_id} not found or not active")
         
         # Get maintenance context
-        maintenance_context = MaintenanceContext(maintenance_action_set)
+        maintenance_context = MaintenanceContext.from_event(event_id)
         
         # Assign event using MaintenanceContext method
         maintenance_context.assign_event(
@@ -563,14 +555,12 @@ class AssignMonitorService:
         Returns:
             Dictionary with comprehensive event information or None if not found
         """
-        maintenance_action_set = MaintenanceActionSet.query.filter_by(
-            event_id=event_id
-        ).first()
-        
-        if not maintenance_action_set:
+        try:
+            maintenance_context = MaintenanceContext.from_event(event_id)
+        except ValueError:
             return None
         
-        maintenance_context = MaintenanceContext(maintenance_action_set)
+        maintenance_action_set = maintenance_context.maintenance_action_set
         
         return {
             'id': maintenance_action_set.id,

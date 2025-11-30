@@ -124,7 +124,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="delta_hours" class="form-label">Delta Hours (Time-based)</label>
-                                <input type="number" step="0.1" class="form-control" id="delta_hours" name="delta_hours"
+                                <input type="number" step="any" class="form-control" id="delta_hours" name="delta_hours"
                                        value="{{ request.form.get('delta_hours', '') }}" placeholder="0.0">
                                 <div class="form-text">Hours between maintenance (for time-based plans)</div>
                             </div>
@@ -135,7 +135,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="delta_m1" class="form-label">Delta M1 (Mileage-based)</label>
-                                <input type="number" step="0.1" class="form-control" id="delta_m1" name="delta_m1"
+                                <input type="number" step="any" class="form-control" id="delta_m1" name="delta_m1"
                                        value="{{ request.form.get('delta_m1', '') }}" placeholder="0.0">
                                 <div class="form-text">Meter 1 threshold</div>
                             </div>
@@ -143,7 +143,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="delta_m2" class="form-label">Delta M2 (Mileage-based)</label>
-                                <input type="number" step="0.1" class="form-control" id="delta_m2" name="delta_m2"
+                                <input type="number" step="any" class="form-control" id="delta_m2" name="delta_m2"
                                        value="{{ request.form.get('delta_m2', '') }}" placeholder="0.0">
                                 <div class="form-text">Meter 2 threshold</div>
                             </div>
@@ -151,7 +151,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="delta_m3" class="form-label">Delta M3 (Mileage-based)</label>
-                                <input type="number" step="0.1" class="form-control" id="delta_m3" name="delta_m3"
+                                <input type="number" step="any" class="form-control" id="delta_m3" name="delta_m3"
                                        value="{{ request.form.get('delta_m3', '') }}" placeholder="0.0">
                                 <div class="form-text">Meter 3 threshold</div>
                             </div>
@@ -159,7 +159,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="delta_m4" class="form-label">Delta M4 (Mileage-based)</label>
-                                <input type="number" step="0.1" class="form-control" id="delta_m4" name="delta_m4"
+                                <input type="number" step="any" class="form-control" id="delta_m4" name="delta_m4"
                                        value="{{ request.form.get('delta_m4', '') }}" placeholder="0.0">
                                 <div class="form-text">Meter 4 threshold</div>
                             </div>

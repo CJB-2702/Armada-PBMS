@@ -58,12 +58,23 @@ def init_app(app):
     # Register maintenance blueprints - optional during rebuild
     try:
         from .maintenance.main import maintenance_bp
+        
+        # IMPORTANT: Import core route modules BEFORE registering the blueprint
+        # These modules add routes to maintenance_bp, so they must be imported first
+        try:
+            from .maintenance.core import action_managment, part_demand, delays, tool
+            # These modules import maintenance_bp and add routes to it
+            logger.info("Loaded maintenance core route modules (action_managment, part_demand, delays, tool)")
+        except ImportError as e:
+            logger.debug(f"Maintenance core route modules not available: {e}")
+        
+        # Now register the blueprint after all routes have been added to it
         app.register_blueprint(maintenance_bp)
         logger.info("Registered maintenance main blueprint")
         
-        # Register maintenance event blueprint
+        # Register maintenance event blueprint (now in core subdirectory)
         try:
-            from .maintenance.maintenance_event import maintenance_event_bp
+            from .maintenance.core.maintenance_event import maintenance_event_bp
             app.register_blueprint(maintenance_event_bp)
             logger.info("Registered maintenance event blueprint")
         except ImportError as e:
@@ -101,7 +112,7 @@ def init_app(app):
         
         # Register technician portal
         try:
-            from .maintenance.technician import technician_bp
+            from .maintenance.user_views.technician import technician_bp
             app.register_blueprint(technician_bp)
             portal_blueprints_registered += 1
             logger.debug("Registered technician portal blueprint")
@@ -110,9 +121,10 @@ def init_app(app):
         
         # Register manager portal
         try:
-            from .maintenance.manager import manager_bp, template_builder_bp
+            from .maintenance.user_views.manager import manager_bp, template_builder_bp
             app.register_blueprint(manager_bp)
-            app.register_blueprint(template_builder_bp)
+            # Template builder blueprint: register with full path since blueprint prefix is empty
+            app.register_blueprint(template_builder_bp, url_prefix='/maintenance/manager/template-builder')
             portal_blueprints_registered += 1
             logger.debug("Registered manager portal blueprint and template builder blueprint")
         except ImportError as e:
@@ -120,7 +132,7 @@ def init_app(app):
         
         # Register fleet portal
         try:
-            from .maintenance.fleet import fleet_bp
+            from .maintenance.user_views.fleet import fleet_bp
             app.register_blueprint(fleet_bp)
             portal_blueprints_registered += 1
             logger.debug("Registered fleet portal blueprint")

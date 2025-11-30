@@ -117,7 +117,7 @@ class MaintenanceFactory:
             # Add assignment comment if notes provided or if assigned
             if notes or assigned_user_id:
                 from app.buisness.maintenance.base.maintenance_context import MaintenanceContext
-                maintenance_context = MaintenanceContext(maintenance_action_set)
+                maintenance_context = MaintenanceContext.from_maintenance_action_set(maintenance_action_set)
                 
                 # Build comment text
                 comment_parts = []

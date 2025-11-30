@@ -23,22 +23,73 @@ class MaintenanceContext:
     Provides business logic, management methods, and workflow management.
     """
     
-    def __init__(self, maintenance_action_set: Union[MaintenanceActionSet, MaintenanceActionSetStruct, int]):
+    def __init__(self, maintenance_action_set_struct:  MaintenanceActionSetStruct):
         """
-        Initialize MaintenanceContext with MaintenanceActionSet, MaintenanceActionSetStruct, or ID.
+        Initialize MaintenanceContext with MaintenanceActionSet, MaintenanceActionSetStruct, or Event.
         
         Args:
-            maintenance_action_set: MaintenanceActionSet instance, MaintenanceActionSetStruct, or ID
+            maintenance_action_set_struct: MaintenanceActionSetStruct instance
         """
-        if isinstance(maintenance_action_set, MaintenanceActionSetStruct):
-            self._struct = maintenance_action_set
-        elif isinstance(maintenance_action_set, MaintenanceActionSet):
-            self._struct = MaintenanceActionSetStruct(maintenance_action_set)
-        else:
-            self._struct = MaintenanceActionSetStruct(maintenance_action_set)
-        
-        self._maintenance_action_set_id = self._struct.maintenance_action_set_id
+
+        self._struct = maintenance_action_set_struct
         self._event_context = None
+       
+        
+
+    @classmethod
+    def from_event(cls, event: Union[Event, int]) -> 'MaintenanceContext':
+        """
+        Create MaintenanceContext from Event instance or event_id.
+        
+        Args:
+            event: Event instance or event_id (int)
+            
+        Returns:
+            MaintenanceContext instance
+            
+        Raises:
+            ValueError: If event not found or no maintenance action set exists for event
+        """
+        if isinstance(event, int):
+            event_id = event
+        else:
+            event_id = event.id
+        
+        return cls(MaintenanceActionSetStruct.from_event_id(event_id))
+    
+    @classmethod
+    def from_maintenance_action_set(cls, maintenance_action_set: Union[MaintenanceActionSet, int]) -> 'MaintenanceContext':
+        """
+        Create MaintenanceContext from MaintenanceActionSet instance or ID.
+        
+        Args:
+            maintenance_action_set: MaintenanceActionSet instance or ID (int)
+            
+        Returns:
+            MaintenanceContext instance
+            
+        Raises:
+            ValueError: If maintenance action set not found
+        """
+        if isinstance(maintenance_action_set, int):
+            struct = MaintenanceActionSetStruct.from_maintenance_action_set_id(maintenance_action_set)
+        else:
+            struct = MaintenanceActionSetStruct(maintenance_action_set)
+        
+        return cls(struct)
+    
+    @classmethod
+    def from_maintenance_struct(cls, struct: MaintenanceActionSetStruct) -> 'MaintenanceContext':
+        """
+        Create MaintenanceContext from MaintenanceActionSetStruct instance.
+        
+        Args:
+            struct: MaintenanceActionSetStruct instance
+            
+        Returns:
+            MaintenanceContext instance
+        """
+        return cls(struct)
     
     @property
     def struct(self) -> MaintenanceActionSetStruct:
@@ -53,7 +104,12 @@ class MaintenanceContext:
     @property
     def maintenance_action_set_id(self) -> int:
         """Get the maintenance action set ID"""
-        return self._maintenance_action_set_id
+        return self.struct.maintenance_action_set_id
+    
+    @property
+    def event_id(self) -> int:
+        """Get the event ID"""
+        return self.struct.event_id
     
     @property
     def event_context(self) -> EventContext:
@@ -180,7 +236,7 @@ class MaintenanceContext:
             Created MaintenanceDelay instance
         """
         delay = MaintenanceDelay(
-            maintenance_action_set_id=self._maintenance_action_set_id,
+            maintenance_action_set_id=self.maintenance_action_set_id,
             delay_type=delay_type,
             delay_reason=delay_reason,
             delay_start_date=delay_start_date or datetime.utcnow(),
@@ -656,7 +712,7 @@ class MaintenanceContext:
             Dictionary representation of maintenance action set
         """
         return {
-            'id': self._maintenance_action_set_id,
+            'id': self.maintenance_action_set_id,
             'task_name': self._struct.task_name,
             'description': self._struct.description,
             'status': self._struct.status,
@@ -842,7 +898,7 @@ class MaintenanceContext:
         if not delay:
             raise ValueError(f"Delay {delay_id} not found")
         
-        if delay.maintenance_action_set_id != self._maintenance_action_set_id:
+        if delay.maintenance_action_set_id != self.maintenance_action_set_id:
             raise ValueError(f"Delay {delay_id} does not belong to this maintenance event")
         
         # Update fields
@@ -878,6 +934,18 @@ class MaintenanceContext:
         self._event_context = None
     
 
+    def all_actions_in_terminal_states(self) -> bool:
+        """
+        Check if all actions are in terminal states (Complete, Failed, or Skipped).
+        
+        Returns:
+            True if all actions are in terminal states, False otherwise
+        """
+        terminal_states = {'Complete', 'Failed', 'Skipped'}
+        if self.total_actions == 0:
+            return True  # No actions means all are "terminal" (vacuous truth)
+        return all(action.status in terminal_states for action in self._struct.actions)
+
 
 
     # Statistics ================================
@@ -908,17 +976,7 @@ class MaintenanceContext:
         """Get active delays (those without end date)"""
         return [d for d in self._struct.delays if d.delay_end_date is None]
     
-    def all_actions_in_terminal_states(self) -> bool:
-        """
-        Check if all actions are in terminal states (Complete, Failed, or Skipped).
-        
-        Returns:
-            True if all actions are in terminal states, False otherwise
-        """
-        terminal_states = {'Complete', 'Failed', 'Skipped'}
-        if self.total_actions == 0:
-            return True  # No actions means all are "terminal" (vacuous truth)
-        return all(action.status in terminal_states for action in self._struct.actions)
+
     
     # Billable Hours Management
     @property
@@ -945,5 +1003,5 @@ class MaintenanceContext:
 
 
     def __repr__(self):
-        return f'<MaintenanceContext id={self._maintenance_action_set_id} task_name="{self._struct.task_name}" status={self._struct.status}>'
+        return f'<MaintenanceContext id={self.maintenance_action_set_id} task_name="{self._struct.task_name}" status={self._struct.status}>'
 

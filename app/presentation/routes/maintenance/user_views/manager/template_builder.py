@@ -15,8 +15,8 @@ from app.services.maintenance.template_builder_service import TemplateBuilderSer
 
 logger = get_logger("asset_management.routes.maintenance.manager.template_builder")
 
-# Create template builder blueprint (will be registered under manager_bp)
-template_builder_bp = Blueprint('template_builder', __name__, url_prefix='/template-builder')
+# Create template builder blueprint (will be registered under /maintenance/manager/template-builder)
+template_builder_bp = Blueprint('template_builder', __name__, url_prefix='')
 
 
 @template_builder_bp.route('/new')

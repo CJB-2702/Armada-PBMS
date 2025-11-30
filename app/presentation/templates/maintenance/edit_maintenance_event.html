@@ -106,7 +106,7 @@
                             <h5 class="mb-0"><i class="bi bi-info-circle"></i> Maintenance Event Details</h5>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="{{ url_for('maintenance_event.edit_maintenance_event', event_id=event.id) }}">
+                            <form method="POST" action="{{ url_for('maintenance_event.edit_template_action_set', event_id=event.id) }}">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="task_name" class="form-label">Task Name <span class="text-danger">*</span></label>
@@ -339,15 +339,18 @@
             </div>
 
             <!-- Delays Card -->
-            {% if delays %}
             <div class="card mb-4 {% if active_delays %}border-warning{% else %}border-secondary{% endif %}">
                 <div class="card-header {% if active_delays %}bg-warning bg-opacity-10{% else %}bg-secondary bg-opacity-10{% endif %}">
                     <h5 class="mb-0">
                         <i class="bi bi-exclamation-triangle {% if active_delays %}text-warning{% else %}text-secondary{% endif %}"></i> 
-                        Delays ({{ delays|length }})
+                        Delays
+                        {% if delays %}
+                        <span class="badge {% if active_delays %}bg-warning{% else %}bg-secondary{% endif %} ms-2">{{ delays|length }}</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
+                    {% if delays %}
                     {% for delay in delays %}
                     <div class="{% if not loop.last %}mb-3 pb-3 border-bottom{% else %}mb-3{% endif %}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -439,19 +442,24 @@
                         </div>
                     </div>
                     {% endfor %}
+                    {% else %}
+                    <p class="text-muted mb-0 small">No delays recorded.</p>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
 
             <!-- Part Demands Summary Card -->
-            {% if maintenance.part_demands %}
             <div class="card mb-4 border-primary">
                 <div class="card-header bg-primary bg-opacity-10">
                     <h5 class="mb-0">
                         <i class="bi bi-box-seam text-primary"></i> Part Demands Summary
+                        {% if maintenance.part_demands %}
+                        <span class="badge bg-primary ms-2">{{ maintenance.part_demands|length }}</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
+                    {% if maintenance.part_demands %}
                     <div class="list-group list-group-flush">
                         {% for part_demand in maintenance.part_demands[:10] %}
                         <div class="list-group-item px-0 py-2">
@@ -483,19 +491,24 @@
                         </div>
                         {% endif %}
                     </div>
+                    {% else %}
+                    <p class="text-muted mb-0 small">No part demands yet.</p>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
 
             <!-- Tools Summary Card -->
-            {% if maintenance.action_tools %}
             <div class="card mb-4 border-info">
                 <div class="card-header bg-info bg-opacity-10">
                     <h5 class="mb-0">
                         <i class="bi bi-tools text-info"></i> Tools Summary
+                        {% if maintenance.action_tools %}
+                        <span class="badge bg-info ms-2">{{ maintenance.action_tools|length }}</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
+                    {% if maintenance.action_tools %}
                     <div class="list-group list-group-flush">
                         {% for action_tool in maintenance.action_tools[:10] %}
                         <div class="list-group-item px-0 py-2">
@@ -529,9 +542,11 @@
                         </div>
                         {% endif %}
                     </div>
+                    {% else %}
+                    <p class="text-muted mb-0 small">No tools required yet.</p>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 
@@ -988,105 +1003,26 @@
 
     <!-- Action Creator Portal -->
     <div class="row">
-        <div class="card mb-4 border-info">
-            <div class="card-header bg-info bg-opacity-10">
-                <h5 class="mb-0">
-                    <i class="bi bi-plus-circle text-info"></i> Action Creator Portal
-                </h5>
-            </div>
-            <div class="card-body">
-                <!-- Creation Method Tabs -->
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="creator-blank-tab" data-bs-toggle="tab" data-bs-target="#creator-blank-pane" type="button" role="tab">
-                            <i class="bi bi-file-plus"></i> Blank Action
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="creator-current-tab" data-bs-toggle="tab" data-bs-target="#creator-current-pane" type="button" role="tab">
-                            <i class="bi bi-list-check"></i> From Current Action Set
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- Tab Content -->
-                <div class="tab-content">
-                    <!-- Blank Action Tab -->
-                    <div class="tab-pane fade show active" id="creator-blank-pane" role="tabpanel">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-file-plus"></i> Create Blank Action
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted">Create a new action from scratch. All fields will be empty and ready for manual entry.</p>
-                                <div class="alert alert-info">
-                                    <i class="bi bi-info-circle"></i> <strong>Note:</strong> You'll be able to fill in all action details after creation.
-                                </div>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal" onclick="setCreateMode('blank')">
-                                    <i class="bi bi-plus-circle"></i> Create Blank Action
-                                </button>
-                            </div>
+        <div class="col-12"
+             id="action-creator-portal-container"
+             hx-get="{{ url_for('action_creator_portal.action_creator_portal', maintenance_action_set_id=maintenance.id) }}"
+             hx-trigger="load"
+             hx-target="this"
+             hx-select="#action-creator-portal-wrapper"
+             hx-swap="outerHTML">
+            <!-- Loading placeholder -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info bg-opacity-10">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle text-info"></i> Action Creator Portal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    </div>
-
-                    <!-- Current Action Set Tab -->
-                    <div class="tab-pane fade" id="creator-current-pane" role="tabpanel">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-list-check"></i> Select from Current Action Set
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                {% if actions %}
-                                <div class="list-group" style="max-height: 400px; overflow-y: auto;">
-                                    {% for action_struct in actions %}
-                                    <div class="list-group-item action-item">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <span class="badge bg-secondary me-2">#{{ action_struct.sequence_order }}</span>
-                                                    <h6 class="mb-0">{{ action_struct.action_name }}</h6>
-                                                    <span class="badge bg-{% if action_struct.status == 'Complete' %}success{% elif action_struct.status == 'In Progress' %}primary{% else %}secondary{% endif %} ms-2">
-                                                        {{ action_struct.status }}
-                                                    </span>
-                                                </div>
-                                                {% if action_struct.description %}
-                                                <small class="text-muted">{{ action_struct.description[:100] }}{% if action_struct.description|length > 100 %}...{% endif %}</small>
-                                                {% endif %}
-                                                <div class="mt-1">
-                                                    {% if action_struct.action.estimated_duration %}
-                                                    <span class="badge bg-info">Est: {{ action_struct.action.estimated_duration }}h</span>
-                                                    {% endif %}
-                                                    {% if action_struct.action.safety_notes %}
-                                                    <span class="badge bg-warning ms-1">Safety Notes</span>
-                                                    {% endif %}
-                                                    {% if action_struct.part_demands %}
-                                                    <span class="badge bg-success ms-1">{{ action_struct.part_demands|length }} Part{{ 's' if action_struct.part_demands|length != 1 else '' }}</span>
-                                                    {% endif %}
-                                                    {% if action_struct.action_tools %}
-                                                    <span class="badge bg-primary ms-1">{{ action_struct.action_tools|length }} Tool{{ 's' if action_struct.action_tools|length != 1 else '' }}</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <button type="button" class="btn btn-sm btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#editBeforeInsertModal" 
-                                                    onclick="setCreateMode('current', {{ action_struct.action_id }})">
-                                                <i class="bi bi-check-circle"></i> Select
-                                            </button>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="alert alert-info mt-3">
-                                    <i class="bi bi-info-circle"></i> <strong>Note:</strong> Copying from current actions will duplicate the action including part demands and tools. Status will reset to "Not Started".
-                                </div>
-                                {% else %}
-                                <p class="text-muted">No actions available to duplicate.</p>
-                                {% endif %}
-                            </div>
-                        </div>
+                        <p class="text-muted mt-2">Loading Action Creator Portal...</p>
                     </div>
                 </div>
             </div>
@@ -1104,7 +1040,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="actionInsertForm" method="POST" action="{{ url_for('maintenance_event.create_action', event_id=event.id) }}">
+                    <form id="actionInsertForm" method="POST" action="">
                         <!-- Hidden fields for source -->
                         <input type="hidden" name="event_id" value="{{ event.id }}">
                         <input type="hidden" id="template_action_item_id" name="template_action_item_id" value="">
@@ -1341,6 +1277,25 @@
     // Submit action insert form
     function submitActionInsertForm() {
         const form = document.getElementById('actionInsertForm');
+        const eventId = {{ event.id }};
+        
+        // Set the correct endpoint based on create mode
+        let endpoint = '';
+        if (createMode === 'blank') {
+            endpoint = `/maintenance/maintenance-event/${eventId}/create-blank-action`;
+        } else if (createMode === 'current' && sourceActionId) {
+            endpoint = `/maintenance/maintenance-event/${eventId}/create-from-current-action`;
+        } else if (createMode === 'template' && document.getElementById('template_action_item_id').value) {
+            endpoint = `/maintenance/maintenance-event/${eventId}/create-from-template-action`;
+        } else if (createMode === 'proto' && document.getElementById('proto_action_item_id').value) {
+            endpoint = `/maintenance/maintenance-event/${eventId}/create-from-proto-action`;
+        } else {
+            // Default to blank action
+            endpoint = `/maintenance/maintenance-event/${eventId}/create-blank-action`;
+        }
+        
+        form.action = endpoint;
+        
         if (form.checkValidity()) {
             form.submit();
         } else {
@@ -1357,5 +1312,166 @@
             }
         }
     }
+
+    // Action Creator Portal JavaScript functions
+    // Template Action Set selection
+    function selectTemplateActionSet(templateSetId, maintenanceActionSetId) {
+        // Remove selected class from all items
+        document.querySelectorAll('[data-template-set-id]').forEach(item => {
+            item.classList.remove('selected');
+            item.style.backgroundColor = '';
+        });
+        
+        // Add selected class
+        const selectedItem = document.querySelector(`[data-template-set-id="${templateSetId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+            selectedItem.style.backgroundColor = '#cfe2ff';
+        }
+        
+        // Load template action items via HTMX
+        const container = document.getElementById('template-action-items-container');
+        const list = document.getElementById('template-action-items-list');
+        
+        if (container && list) {
+            const url = `/maintenance/action-creator-portal/list-template-action-items/${templateSetId}?maintenance_action_set_id=${maintenanceActionSetId}`;
+            htmx.ajax('GET', url, {
+                target: list,
+                swap: 'innerHTML'
+            }).then(() => {
+                container.style.display = 'block';
+            });
+        }
+    }
+
+    // Action selection handlers - open pre-rendered modals
+    function selectTemplateAction(templateActionId, maintenanceActionSetId) {
+        const modalElement = document.getElementById(`templateActionModal${templateActionId}`);
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
+
+    function selectProtoAction(protoActionId, maintenanceActionSetId) {
+        const modalElement = document.getElementById(`protoActionModal${protoActionId}`);
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
+
+    function selectCurrentAction(sourceActionId, maintenanceActionSetId) {
+        const modalElement = document.getElementById(`currentActionModal${sourceActionId}`);
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
+
+    function selectBlankAction() {
+        const modalElement = document.getElementById('blankActionModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
+
+    // JavaScript filtering for current actions
+    function filterCurrentActions(searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const items = document.querySelectorAll('.current-action-item');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const actionName = item.getAttribute('data-action-name') || '';
+            const actionDescription = item.getAttribute('data-action-description') || '';
+            
+            if (!searchTerm || actionName.includes(searchLower) || actionDescription.includes(searchLower)) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Show/hide "no results" message if needed
+        const listContainer = document.getElementById('current-actions-list');
+        if (listContainer) {
+            let noResultsMsg = listContainer.querySelector('.no-results-message');
+            if (visibleCount === 0 && searchTerm) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.className = 'list-group-item text-muted no-results-message';
+                    noResultsMsg.textContent = 'No actions match your search.';
+                    listContainer.appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+    }
+
+    // Insert position update helpers
+    function updateInsertPosition(actionId, value) {
+        const insertPositionEl = document.getElementById(`insertPosition${actionId}`);
+        const afterSelect = document.getElementById(`afterActionSelect${actionId}`);
+        if (insertPositionEl) {
+            insertPositionEl.value = value;
+        }
+        if (afterSelect) {
+            if (value === 'after') {
+                afterSelect.style.display = 'block';
+            } else {
+                afterSelect.style.display = 'none';
+            }
+        }
+    }
+
+    function updateInsertPositionProto(actionId, value) {
+        const insertPositionEl = document.getElementById(`insertPositionProto${actionId}`);
+        const afterSelect = document.getElementById(`afterActionSelectProto${actionId}`);
+        if (insertPositionEl) {
+            insertPositionEl.value = value;
+        }
+        if (afterSelect) {
+            if (value === 'after') {
+                afterSelect.style.display = 'block';
+            } else {
+                afterSelect.style.display = 'none';
+            }
+        }
+    }
+
+    function updateInsertPositionCurrent(actionId, value) {
+        const insertPositionEl = document.getElementById(`insertPositionCurrent${actionId}`);
+        const afterSelect = document.getElementById(`afterActionSelectCurrent${actionId}`);
+        if (insertPositionEl) {
+            insertPositionEl.value = value;
+        }
+        if (afterSelect) {
+            if (value === 'after') {
+                afterSelect.style.display = 'block';
+            } else {
+                afterSelect.style.display = 'none';
+            }
+        }
+    }
+
+    function updateInsertPositionBlank(value) {
+        const insertPositionEl = document.getElementById('insertPositionBlank');
+        const afterSelect = document.getElementById('afterActionSelectBlank');
+        if (insertPositionEl) {
+            insertPositionEl.value = value;
+        }
+        if (afterSelect) {
+            if (value === 'after') {
+                afterSelect.style.display = 'block';
+            } else {
+                afterSelect.style.display = 'none';
+            }
+        }
+    }
+
 </script>
 {% endblock %}

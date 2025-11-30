@@ -358,7 +358,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('maintenance_event.edit_maintenance_event', event_id=event.id) }}" class="btn btn-outline-warning">
+                        <a href="{{ url_for('maintenance_event.render_edit_page', event_id=event.id) }}" class="btn btn-outline-warning">
                             <i class="bi bi-pencil"></i> Edit Event
                         </a>
                         {% if maintenance.status == 'Delayed' %}

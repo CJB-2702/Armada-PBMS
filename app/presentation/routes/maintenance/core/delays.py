@@ -145,11 +145,11 @@ def update_delay(delay_id):
         # ===== LIGHT VALIDATION SECTION =====
         if delay_type and delay_type not in ['Work in Delay', 'Cancellation Requested']:
             flash('Invalid delay type', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         if delay_reason and not delay_reason:
             flash('Delay reason cannot be empty', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # ===== DATA TYPE CONVERSION SECTION =====
         delay_start_date = None
@@ -158,7 +158,7 @@ def update_delay(delay_id):
                 delay_start_date = datetime.strptime(delay_start_date_str, '%Y-%m-%dT%H:%M')
             except ValueError:
                 flash('Invalid delay start date format', 'error')
-                return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         delay_end_date = None
         if delay_end_date_str:
@@ -166,7 +166,7 @@ def update_delay(delay_id):
                 delay_end_date = datetime.strptime(delay_end_date_str, '%Y-%m-%dT%H:%M')
             except ValueError:
                 flash('Invalid delay end date format', 'error')
-                return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         delay_billable_hours = None
         if delay_billable_hours_str:
@@ -174,7 +174,7 @@ def update_delay(delay_id):
                 delay_billable_hours = float(delay_billable_hours_str)
                 if delay_billable_hours < 0:
                     flash('Billable hours must be non-negative', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
             except ValueError:
                 pass  # Ignore invalid values
         
@@ -209,7 +209,7 @@ def update_delay(delay_id):
             maintenance_context.update_delay(delay_id=delay_id, **update_kwargs)
         except ValueError as e:
             flash(str(e), 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # Generate automated comment
         if struct.event_id:
@@ -225,7 +225,7 @@ def update_delay(delay_id):
             db.session.commit()
         
         flash('Delay updated successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
         logger.error(f"Error updating delay: {e}")
@@ -239,7 +239,7 @@ def update_delay(delay_id):
                 maintenance_context = MaintenanceContext.from_maintenance_action_set(delay.maintenance_action_set_id)
                 struct: MaintenanceActionSetStruct = maintenance_context.struct
                 if struct.event_id:
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=struct.event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=struct.event_id))
         except:
             pass
         abort(404)

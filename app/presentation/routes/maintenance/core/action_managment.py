@@ -357,7 +357,7 @@ def edit_action(action_id):
         
         # Redirect based on source
         if redirect_target == 'edit':
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         else:
             return redirect(url_for('maintenance_event.work_maintenance_event', event_id=event_id))
         
@@ -373,7 +373,7 @@ def edit_action(action_id):
                 event_id = struct.event_id if struct else None
                 if event_id:
                     if redirect_target == 'edit':
-                        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
                     else:
                         return redirect(url_for('maintenance_event.work_maintenance_event', event_id=event_id))
         except:
@@ -394,7 +394,7 @@ def edit_action(action_id):
                 event_id = struct.event_id if struct else None
                 if event_id:
                     if redirect_target == 'edit':
-                        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
                     else:
                         return redirect(url_for('maintenance_event.work_maintenance_event', event_id=event_id))
         except:
@@ -585,21 +585,21 @@ def create_action_tool(action_id):
         # ===== LIGHT VALIDATION SECTION =====
         if not tool_id_str:
             flash('Tool ID is required', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # ===== DATA TYPE CONVERSION SECTION =====
         try:
             tool_id = int(tool_id_str)
         except ValueError:
             flash('Invalid tool ID', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # Verify tool exists
         
         tool = Tool.query.get(tool_id)
         if not tool:
             flash('Tool not found', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # ===== BUSINESS LOGIC SECTION =====
         # Create action tool
@@ -629,7 +629,7 @@ def create_action_tool(action_id):
             db.session.commit()
         
         flash('Tool requirement created successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
         logger.error(f"Error creating tool requirement: {e}")
@@ -644,7 +644,7 @@ def create_action_tool(action_id):
                 maintenance_context = MaintenanceContext.from_maintenance_action_set(action.maintenance_action_set_id)
                 struct: MaintenanceActionSetStruct = maintenance_context.struct
                 if struct.event_id:
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=struct.event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=struct.event_id))
         except:
             pass
         abort(404)
@@ -693,7 +693,7 @@ def delete_action(action_id):
             db.session.commit()
         
         flash('Action deleted successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
         logger.error(f"Error deleting action: {e}")
@@ -708,7 +708,7 @@ def delete_action(action_id):
                 maintenance_context = MaintenanceContext.from_maintenance_action_set(action.maintenance_action_set_id)
                 struct: MaintenanceActionSetStruct = maintenance_context.struct
                 if struct.event_id:
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=struct.event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=struct.event_id))
         except:
             pass
         abort(404)
@@ -738,7 +738,7 @@ def move_action_up(action_id):
         current_order = action.sequence_order
         if current_order <= 1:
             flash('Action is already at the top', 'warning')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # Move up (decrease sequence_order)
         new_order = current_order - 1
@@ -746,7 +746,7 @@ def move_action_up(action_id):
         action_context.reorder_action(new_order)
         
         flash('Action moved up successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
         logger.error(f"Error moving action up: {e}")
@@ -759,7 +759,7 @@ def move_action_up(action_id):
                 maintenance_context = MaintenanceContext.from_maintenance_action_set(action.maintenance_action_set_id)
                 struct: MaintenanceActionSetStruct = maintenance_context.struct
                 if struct.event_id:
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=struct.event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=struct.event_id))
         except:
             pass
         abort(404)
@@ -791,7 +791,7 @@ def move_action_down(action_id):
         
         if current_order >= max_order:
             flash('Action is already at the bottom', 'warning')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # Move down (increase sequence_order)
         new_order = current_order + 1
@@ -799,7 +799,7 @@ def move_action_down(action_id):
         action_context.reorder_action(new_order)
         
         flash('Action moved down successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
         logger.error(f"Error moving action down: {e}")
@@ -812,7 +812,7 @@ def move_action_down(action_id):
                 maintenance_context = MaintenanceContext.from_maintenance_action_set(action.maintenance_action_set_id)
                 struct: MaintenanceActionSetStruct = maintenance_context.struct
                 if struct.event_id:
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=struct.event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=struct.event_id))
         except:
             pass
         abort(404)

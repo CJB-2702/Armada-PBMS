@@ -166,19 +166,151 @@ def work_maintenance_event(event_id):
 
 
 
-@maintenance_event_bp.route('/<int:event_id>/action/create', methods=['POST'])
+def _create_action_common_logic(event_id, action_name, description, estimated_duration, expected_billable_hours,
+                                safety_notes, notes, insert_position, after_action_id, copy_part_demands, copy_tools):
+    """Common logic for creating actions - handles sequence order calculation and shifting"""
+    # Get maintenance struct
+    maintenance_struct = MaintenanceActionSetStruct.from_event_id(event_id)
+    if not maintenance_struct:
+        flash('Maintenance event not found', 'error')
+        return None, None
+    
+    maintenance_context = MaintenanceContext.from_event(event_id)
+    
+    # Calculate sequence order based on insert position
+    sequence_order = maintenance_context._calculate_sequence_order(
+        insert_position=insert_position,
+        after_action_id=after_action_id
+    )
+    
+    # If inserting at beginning or after, need to shift existing actions
+    if insert_position in ['beginning', 'after']:
+        actions = maintenance_struct.actions
+        if insert_position == 'beginning':
+            # Shift all actions up by 1
+            for action in actions:
+                action.sequence_order += 1
+            sequence_order = 1
+        else:  # after
+            # Shift actions after target down by 1
+            target_sequence = None
+            for action in actions:
+                if action.id == after_action_id:
+                    target_sequence = action.sequence_order
+                    break
+            if target_sequence is not None:
+                for action in actions:
+                    if action.sequence_order > target_sequence:
+                        action.sequence_order += 1
+                sequence_order = target_sequence + 1
+    
+    return maintenance_struct, sequence_order
+
+
+@maintenance_event_bp.route('/<int:event_id>/create-blank-action', methods=['POST'])
 @login_required
-def create_action(event_id):
-    """Create a new action for maintenance event with position insertion"""
+def create_blank_action(event_id):
+    """Create a blank action for maintenance event"""
     try:
-        # Get maintenance struct
-        maintenance_struct = MaintenanceActionSetStruct.from_event_id(event_id)
+        # ===== FORM PARSING SECTION =====
+        action_name = request.form.get('actionName', '').strip()
+        description = request.form.get('actionDescription', '').strip()
+        estimated_duration_str = request.form.get('estimatedDuration', '').strip()
+        expected_billable_hours_str = request.form.get('expectedBillableHours', '').strip()
+        safety_notes = request.form.get('safetyNotes', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        # Insert position
+        insert_position = request.form.get('insertPosition', 'end').strip()
+        after_action_id_str = request.form.get('afterActionId', '').strip()
+        
+        # ===== LIGHT VALIDATION SECTION =====
+        if not action_name:
+            flash('Action name is required', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        if insert_position not in ['end', 'beginning', 'after']:
+            flash('Invalid insert position', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        if insert_position == 'after' and not after_action_id_str:
+            flash('After action ID is required when inserting after a specific action', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # ===== DATA TYPE CONVERSION SECTION =====
+        after_action_id = None
+        if after_action_id_str:
+            try:
+                after_action_id = int(after_action_id_str)
+            except ValueError:
+                pass
+        
+        estimated_duration = None
+        if estimated_duration_str:
+            try:
+                estimated_duration = float(estimated_duration_str)
+            except ValueError:
+                pass
+        
+        expected_billable_hours = None
+        if expected_billable_hours_str:
+            try:
+                expected_billable_hours = float(expected_billable_hours_str)
+            except ValueError:
+                pass
+        
+        # ===== BUSINESS LOGIC SECTION =====
+        maintenance_struct, sequence_order = _create_action_common_logic(
+            event_id, action_name, description, estimated_duration, expected_billable_hours,
+            safety_notes, notes, insert_position, after_action_id, False, False
+        )
+        
         if not maintenance_struct:
-            flash('Maintenance event not found', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
-        maintenance_context = MaintenanceContext.from_event(event_id)
+        # Create blank action
+        action = Action(
+            maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
+            sequence_order=sequence_order,
+            action_name=action_name,
+            description=description if description else None,
+            estimated_duration=estimated_duration,
+            expected_billable_hours=expected_billable_hours,
+            safety_notes=safety_notes if safety_notes else None,
+            notes=notes if notes else None,
+            status='Not Started',
+            created_by_id=current_user.id,
+            updated_by_id=current_user.id
+        )
+        db.session.add(action)
+        db.session.commit()
         
+        # Generate automated comment
+        if maintenance_struct.event_id:
+            event_context = EventContext(maintenance_struct.event_id)
+            comment_text = f"Action created: '{action.action_name}' by {current_user.username}"
+            event_context.add_comment(
+                user_id=current_user.id,
+                content=comment_text,
+                is_human_made=False  # Automated comment
+            )
+            db.session.commit()
+        
+        flash('Action created successfully', 'success')
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+    except Exception as e:
+        logger.error(f"Error creating blank action: {e}")
+        traceback.print_exc()
+        flash('Error creating action', 'error')
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+
+
+@maintenance_event_bp.route('/<int:event_id>/create-from-proto-action', methods=['POST'])
+@login_required
+def create_from_proto_action(event_id):
+    """Create an action from a proto action item"""
+    try:
         # ===== FORM PARSING SECTION =====
         action_name = request.form.get('actionName', '').strip()
         description = request.form.get('actionDescription', '').strip()
@@ -188,9 +320,7 @@ def create_action(event_id):
         notes = request.form.get('notes', '').strip()
         
         # Source references
-        template_action_item_id_str = request.form.get('template_action_item_id', '').strip()
         proto_action_item_id_str = request.form.get('proto_action_item_id', '').strip()
-        source_action_id_str = request.form.get('source_action_id', '').strip()  # For duplicating from current actions
         
         # Insert position
         insert_position = request.form.get('insertPosition', 'end').strip()
@@ -201,39 +331,27 @@ def create_action(event_id):
         copy_tools = request.form.get('copyTools', 'false').strip().lower() == 'true'
         
         # ===== LIGHT VALIDATION SECTION =====
-        if not action_name:
-            flash('Action name is required', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        if not proto_action_item_id_str:
+            logger.warning(f"Proto action item ID missing in form data. Form data: {dict(request.form)}")
+            flash('Proto action item ID is required', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         if insert_position not in ['end', 'beginning', 'after']:
             flash('Invalid insert position', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         if insert_position == 'after' and not after_action_id_str:
             flash('After action ID is required when inserting after a specific action', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # ===== DATA TYPE CONVERSION SECTION =====
-        template_action_item_id = None
-        if template_action_item_id_str:
-            try:
-                template_action_item_id = int(template_action_item_id_str)
-            except ValueError:
-                pass
-        
         proto_action_item_id = None
         if proto_action_item_id_str:
             try:
                 proto_action_item_id = int(proto_action_item_id_str)
             except ValueError:
-                pass
-        
-        source_action_id = None
-        if source_action_id_str:
-            try:
-                source_action_id = int(source_action_id_str)
-            except ValueError:
-                pass
+                flash('Invalid proto action item ID', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         after_action_id = None
         if after_action_id_str:
@@ -257,184 +375,37 @@ def create_action(event_id):
                 pass
         
         # ===== BUSINESS LOGIC SECTION =====
-        # Calculate sequence order based on insert position
-        sequence_order = maintenance_context._calculate_sequence_order(
-            insert_position=insert_position,
-            after_action_id=after_action_id
+        maintenance_struct, sequence_order = _create_action_common_logic(
+            event_id, action_name, description, estimated_duration, expected_billable_hours,
+            safety_notes, notes, insert_position, after_action_id, copy_part_demands, copy_tools
         )
         
-        # If inserting at beginning or after, need to shift existing actions
-        if insert_position in ['beginning', 'after']:
-            actions = maintenance_struct.actions
-            if insert_position == 'beginning':
-                # Shift all actions up by 1
-                for action in actions:
-                    action.sequence_order += 1
-                sequence_order = 1
-            else:  # after
-                # Shift actions after target down by 1
-                target_sequence = None
-                for action in actions:
-                    if action.id == after_action_id:
-                        target_sequence = action.sequence_order
-                        break
-                if target_sequence is not None:
-                    for action in actions:
-                        if action.sequence_order > target_sequence:
-                            action.sequence_order += 1
-                    sequence_order = target_sequence + 1
+        if not maintenance_struct:
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
-        # Create action
-        # If source is template, use ActionFactory
-        if template_action_item_id:
-            action = ActionFactory.create_from_template_action_item(
-                template_action_item_id=template_action_item_id,
-                maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
-                user_id=current_user.id,
-                commit=False
-            )
-            # Update sequence order
-            action.sequence_order = sequence_order
-            # Only copy part demands/tools if explicitly requested
-            if not copy_part_demands:
-                # Delete part demands that were created
-                for part_demand in list(action.part_demands):
-                    db.session.delete(part_demand)
-            if not copy_tools:
-                # Delete tools that were created
-                for tool in list(action.action_tools):
-                    db.session.delete(tool)
-        # If source is proto, create from proto
-        elif proto_action_item_id:
-            proto_action = ProtoActionItem.query.get_or_404(proto_action_item_id)
-            
-            action = Action(
-                maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
-                proto_action_item_id=proto_action_item_id,
-                sequence_order=sequence_order,
-                action_name=action_name or proto_action.action_name,
-                description=description or proto_action.description,
-                estimated_duration=estimated_duration or proto_action.estimated_duration,
-                expected_billable_hours=expected_billable_hours or proto_action.expected_billable_hours,
-                safety_notes=safety_notes or proto_action.safety_notes,
-                notes=notes or proto_action.notes,
-                status='Not Started',
-                created_by_id=current_user.id,
-                updated_by_id=current_user.id
-            )
-            db.session.add(action)
-            db.session.flush()
-            
-            # Copy part demands and tools if requested
-            if copy_part_demands:
-                for proto_part_demand in proto_action.proto_part_demands:
-                    part_demand = PartDemand(
-                        action_id=action.id,
-                        part_id=proto_part_demand.part_id,
-                        quantity_required=proto_part_demand.quantity_required,
-                        notes=proto_part_demand.notes,
-                        expected_cost=proto_part_demand.expected_cost,
-                        status='Planned',
-                        priority='Medium',
-                        sequence_order=proto_part_demand.sequence_order,
-                        created_by_id=current_user.id,
-                        updated_by_id=current_user.id
-                    )
-                    db.session.add(part_demand)
-            
-            if copy_tools:
-                for proto_tool in proto_action.proto_action_tools:
-                    action_tool = ActionTool(
-                        action_id=action.id,
-                        tool_id=proto_tool.tool_id,
-                        quantity_required=proto_tool.quantity_required,
-                        notes=proto_tool.notes,
-                        status='Planned',
-                        priority='Medium',
-                        sequence_order=proto_tool.sequence_order,
-                        created_by_id=current_user.id,
-                        updated_by_id=current_user.id
-                    )
-                    db.session.add(action_tool)
-        # If duplicating from current action
-        elif source_action_id:
-            source_action = Action.query.get_or_404(source_action_id)
-            if source_action.maintenance_action_set_id != maintenance_struct.maintenance_action_set_id:
-                flash('Source action does not belong to this maintenance event', 'error')
-                return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            
-            # Create duplicate action
-            action = Action(
-                maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
-                template_action_item_id=source_action.template_action_item_id,
-                sequence_order=sequence_order,
-                action_name=action_name or source_action.action_name,
-                description=description or source_action.description,
-                estimated_duration=estimated_duration or source_action.estimated_duration,
-                expected_billable_hours=expected_billable_hours or source_action.expected_billable_hours,
-                safety_notes=safety_notes or source_action.safety_notes,
-                notes=notes or source_action.notes,
-                status='Not Started',  # Reset status
-                created_by_id=current_user.id,
-                updated_by_id=current_user.id
-            )
-            db.session.add(action)
-            db.session.flush()
-            
-            # Copy part demands and tools if requested
-            if copy_part_demands:
-                for source_part_demand in source_action.part_demands:
-                    part_demand = PartDemand(
-                        action_id=action.id,
-                        part_id=source_part_demand.part_id,
-                        quantity_required=source_part_demand.quantity_required,
-                        notes=source_part_demand.notes,
-                        expected_cost=source_part_demand.expected_cost,
-                        status='Planned',  # Reset status
-                        priority=source_part_demand.priority,
-                        sequence_order=source_part_demand.sequence_order,
-                        created_by_id=current_user.id,
-                        updated_by_id=current_user.id
-                    )
-                    db.session.add(part_demand)
-            
-            if copy_tools:
-                for source_tool in source_action.action_tools:
-                    action_tool = ActionTool(
-                        action_id=action.id,
-                        tool_id=source_tool.tool_id,
-                        quantity_required=source_tool.quantity_required,
-                        notes=source_tool.notes,
-                        status='Planned',  # Reset status
-                        priority=source_tool.priority,
-                        sequence_order=source_tool.sequence_order,
-                        created_by_id=current_user.id,
-                        updated_by_id=current_user.id
-                    )
-                    db.session.add(action_tool)
-        # Blank action
-        else:
-            action = Action(
-                maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
-                sequence_order=sequence_order,
-                action_name=action_name,
-                description=description if description else None,
-                estimated_duration=estimated_duration,
-                expected_billable_hours=expected_billable_hours,
-                safety_notes=safety_notes if safety_notes else None,
-                notes=notes if notes else None,
-                status='Not Started',
-                created_by_id=current_user.id,
-                updated_by_id=current_user.id
-            )
-            db.session.add(action)
+        # Create action from proto using ActionFactory
+        action = ActionFactory.create_from_proto_action_item(
+            proto_action_item_id=proto_action_item_id,
+            maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
+            sequence_order=sequence_order,
+            user_id=current_user.id,
+            commit=False,
+            copy_part_demands=copy_part_demands,
+            copy_tools=copy_tools,
+            action_name=action_name,
+            description=description,
+            estimated_duration=estimated_duration,
+            expected_billable_hours=expected_billable_hours,
+            safety_notes=safety_notes,
+            notes=notes
+        )
         
         db.session.commit()
         
         # Generate automated comment
         if maintenance_struct.event_id:
             event_context = EventContext(maintenance_struct.event_id)
-            comment_text = f"Action created: '{action.action_name}' by {current_user.username}"
+            comment_text = f"Action created from proto: '{action.action_name}' by {current_user.username}"
             event_context.add_comment(
                 user_id=current_user.id,
                 content=comment_text,
@@ -443,13 +414,279 @@ def create_action(event_id):
             db.session.commit()
         
         flash('Action created successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
-        logger.error(f"Error creating action: {e}")
+        logger.error(f"Error creating action from proto: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        traceback.print_exc()
+        flash(f'Error creating action from proto: {str(e)}', 'error')
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+
+
+@maintenance_event_bp.route('/<int:event_id>/create-from-template-action', methods=['POST'])
+@login_required
+def create_from_template_action(event_id):
+    """Create an action from a template action item"""
+    try:
+        # ===== FORM PARSING SECTION =====
+        action_name = request.form.get('actionName', '').strip()
+        description = request.form.get('actionDescription', '').strip()
+        estimated_duration_str = request.form.get('estimatedDuration', '').strip()
+        expected_billable_hours_str = request.form.get('expectedBillableHours', '').strip()
+        safety_notes = request.form.get('safetyNotes', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        # Source references
+        template_action_item_id_str = request.form.get('template_action_item_id', '').strip()
+        
+        # Insert position
+        insert_position = request.form.get('insertPosition', 'end').strip()
+        after_action_id_str = request.form.get('afterActionId', '').strip()
+        
+        # Copy options
+        copy_part_demands = request.form.get('copyPartDemands', 'false').strip().lower() == 'true'
+        copy_tools = request.form.get('copyTools', 'false').strip().lower() == 'true'
+        
+        # ===== LIGHT VALIDATION SECTION =====
+        if not template_action_item_id_str:
+            flash('Template action item ID is required', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        if insert_position not in ['end', 'beginning', 'after']:
+            flash('Invalid insert position', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        if insert_position == 'after' and not after_action_id_str:
+            flash('After action ID is required when inserting after a specific action', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # ===== DATA TYPE CONVERSION SECTION =====
+        template_action_item_id = None
+        if template_action_item_id_str:
+            try:
+                template_action_item_id = int(template_action_item_id_str)
+            except ValueError:
+                flash('Invalid template action item ID', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        after_action_id = None
+        if after_action_id_str:
+            try:
+                after_action_id = int(after_action_id_str)
+            except ValueError:
+                pass
+        
+        estimated_duration = None
+        if estimated_duration_str:
+            try:
+                estimated_duration = float(estimated_duration_str)
+            except ValueError:
+                pass
+        
+        expected_billable_hours = None
+        if expected_billable_hours_str:
+            try:
+                expected_billable_hours = float(expected_billable_hours_str)
+            except ValueError:
+                pass
+        
+        # ===== BUSINESS LOGIC SECTION =====
+        maintenance_struct, sequence_order = _create_action_common_logic(
+            event_id, action_name, description, estimated_duration, expected_billable_hours,
+            safety_notes, notes, insert_position, after_action_id, copy_part_demands, copy_tools
+        )
+        
+        if not maintenance_struct:
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Create action from template using ActionFactory
+        action = ActionFactory.create_from_template_action_item(
+            template_action_item_id=template_action_item_id,
+            maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
+            user_id=current_user.id,
+            commit=False,
+            copy_part_demands=copy_part_demands,
+            copy_tools=copy_tools
+        )
+        # Update sequence order (factory uses template's sequence_order, but we may need a different one)
+        action.sequence_order = sequence_order
+        
+        db.session.commit()
+        
+        # Generate automated comment
+        if maintenance_struct.event_id:
+            event_context = EventContext(maintenance_struct.event_id)
+            comment_text = f"Action created from template: '{action.action_name}' by {current_user.username}"
+            event_context.add_comment(
+                user_id=current_user.id,
+                content=comment_text,
+                is_human_made=False  # Automated comment
+            )
+            db.session.commit()
+        
+        flash('Action created successfully', 'success')
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+    except Exception as e:
+        logger.error(f"Error creating action from template: {e}")
         traceback.print_exc()
         flash('Error creating action', 'error')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+
+
+@maintenance_event_bp.route('/<int:event_id>/create-from-current-action', methods=['POST'])
+@login_required
+def create_from_current_action(event_id):
+    """Create an action by duplicating from a current action in the same maintenance event"""
+    try:
+        # ===== FORM PARSING SECTION =====
+        action_name = request.form.get('actionName', '').strip()
+        description = request.form.get('actionDescription', '').strip()
+        estimated_duration_str = request.form.get('estimatedDuration', '').strip()
+        expected_billable_hours_str = request.form.get('expectedBillableHours', '').strip()
+        safety_notes = request.form.get('safetyNotes', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        # Source references
+        source_action_id_str = request.form.get('source_action_id', '').strip()
+        
+        # Insert position
+        insert_position = request.form.get('insertPosition', 'end').strip()
+        after_action_id_str = request.form.get('afterActionId', '').strip()
+        
+        # Copy options
+        copy_part_demands = request.form.get('copyPartDemands', 'false').strip().lower() == 'true'
+        copy_tools = request.form.get('copyTools', 'false').strip().lower() == 'true'
+        
+        # ===== LIGHT VALIDATION SECTION =====
+        if not source_action_id_str:
+            flash('Source action ID is required', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        if insert_position not in ['end', 'beginning', 'after']:
+            flash('Invalid insert position', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        if insert_position == 'after' and not after_action_id_str:
+            flash('After action ID is required when inserting after a specific action', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # ===== DATA TYPE CONVERSION SECTION =====
+        source_action_id = None
+        if source_action_id_str:
+            try:
+                source_action_id = int(source_action_id_str)
+            except ValueError:
+                flash('Invalid source action ID', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        after_action_id = None
+        if after_action_id_str:
+            try:
+                after_action_id = int(after_action_id_str)
+            except ValueError:
+                pass
+        
+        estimated_duration = None
+        if estimated_duration_str:
+            try:
+                estimated_duration = float(estimated_duration_str)
+            except ValueError:
+                pass
+        
+        expected_billable_hours = None
+        if expected_billable_hours_str:
+            try:
+                expected_billable_hours = float(expected_billable_hours_str)
+            except ValueError:
+                pass
+        
+        # ===== BUSINESS LOGIC SECTION =====
+        maintenance_struct, sequence_order = _create_action_common_logic(
+            event_id, action_name, description, estimated_duration, expected_billable_hours,
+            safety_notes, notes, insert_position, after_action_id, copy_part_demands, copy_tools
+        )
+        
+        if not maintenance_struct:
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        source_action = Action.query.get_or_404(source_action_id)
+        if source_action.maintenance_action_set_id != maintenance_struct.maintenance_action_set_id:
+            flash('Source action does not belong to this maintenance event', 'error')
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Create duplicate action
+        action = Action(
+            maintenance_action_set_id=maintenance_struct.maintenance_action_set_id,
+            template_action_item_id=source_action.template_action_item_id,
+            sequence_order=sequence_order,
+            action_name=action_name or source_action.action_name,
+            description=description or source_action.description,
+            estimated_duration=estimated_duration if estimated_duration is not None else source_action.estimated_duration,
+            expected_billable_hours=expected_billable_hours if expected_billable_hours is not None else source_action.expected_billable_hours,
+            safety_notes=safety_notes or source_action.safety_notes,
+            notes=notes or source_action.notes,
+            status='Not Started',  # Reset status
+            created_by_id=current_user.id,
+            updated_by_id=current_user.id
+        )
+        db.session.add(action)
+        db.session.flush()
+        
+        # Copy part demands and tools if requested
+        if copy_part_demands:
+            for source_part_demand in source_action.part_demands:
+                part_demand = PartDemand(
+                    action_id=action.id,
+                    part_id=source_part_demand.part_id,
+                    quantity_required=source_part_demand.quantity_required,
+                    notes=source_part_demand.notes,
+                    expected_cost=source_part_demand.expected_cost,
+                    status='Planned',  # Reset status
+                    priority=source_part_demand.priority,
+                    sequence_order=source_part_demand.sequence_order,
+                    created_by_id=current_user.id,
+                    updated_by_id=current_user.id
+                )
+                db.session.add(part_demand)
+        
+        if copy_tools:
+            for source_tool in source_action.action_tools:
+                action_tool = ActionTool(
+                    action_id=action.id,
+                    tool_id=source_tool.tool_id,
+                    quantity_required=source_tool.quantity_required,
+                    notes=source_tool.notes,
+                    status='Planned',  # Reset status
+                    priority=source_tool.priority,
+                    sequence_order=source_tool.sequence_order,
+                    created_by_id=current_user.id,
+                    updated_by_id=current_user.id
+                )
+                db.session.add(action_tool)
+        
+        db.session.commit()
+        
+        # Generate automated comment
+        if maintenance_struct.event_id:
+            event_context = EventContext(maintenance_struct.event_id)
+            comment_text = f"Action duplicated: '{action.action_name}' by {current_user.username}"
+            event_context.add_comment(
+                user_id=current_user.id,
+                content=comment_text,
+                is_human_made=False  # Automated comment
+            )
+            db.session.commit()
+        
+        flash('Action created successfully', 'success')
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+    except Exception as e:
+        logger.error(f"Error creating action from current action: {e}")
+        traceback.print_exc()
+        flash('Error creating action', 'error')
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
 
 @maintenance_event_bp.route('/<int:event_id>/assign', methods=['GET', 'POST'])
 @login_required
@@ -556,11 +793,11 @@ def assign_event(event_id):
         abort(500)
 
 
-@maintenance_event_bp.route('/<int:event_id>/edit', methods=['GET', 'POST'])
+@maintenance_event_bp.route('/<int:event_id>/edit', methods=['GET'])
 @login_required
-def edit_maintenance_event(event_id):
-    """Edit a maintenance event"""
-    logger.info(f"Editing maintenance event for event_id={event_id}")
+def render_edit_page(event_id):
+    """Render the edit maintenance event page"""
+    logger.info(f"Rendering edit page for event_id={event_id}")
     
     try:
         # Get the maintenance action set by event_id (ONE-TO-ONE relationship)
@@ -576,113 +813,6 @@ def edit_maintenance_event(event_id):
             logger.warning(f"Event {event_id} not found")
             abort(404)
         
-        # Handle POST request (form submission)
-        if request.method == 'POST':
-            # ===== FORM PARSING SECTION =====
-            task_name = request.form.get('task_name', '').strip()
-            description = request.form.get('description', '').strip()
-            estimated_duration_str = request.form.get('estimated_duration', '').strip()
-            asset_id_str = request.form.get('asset_id', '').strip()
-            maintenance_plan_id_str = request.form.get('maintenance_plan_id', '').strip()
-            status = request.form.get('status', '').strip()
-            priority = request.form.get('priority', '').strip()
-            planned_start_datetime_str = request.form.get('planned_start_datetime', '').strip()
-            safety_review_required_str = request.form.get('safety_review_required', '').strip()
-            staff_count_str = request.form.get('staff_count', '').strip()
-            labor_hours_str = request.form.get('labor_hours', '').strip()
-            completion_notes = request.form.get('completion_notes', '').strip()
-            
-            # ===== DATA TYPE CONVERSION SECTION =====
-            # Convert description (string or None)
-            description = description if description else None
-            
-            # Convert estimated_duration (float)
-            # Allow None/empty to clear the field
-            estimated_duration = None
-            if estimated_duration_str:
-                try:
-                    estimated_duration = float(estimated_duration_str)
-                    if estimated_duration < 0:
-                        flash('Estimated duration must be non-negative', 'error')
-                        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-                except ValueError:
-                    flash('Invalid estimated duration', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            # If empty string, estimated_duration stays None (will clear the field via nullable_fields logic)
-            
-            # Convert asset_id (integer)
-            asset_id = None
-            if asset_id_str:
-                try:
-                    asset_id = int(asset_id_str)
-                except ValueError:
-                    flash('Invalid asset ID', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            
-            # Convert maintenance_plan_id (integer)
-            maintenance_plan_id = None
-            if maintenance_plan_id_str:
-                try:
-                    maintenance_plan_id = int(maintenance_plan_id_str)
-                except ValueError:
-                    flash('Invalid maintenance plan ID', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            
-            # Convert staff_count (integer)
-            staff_count = None
-            if staff_count_str:
-                try:
-                    staff_count = int(staff_count_str)
-                except ValueError:
-                    flash('Invalid staff count', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            
-            # Convert labor_hours (float)
-            labor_hours = None
-            if labor_hours_str:
-                try:
-                    labor_hours = float(labor_hours_str)
-                except ValueError:
-                    flash('Invalid labor hours', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            
-            # Convert planned_start_datetime (datetime)
-            planned_start_datetime = None
-            if planned_start_datetime_str:
-                try:
-                    planned_start_datetime = datetime.strptime(planned_start_datetime_str, '%Y-%m-%dT%H:%M')
-                except ValueError:
-                    flash('Invalid planned start datetime format', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-            
-            # Convert safety_review_required (boolean)
-            safety_review_required = safety_review_required_str == 'on'
-            
-            # Convert completion_notes (string or None)
-            completion_notes = completion_notes if completion_notes else None
-            
-            # ===== BUSINESS LOGIC SECTION =====
-            maintenance_context = MaintenanceContext.from_event(event_id)
-            maintenance_context.update_action_set_details(
-                task_name=task_name,
-                description=description,
-                estimated_duration=estimated_duration,  # Can be None to clear the field
-                asset_id=asset_id,
-                maintenance_plan_id=maintenance_plan_id,
-                status=status,
-                priority=priority,
-                planned_start_datetime=planned_start_datetime,
-                safety_review_required=safety_review_required,
-                staff_count=staff_count,
-                labor_hours=labor_hours,
-                completion_notes=completion_notes
-            )
-            
-            flash('Maintenance event updated successfully', 'success')
-            # Reload the page (redirect back to edit page)
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
-        
-        # Handle GET request (display form)
         # Get actions with their structs (ordered by sequence_order)
         action_structs = [ActionStruct(action) for action in sorted(maintenance_struct.actions, key=lambda a: a.sequence_order)]
         
@@ -731,7 +861,139 @@ def edit_maintenance_event(event_id):
         logger.error(f"Could not import maintenance modules: {e}")
         abort(500)
     except Exception as e:
-        logger.error(f"Error editing maintenance event {event_id}: {e}")
+        logger.error(f"Error rendering edit page for event {event_id}: {e}")
+        abort(500)
+
+
+@maintenance_event_bp.route('/<int:event_id>/edit', methods=['POST'])
+@login_required
+def edit_template_action_set(event_id):
+    """Update maintenance action set details"""
+    logger.info(f"Updating maintenance action set for event_id={event_id}")
+    
+    try:
+        # Get the maintenance action set by event_id (ONE-TO-ONE relationship)
+        maintenance_struct = MaintenanceActionSetStruct.from_event_id(event_id)
+        
+        if not maintenance_struct:
+            logger.warning(f"No maintenance action set found for event_id={event_id}")
+            abort(404)
+        
+        # Get the event
+        event = Event.query.get(event_id)
+        if not event:
+            logger.warning(f"Event {event_id} not found")
+            abort(404)
+        
+        # ===== FORM PARSING SECTION =====
+        task_name = request.form.get('task_name', '').strip()
+        description = request.form.get('description', '').strip()
+        estimated_duration_str = request.form.get('estimated_duration', '').strip()
+        asset_id_str = request.form.get('asset_id', '').strip()
+        maintenance_plan_id_str = request.form.get('maintenance_plan_id', '').strip()
+        status = request.form.get('status', '').strip()
+        priority = request.form.get('priority', '').strip()
+        planned_start_datetime_str = request.form.get('planned_start_datetime', '').strip()
+        safety_review_required_str = request.form.get('safety_review_required', '').strip()
+        staff_count_str = request.form.get('staff_count', '').strip()
+        labor_hours_str = request.form.get('labor_hours', '').strip()
+        completion_notes = request.form.get('completion_notes', '').strip()
+        
+        # ===== DATA TYPE CONVERSION SECTION =====
+        # Convert description (string or None)
+        description = description if description else None
+        
+        # Convert estimated_duration (float)
+        # Allow None/empty to clear the field
+        estimated_duration = None
+        if estimated_duration_str:
+            try:
+                estimated_duration = float(estimated_duration_str)
+                if estimated_duration < 0:
+                    flash('Estimated duration must be non-negative', 'error')
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+            except ValueError:
+                flash('Invalid estimated duration', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        # If empty string, estimated_duration stays None (will clear the field via nullable_fields logic)
+        
+        # Convert asset_id (integer)
+        asset_id = None
+        if asset_id_str:
+            try:
+                asset_id = int(asset_id_str)
+            except ValueError:
+                flash('Invalid asset ID', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Convert maintenance_plan_id (integer)
+        maintenance_plan_id = None
+        if maintenance_plan_id_str:
+            try:
+                maintenance_plan_id = int(maintenance_plan_id_str)
+            except ValueError:
+                flash('Invalid maintenance plan ID', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Convert staff_count (integer)
+        staff_count = None
+        if staff_count_str:
+            try:
+                staff_count = int(staff_count_str)
+            except ValueError:
+                flash('Invalid staff count', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Convert labor_hours (float)
+        labor_hours = None
+        if labor_hours_str:
+            try:
+                labor_hours = float(labor_hours_str)
+            except ValueError:
+                flash('Invalid labor hours', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Convert planned_start_datetime (datetime)
+        planned_start_datetime = None
+        if planned_start_datetime_str:
+            try:
+                planned_start_datetime = datetime.strptime(planned_start_datetime_str, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                flash('Invalid planned start datetime format', 'error')
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+        # Convert safety_review_required (boolean)
+        safety_review_required = safety_review_required_str == 'on'
+        
+        # Convert completion_notes (string or None)
+        completion_notes = completion_notes if completion_notes else None
+        
+        # ===== BUSINESS LOGIC SECTION =====
+        maintenance_context = MaintenanceContext.from_event(event_id)
+        maintenance_context.update_action_set_details(
+            task_name=task_name,
+            description=description,
+            estimated_duration=estimated_duration,  # Can be None to clear the field
+            asset_id=asset_id,
+            maintenance_plan_id=maintenance_plan_id,
+            status=status,
+            priority=priority,
+            planned_start_datetime=planned_start_datetime,
+            safety_review_required=safety_review_required,
+            staff_count=staff_count,
+            labor_hours=labor_hours,
+            completion_notes=completion_notes
+        )
+        
+        flash('Maintenance event updated successfully', 'success')
+        # Reload the page (redirect back to edit page)
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
+        
+    except ImportError as e:
+        logger.error(f"Could not import maintenance modules: {e}")
+        abort(500)
+    except Exception as e:
+        logger.error(f"Error updating maintenance action set for event {event_id}: {e}")
         abort(500)
 
 

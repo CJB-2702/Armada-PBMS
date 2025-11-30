@@ -234,7 +234,7 @@ def update_part_demand(part_demand_id):
         ]
         if status and status not in valid_statuses:
             flash('Invalid status', 'error')
-            return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+            return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         valid_priorities = ['Low', 'Medium', 'High', 'Critical']
         if priority and priority not in valid_priorities:
@@ -247,10 +247,10 @@ def update_part_demand(part_demand_id):
                 quantity_required = float(quantity_required_str)
                 if quantity_required <= 0:
                     flash('Quantity must be greater than 0', 'error')
-                    return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                    return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
             except ValueError:
                 flash('Invalid quantity value', 'error')
-                return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+                return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
         # Convert empty strings to None
         status = status if status else None
@@ -288,7 +288,7 @@ def update_part_demand(part_demand_id):
             db.session.commit()
         
         flash('Part demand updated successfully', 'success')
-        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=event_id))
+        return redirect(url_for('maintenance_event.render_edit_page', event_id=event_id))
         
     except Exception as e:
         logger.error(f"Error updating part demand: {e}")
@@ -305,7 +305,7 @@ def update_part_demand(part_demand_id):
                     maintenance_context = MaintenanceContext.from_maintenance_action_set(action.maintenance_action_set_id)
                     struct: MaintenanceActionSetStruct = maintenance_context.struct
                     if struct.event_id:
-                        return redirect(url_for('maintenance_event.edit_maintenance_event', event_id=struct.event_id))
+                        return redirect(url_for('maintenance_event.render_edit_page', event_id=struct.event_id))
         except:
             pass
         abort(404)

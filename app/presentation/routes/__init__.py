@@ -80,6 +80,14 @@ def init_app(app):
         except ImportError as e:
             logger.debug(f"Maintenance event blueprint not available: {e}")
         
+        # Register action creator portal blueprint
+        try:
+            from .maintenance.action_creator_portal import action_creator_portal_bp
+            app.register_blueprint(action_creator_portal_bp)
+            logger.info("Registered action creator portal blueprint")
+        except ImportError as e:
+            logger.debug(f"Action creator portal blueprint not available: {e}")
+        
         # Try to register sub-blueprints if they exist
         try:
             from .maintenance import (

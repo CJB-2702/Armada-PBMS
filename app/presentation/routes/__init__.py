@@ -28,6 +28,7 @@ def init_app(app):
     from .core.events import events as core_events
     from .core.events import comments as core_comments
     from .core.events import attachments as core_attachments
+    from .core.admin import settings_cache_viewer
 
     # Register core dashboard
     app.register_blueprint(dashboard.bp, url_prefix='/core')
@@ -38,6 +39,13 @@ def init_app(app):
     app.register_blueprint(asset_types.bp, url_prefix='/core')
     app.register_blueprint(make_models.bp, url_prefix='/core')
     app.register_blueprint(users.bp, url_prefix='/core')
+    
+    # Register core admin blueprints
+    app.register_blueprint(settings_cache_viewer.bp, url_prefix='/core/users')
+    
+    # Register main admin blueprint
+    from . import admin
+    app.register_blueprint(admin.bp, url_prefix='/admin')
 
     # Register comments and attachments blueprints
     app.register_blueprint(core_comments.bp, url_prefix='')

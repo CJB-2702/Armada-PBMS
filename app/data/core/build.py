@@ -14,6 +14,7 @@ def build_models():
     when the app is created, which registers them with SQLAlchemy
     """
     import app.data.core.user_info.user
+    import app.data.core.user_info.portal_user_data
     import app.data.core.major_location
     import app.data.core.asset_info.asset_type
     import app.data.core.asset_info.make_model

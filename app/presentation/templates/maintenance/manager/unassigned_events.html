@@ -377,12 +377,38 @@ document.addEventListener('DOMContentLoaded', function() {
         bulkTechnicianFeedback.textContent = `Selected: ${username}`;
     };
 
+    // Generic handler that routes to the appropriate function based on context
+    window.handleTechnicianSelection = function(element) {
+        // Check if we're in the bulk assign context (unassigned events page)
+        const bulkSearch = document.getElementById('bulk_technician_search');
+        if (bulkSearch) {
+            if (window.selectBulkTechnicianFromElement) {
+                window.selectBulkTechnicianFromElement(element);
+            }
+        } else {
+            // Regular assign context (assign event page)
+            if (window.selectTechnicianFromElement) {
+                window.selectTechnicianFromElement(element);
+            }
+        }
+    };
+
     // Show dropdown when HTMX updates results
     document.body.addEventListener('htmx:afterSwap', function(event) {
         if (event.detail.target.id === 'bulk_technician_results' && event.detail.target.innerHTML.trim()) {
             bulkTechnicianDropdown.style.display = 'block';
         }
     });
+
+    // Show dropdown on focus (if there are already results)
+    if (bulkTechnicianSearch) {
+        bulkTechnicianSearch.addEventListener('focus', function() {
+            const results = document.getElementById('bulk_technician_results');
+            if (results && results.innerHTML.trim()) {
+                bulkTechnicianDropdown.style.display = 'block';
+            }
+        });
+    }
 
     // Handle empty search input
     if (bulkTechnicianSearch) {
@@ -424,62 +450,85 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-});
-let selectedEvents = new Set();
 
-function updateSelectedCount() {
-    const count = selectedEvents.size;
-    document.getElementById('selectedCount').textContent = count + ' event' + (count !== 1 ? 's' : '') + ' selected';
-    document.getElementById('bulkAssignBtn').disabled = count === 0;
-}
+    // Event selection functions (defined outside DOMContentLoaded so they're available globally)
+    let selectedEvents = new Set();
 
-function toggleSelectAll(checkbox) {
-    const eventCheckboxes = document.querySelectorAll('.event-checkbox');
-    eventCheckboxes.forEach(cb => {
-        cb.checked = checkbox.checked;
-        if (checkbox.checked) {
-            selectedEvents.add(cb.value);
-        } else {
-            selectedEvents.delete(cb.value);
+    function updateSelectedCount() {
+        const count = selectedEvents.size;
+        const countElement = document.getElementById('selectedCount');
+        const btnElement = document.getElementById('bulkAssignBtn');
+        if (countElement) {
+            countElement.textContent = count + ' event' + (count !== 1 ? 's' : '') + ' selected';
         }
-    });
-    updateSelectedCount();
-    updateSelectAllButtons();
-}
-
-function selectAll() {
-    const eventCheckboxes = document.querySelectorAll('.event-checkbox');
-    eventCheckboxes.forEach(cb => {
-        cb.checked = true;
-        selectedEvents.add(cb.value);
-    });
-    document.getElementById('selectAllCheckbox').checked = true;
-    updateSelectedCount();
-    updateSelectAllButtons();
-}
-
-function deselectAll() {
-    const eventCheckboxes = document.querySelectorAll('.event-checkbox');
-    eventCheckboxes.forEach(cb => {
-        cb.checked = false;
-        selectedEvents.delete(cb.value);
-    });
-    document.getElementById('selectAllCheckbox').checked = false;
-    updateSelectedCount();
-    updateSelectAllButtons();
-}
-
-function updateSelectAllButtons() {
-    const count = selectedEvents.size;
-    const total = document.querySelectorAll('.event-checkbox').length;
-    if (count === total && total > 0) {
-        document.getElementById('selectAllBtn').style.display = 'none';
-        document.getElementById('deselectAllBtn').style.display = 'inline-block';
-    } else {
-        document.getElementById('selectAllBtn').style.display = 'inline-block';
-        document.getElementById('deselectAllBtn').style.display = 'none';
+        if (btnElement) {
+            btnElement.disabled = count === 0;
+        }
     }
-}
+
+    function toggleSelectAll(checkbox) {
+        const eventCheckboxes = document.querySelectorAll('.event-checkbox');
+        eventCheckboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+            if (checkbox.checked) {
+                selectedEvents.add(cb.value);
+            } else {
+                selectedEvents.delete(cb.value);
+            }
+        });
+        updateSelectedCount();
+        updateSelectAllButtons();
+    }
+
+    function selectAll() {
+        const eventCheckboxes = document.querySelectorAll('.event-checkbox');
+        eventCheckboxes.forEach(cb => {
+            cb.checked = true;
+            selectedEvents.add(cb.value);
+        });
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = true;
+        }
+        updateSelectedCount();
+        updateSelectAllButtons();
+    }
+
+    function deselectAll() {
+        const eventCheckboxes = document.querySelectorAll('.event-checkbox');
+        eventCheckboxes.forEach(cb => {
+            cb.checked = false;
+            selectedEvents.delete(cb.value);
+        });
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
+        }
+        updateSelectedCount();
+        updateSelectAllButtons();
+    }
+
+    function updateSelectAllButtons() {
+        const count = selectedEvents.size;
+        const total = document.querySelectorAll('.event-checkbox').length;
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const deselectAllBtn = document.getElementById('deselectAllBtn');
+        if (count === total && total > 0) {
+            if (selectAllBtn) selectAllBtn.style.display = 'none';
+            if (deselectAllBtn) deselectAllBtn.style.display = 'inline-block';
+        } else {
+            if (selectAllBtn) selectAllBtn.style.display = 'inline-block';
+            if (deselectAllBtn) deselectAllBtn.style.display = 'none';
+        }
+    }
+
+    // Make functions globally available
+    window.updateSelectedCount = updateSelectedCount;
+    window.toggleSelectAll = toggleSelectAll;
+    window.selectAll = selectAll;
+    window.deselectAll = deselectAll;
+    window.updateSelectAllButtons = updateSelectAllButtons;
+    window.selectedEvents = selectedEvents;
 
     // Handle individual checkbox changes
     document.querySelectorAll('.event-checkbox').forEach(checkbox => {
@@ -494,29 +543,38 @@ function updateSelectAllButtons() {
             
             // Update select all checkbox
             const allChecked = document.querySelectorAll('.event-checkbox:checked').length === document.querySelectorAll('.event-checkbox').length;
-            document.getElementById('selectAllCheckbox').checked = allChecked;
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked;
+            }
         });
     });
     
     // Handle bulk assign form submission - merge with existing form handler
     const existingBulkAssignForm = document.getElementById('bulkAssignForm');
     if (existingBulkAssignForm) {
-        const originalSubmit = existingBulkAssignForm.onsubmit;
         existingBulkAssignForm.addEventListener('submit', function(e) {
             if (selectedEvents.size === 0) {
                 e.preventDefault();
                 alert('Please select at least one event to assign.');
                 return false;
             }
-            if (!bulkTechnicianIdInput.value) {
+            if (!bulkTechnicianIdInput || !bulkTechnicianIdInput.value) {
                 e.preventDefault();
-                bulkTechnicianSearch.focus();
-                bulkTechnicianSearch.classList.add('is-invalid');
-                bulkTechnicianFeedback.textContent = 'Please select a technician';
-                bulkTechnicianFeedback.classList.add('text-danger');
+                if (bulkTechnicianSearch) {
+                    bulkTechnicianSearch.focus();
+                    bulkTechnicianSearch.classList.add('is-invalid');
+                }
+                if (bulkTechnicianFeedback) {
+                    bulkTechnicianFeedback.textContent = 'Please select a technician';
+                    bulkTechnicianFeedback.classList.add('text-danger');
+                }
                 return false;
             }
-            document.getElementById('selectedEventIds').value = Array.from(selectedEvents).join(',');
+            const selectedEventIdsInput = document.getElementById('selectedEventIds');
+            if (selectedEventIdsInput) {
+                selectedEventIdsInput.value = Array.from(selectedEvents).join(',');
+            }
         });
     }
     

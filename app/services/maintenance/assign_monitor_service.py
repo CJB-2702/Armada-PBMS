@@ -372,6 +372,9 @@ class AssignMonitorService:
         # Get maintenance context
         maintenance_context = MaintenanceContext.from_event(event_id)
         
+        if not maintenance_context or not maintenance_context.struct:
+            raise ValueError(f"Maintenance event {event_id} not found")
+        
         # Assign event using MaintenanceContext method
         maintenance_context.assign_event(
             assigned_user_id=assigned_user_id,
@@ -381,7 +384,8 @@ class AssignMonitorService:
             notes=notes
         )
         
-        return maintenance_action_set
+        # Return the maintenance_action_set from the context
+        return maintenance_context.struct.maintenance_action_set
     
     @staticmethod
     def get_unassigned_events(

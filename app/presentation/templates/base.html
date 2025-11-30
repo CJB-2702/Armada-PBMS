@@ -116,7 +116,32 @@
                             Maintenance
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('maintenance.index') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance.index') }}">
+                                <i class="bi bi-speedometer2"></i> Maintenance Portal
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">
+                                <i class="bi bi-person-wrench"></i> Portals
+                            </h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('technician_portal.dashboard') }}">
+                                <i class="bi bi-person-wrench"></i> Technician Portal
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('manager_portal.dashboard') }}">
+                                <i class="bi bi-clipboard-check"></i> Manager Portal
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('fleet_portal.dashboard') }}">
+                                <i class="bi bi-truck"></i> Fleet Portal
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance.view_events') }}">
+                                <i class="bi bi-calendar-event"></i> View Maintenance Events
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('technician_portal.most_recent_event') }}">
+                                <i class="bi bi-clock-history"></i> Most Recent Event
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('technician_portal.continue_discussion') }}">
+                                <i class="bi bi-chat-dots"></i> Continue Discussion
+                            </a></li>
                         </ul>
                     </li>
                     

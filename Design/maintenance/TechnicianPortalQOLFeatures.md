@@ -531,6 +531,77 @@ These filters need to be added to the event portal service:
 3. **Low Priority** (Requires infrastructure):
    - `recently_viewed` - Requires EventView table and tracking system
 
+## Implementation Order
+
+### Can Implement Now ✅
+
+These features can be implemented immediately without additional infrastructure:
+
+1. **Most Recently Assigned Event** (Feature #1)
+   - Query: Use `updated_at` field (no `assigned_at` exists)
+   - Simple query + dashboard widget
+
+2. **Most Recently Commented On Event** (Feature #2)
+   - Join Comment with Event and MaintenanceActionSet
+   - Dashboard widget with link
+
+3. **View Assigned Events** (Feature #3)
+   - HTMX widget using existing `/maintenance/view-events` endpoint
+   - Dashboard card with top 5 events
+
+4. **View Recently Completed Events** (Feature #4)
+   - HTMX widget using existing filters
+   - Dashboard card with top 5 events
+
+5. **Assigned Events Planned This Week** (Feature #5)
+   - HTMX widget with date range filter
+   - Dashboard card with top 5 events
+
+6. **Quick Asset Lookup** (Feature #8)
+   - Search/autocomplete component
+   - Link to filtered event view
+
+7. **Top Five Assets with Most Actions Completed** (Feature #8 - second one)
+   - Aggregation query
+   - Dashboard widget
+
+8. **Ten Most Recent Part Demands with Status Updates** (Feature #9)
+   - Join query with PartDemand
+   - Dashboard widget
+
+9. **Ten Oldest Part Demands Needing Approval** (Feature #10)
+   - Join query with filters
+   - Dashboard widget
+
+10. **Ten Oldest Not Issued/Rejected/Pending Part Demands** (Feature #11)
+    - Join query with status filters
+    - Dashboard widget
+
+### Requires User Cache ⚠️
+
+These features need a caching system to be efficient:
+
+- **View Recent Events (Recently Viewed)** (Feature #7)
+  - Requires session or cache-based view tracking
+  - Skip for now per document note
+
+### Requires User Tracking 📊
+
+These features need database tables for user preferences/tracking:
+
+- **Favorite/Labeled Events (Pin up to 5)** (Feature #12)
+  - Requires `UserEventPin` table
+  - User preference storage
+
+- **Work History Timeline** (Feature #13)
+  - Could use existing data but may benefit from tracking
+  - Visualization complexity
+
+- **View Events with Comments from You** (Feature #6)
+  - Needs `has_my_comments` filter implementation
+  - Needs `last_comment_date` sort option
+  - Can be done now but requires filter implementation first
+
 ## Notes
 
 - Features should be tested with actual technicians for usability

@@ -116,6 +116,16 @@ class MaintenanceContext:
             self.maintenance_action_set.end_date = datetime.utcnow()
             if user_id:
                 self.maintenance_action_set.completed_by_id = user_id
+                # Auto-assign if not already assigned
+                if self.maintenance_action_set.assigned_user_id is None:
+                    self.maintenance_action_set.assigned_user_id = user_id
+                    self.maintenance_action_set.assigned_by_id = user_id
+                    # Add comment about auto-assignment
+                    self.add_comment(
+                        user_id=user_id,
+                        content=f"Auto-assigned to user (completed maintenance)",
+                        is_human_made=False
+                    )
             if notes:
                 self.maintenance_action_set.completion_notes = notes
             self._sync_event_status()
@@ -256,6 +266,67 @@ class MaintenanceContext:
             self.event_context.add_comment(user_id, content, is_human_made)
         return self
     
+    def assign_event(
+        self,
+        assigned_user_id: int,
+        assigned_by_id: int,
+        planned_start_datetime: Optional[datetime] = None,
+        priority: Optional[str] = None,
+        notes: Optional[str] = None
+    ) -> 'MaintenanceContext':
+        """
+        Assign or reassign the maintenance event to a technician.
+        
+        Updates assignment fields, optional fields if provided, and adds a comment
+        documenting the assignment.
+        
+        Args:
+            assigned_user_id: User ID to assign the maintenance to
+            assigned_by_id: User ID of the manager assigning the maintenance
+            planned_start_datetime: Optional planned start datetime to update
+            priority: Optional priority to update
+            notes: Optional assignment notes to include in comment
+            
+        Returns:
+            self for chaining
+            
+        Raises:
+            ValueError: If technician not found or not active
+        """
+        from app.data.core.user_info.user import User
+        
+        # Validate technician
+        technician = User.query.get(assigned_user_id)
+        if not technician or not technician.is_active:
+            raise ValueError(f"Technician {assigned_user_id} not found or not active")
+        
+        # Update assignment
+        self.maintenance_action_set.assigned_user_id = assigned_user_id
+        self.maintenance_action_set.assigned_by_id = assigned_by_id
+        
+        # Update optional fields
+        if planned_start_datetime is not None:
+            self.maintenance_action_set.planned_start_datetime = planned_start_datetime
+        if priority is not None:
+            self.maintenance_action_set.priority = priority
+        
+        # Build comment text
+        comment_parts = [f"Assigned to {technician.username}"]
+        if notes:
+            comment_parts.append(f"Notes: {notes}")
+        
+        comment_text = " | ".join(comment_parts)
+        self.add_comment(
+            user_id=assigned_by_id,
+            content=comment_text,
+            is_human_made=True
+        )
+        
+        db.session.commit()
+        self.refresh()
+        
+        return self
+    
     def update_action_status(
         self,
         action_id: int,
@@ -368,6 +439,24 @@ class MaintenanceContext:
             is_human_made=is_human_made
         )
         
+        # Auto-assign event if not assigned (unless skipping)
+        if self.maintenance_action_set.assigned_user_id is None and new_status != 'Skipped':
+            self.maintenance_action_set.assigned_user_id = user_id
+            self.maintenance_action_set.assigned_by_id = user_id
+            # Add comment about auto-assignment
+            self.add_comment(
+                user_id=user_id,
+                content=f"Auto-assigned to {username} (action status updated)",
+                is_human_made=False
+            )
+        
+        # Update event status to "In Progress" if currently "Planned"
+        if self.maintenance_action_set.status == 'Planned':
+            self.maintenance_action_set.status = 'In Progress'
+            if not self.maintenance_action_set.start_date:
+                self.maintenance_action_set.start_date = datetime.utcnow()
+            self._sync_event_status()
+        
         db.session.commit()
         
         # Auto-update MaintenanceActionSet billable hours if sum is greater
@@ -428,10 +517,11 @@ class MaintenanceContext:
         comment_parts = []
         reset_to_in_progress = updates.get('reset_to_in_progress', False)
         new_status = updates.get('status')
+        status_changed = new_status and new_status != old_status
         
         if reset_to_in_progress and old_status in ['Complete', 'Failed', 'Skipped']:
             comment_parts.append(f"Status reset from {old_status} to In Progress (for retry)")
-        elif new_status and new_status != old_status:
+        elif status_changed:
             comment_parts.append(f"Status changed from {old_status} to {new_status}")
         
         # Add comment if status changed
@@ -443,7 +533,26 @@ class MaintenanceContext:
                 content=comment_text,
                 is_human_made=True
             )
-            db.session.commit()
+        
+        # Auto-assign event if not assigned (unless skipping)
+        if status_changed and self.maintenance_action_set.assigned_user_id is None and new_status != 'Skipped':
+            self.maintenance_action_set.assigned_user_id = user_id
+            self.maintenance_action_set.assigned_by_id = user_id
+            # Add comment about auto-assignment
+            self.add_comment(
+                user_id=user_id,
+                content=f"Auto-assigned to {username} (action status updated)",
+                is_human_made=False
+            )
+        
+        # Update event status to "In Progress" if currently "Planned" and status changed
+        if status_changed and self.maintenance_action_set.status == 'Planned':
+            self.maintenance_action_set.status = 'In Progress'
+            if not self.maintenance_action_set.start_date:
+                self.maintenance_action_set.start_date = datetime.utcnow()
+            self._sync_event_status()
+        
+        db.session.commit()
         
         # Auto-update MaintenanceActionSet billable hours if sum is greater
         self.update_actual_billable_hours_auto()

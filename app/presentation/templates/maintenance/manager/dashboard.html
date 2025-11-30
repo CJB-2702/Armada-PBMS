@@ -117,55 +117,19 @@
             </div>
         </div>
 
-        <!-- Plan Maintenance -->
-        <div class="col-lg-4 col-md-6">
-            <div class="card workflow-card success shadow-sm">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="workflow-icon text-success">
-                        <i class="bi bi-calendar-check"></i>
-                    </div>
-                    <h4 class="card-title mb-3">Plan Maintenance</h4>
-                    <p class="card-text flex-grow-1 mb-3">
-                        Create maintenance plans, schedule events, and manage assets due for maintenance.
-                    </p>
-                    <a href="{{ url_for('manager_portal.plan_maintenance') }}" class="btn btn-success btn-lg mt-auto">
-                        <i class="bi bi-arrow-right-circle"></i> Plan Maintenance
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Build Maintenance -->
-        <div class="col-lg-4 col-md-6">
-            <div class="card workflow-card info shadow-sm">
-                <div class="card-body text-center d-flex flex-column p-4">
-                    <div class="workflow-icon text-info">
-                        <i class="bi bi-tools"></i>
-                    </div>
-                    <h4 class="card-title mb-3">Build Maintenance</h4>
-                    <p class="card-text flex-grow-1 mb-3">
-                        Create and manage maintenance templates, action sets, and prototype actions.
-                    </p>
-                    <a href="{{ url_for('manager_portal.build_maintenance') }}" class="btn btn-info btn-lg mt-auto">
-                        <i class="bi bi-arrow-right-circle"></i> Build Maintenance
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Assign & Monitor -->
+        <!-- Create & Assign -->
         <div class="col-lg-4 col-md-6">
             <div class="card workflow-card warning shadow-sm">
                 <div class="card-body text-center d-flex flex-column p-4">
                     <div class="workflow-icon text-warning">
                         <i class="bi bi-person-check"></i>
                     </div>
-                    <h4 class="card-title mb-3">Assign & Monitor</h4>
+                    <h4 class="card-title mb-3">Create & Assign</h4>
                     <p class="card-text flex-grow-1 mb-3">
-                        Assign work to technicians, monitor progress, and manage active maintenance.
+                        Create maintenance events from templates and assign them to assets and technicians.
                     </p>
-                    <a href="{{ url_for('manager_portal.assign_monitor') }}" class="btn btn-warning btn-lg mt-auto">
-                        <i class="bi bi-arrow-right-circle"></i> Assign & Monitor
+                    <a href="{{ url_for('manager_portal.create_assign') }}" class="btn btn-warning btn-lg mt-auto">
+                        <i class="bi bi-arrow-right-circle"></i> Create & Assign
                     </a>
                 </div>
             </div>
@@ -184,6 +148,42 @@
                     </p>
                     <a href="{{ url_for('manager_portal.approve_review') }}" class="btn btn-danger btn-lg mt-auto">
                         <i class="bi bi-arrow-right-circle"></i> Approve & Review
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Build Maintenance Templates -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card workflow-card info shadow-sm">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="workflow-icon text-info">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h4 class="card-title mb-3">Build Maintenance Templates</h4>
+                    <p class="card-text flex-grow-1 mb-3">
+                        Create and manage maintenance templates, action sets, and prototype actions.
+                    </p>
+                    <a href="{{ url_for('manager_portal.build_maintenance') }}" class="btn btn-info btn-lg mt-auto">
+                        <i class="bi bi-arrow-right-circle"></i> Build Maintenance Templates
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Maintenance -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card workflow-card success shadow-sm">
+                <div class="card-body text-center d-flex flex-column p-4">
+                    <div class="workflow-icon text-success">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h4 class="card-title mb-3">Plan Maintenance</h4>
+                    <p class="card-text flex-grow-1 mb-3">
+                        Create maintenance plans, schedule events, and manage assets due for maintenance.
+                    </p>
+                    <a href="{{ url_for('manager_portal.plan_maintenance') }}" class="btn btn-success btn-lg mt-auto">
+                        <i class="bi bi-arrow-right-circle"></i> Plan Maintenance
                     </a>
                 </div>
             </div>

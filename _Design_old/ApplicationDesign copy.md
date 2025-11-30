@@ -445,7 +445,7 @@ def update_asset_location(asset_id):
     # Business logic - should be in business layer
     if asset.current_location_id == new_location_id:
         flash('Asset is already at this location', 'warning')
-        return redirect(url_for('assets.detail', asset_id=asset_id))
+        return redirect(url_for('core_assets.detail', asset_id=asset_id))
     
     # Event creation - should be in business layer
     event = Event(
@@ -458,7 +458,7 @@ def update_asset_location(asset_id):
     asset.major_location_id = new_location_id
     db.session.commit()
     flash('Location updated successfully', 'success')
-    return redirect(url_for('assets.detail', asset_id=asset_id))
+    return redirect(url_for('core_assets.detail', asset_id=asset_id))
 ```
 
 **Code Review Checklist**:

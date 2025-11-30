@@ -1,7 +1,7 @@
 """
 Maintenance work and edit routes for maintenance events
 """
-from flask import Blueprint, render_template, abort, request, flash, redirect, url_for
+from flask import Blueprint, render_template, abort, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime
 from app.logger import get_logger
@@ -71,6 +71,143 @@ def view_maintenance_event(event_id):
     except Exception as e:
         logger.error(f"Error viewing maintenance event {event_id}: {e}")
         abort(500)
+
+
+@maintenance_event_bp.route('/<int:event_id>/assign', methods=['GET', 'POST'])
+@login_required
+def assign_event(event_id):
+    """
+    Assign or reassign maintenance event to technician.
+    GET: Show assignment form
+    POST: Process assignment (refreshes page and opens view in new tab)
+    """
+    logger.info(f"Assigning maintenance event for event_id={event_id}")
+    
+    try:
+        from app.buisness.maintenance.base.maintenance_action_set_struct import MaintenanceActionSetStruct
+        from app.buisness.maintenance.base.maintenance_context import MaintenanceContext
+        from app.data.core.event_info.event import Event
+        from app.services.maintenance.assign_monitor_service import AssignMonitorService
+        from app.data.core.user_info.user import User
+        
+        # Get the maintenance action set by event_id (ONE-TO-ONE relationship)
+        maintenance_struct = MaintenanceActionSetStruct.from_event_id(event_id)
+        
+        if not maintenance_struct:
+            logger.warning(f"No maintenance action set found for event_id={event_id}")
+            abort(404)
+        
+        # Get the event
+        event = Event.query.get(event_id)
+        if not event:
+            logger.warning(f"Event {event_id} not found")
+            abort(404)
+        
+        maintenance_context = MaintenanceContext(maintenance_struct)
+        
+        if request.method == 'GET':
+            # Get technicians for dropdown
+            technicians, _ = AssignMonitorService.get_available_technicians()
+            
+            # Get assignment history (from comments)
+            assignment_history = []
+            if maintenance_context.event_context:
+                comments = maintenance_context.event_context.comments
+                # Filter comments that mention assignment
+                for comment in comments:
+                    if 'Assigned to' in comment.content or 'assigned' in comment.content.lower():
+                        assignment_history.append({
+                            'created_at': comment.created_at.isoformat() if comment.created_at else None,
+                            'created_by': comment.created_by.username if comment.created_by else None,
+                            'content': comment.content,
+                        })
+            
+            return render_template(
+                'maintenance/maintenance_event/assign.html',
+                maintenance=maintenance_struct,
+                maintenance_context=maintenance_context,
+                event=event,
+                technicians=technicians,
+                assignment_history=assignment_history,
+            )
+        
+        # POST: Process assignment
+        try:
+            assigned_user_id = request.form.get('assigned_user_id', type=int)
+            notes = request.form.get('notes', '').strip() or None
+            
+            # Get optional fields
+            planned_start_str = request.form.get('planned_start_datetime')
+            planned_start_datetime = None
+            if planned_start_str:
+                try:
+                    planned_start_datetime = datetime.fromisoformat(planned_start_str.replace('Z', '+00:00'))
+                except (ValueError, AttributeError):
+                    pass
+            
+            priority = request.form.get('priority')
+            
+            # Validate required fields
+            if not assigned_user_id:
+                flash('Technician is required', 'error')
+                return redirect(url_for('maintenance_event.assign_event', event_id=event_id))
+            
+            # Assign event
+            AssignMonitorService.assign_event(
+                event_id=event_id,
+                assigned_user_id=assigned_user_id,
+                assigned_by_id=current_user.id,
+                planned_start_datetime=planned_start_datetime,
+                priority=priority,
+                notes=notes
+            )
+            
+            flash('Event assigned successfully', 'success')
+            
+            # Redirect back to assign page with success parameter
+            # JavaScript in template will open view page in new tab
+            return redirect(url_for('maintenance_event.assign_event', event_id=event_id, assigned='true'))
+            
+        except ValueError as e:
+            logger.warning(f"Validation error assigning event: {e}")
+            flash(str(e), 'error')
+            return redirect(url_for('maintenance_event.assign_event', event_id=event_id))
+        except Exception as e:
+            logger.error(f"Error assigning event: {e}")
+            flash('Error assigning event. Please try again.', 'error')
+            return redirect(url_for('maintenance_event.assign_event', event_id=event_id))
+            
+    except ImportError as e:
+        logger.error(f"Could not import maintenance modules: {e}")
+        abort(500)
+    except Exception as e:
+        logger.error(f"Error in assign event {event_id}: {e}")
+        abort(500)
+
+
+@maintenance_event_bp.route('/api/technicians')
+@login_required
+def api_technicians():
+    """API endpoint to get filtered technicians"""
+    try:
+        from app.services.maintenance.assign_monitor_service import AssignMonitorService
+        
+        search = request.args.get('search')
+        limit = request.args.get('limit', type=int, default=8)
+        
+        technicians, total_count = AssignMonitorService.get_available_technicians(
+            search=search,
+            limit=limit
+        )
+        
+        return jsonify({
+            'technicians': technicians,
+            'total_count': total_count,
+            'showing': len(technicians)
+        })
+    except Exception as e:
+        logger.error(f"Error in technicians API: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @maintenance_event_bp.route('/<int:event_id>/edit', methods=['GET', 'POST'])

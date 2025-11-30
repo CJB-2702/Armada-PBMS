@@ -219,6 +219,40 @@ purchase_info.purchase_date = purchase_date  # Model expects date object
 - Role-based access control (RBAC)
 - System user protection (cannot be modified by regular users)
 
+### HTMX Search Bar Pattern
+
+The application uses a consistent HTMX pattern for search bars that provide autocomplete-style dropdowns with match count feedback.
+
+**Route Pattern**: `{cardname}/search-bars/{title}` (e.g., `/create-assign/search-bars/templates`)
+
+**Implementation Flow**:
+1. Search input triggers HTMX request on input (300ms debounce) and focus
+2. Route endpoint returns HTML fragment with filtered results
+3. Service layer provides filtered data based on search and additional filters
+4. Template fragment renders results with match count feedback
+5. JavaScript handles item selection and dropdown visibility
+
+**Key Features**:
+- Debounced search (300ms delay) prevents excessive requests
+- Focused swaps update only the results div, not the entire page
+- Match count feedback shows "Showing X of Y matches" when results are limited
+- Filter integration via `hx-include` for additional filter fields
+- Service layer methods return filtered results with total count
+
+Examples:
+- `/create-assign/search-bars/templates` - Template search results
+- `/create-assign/search-bars/assets` - Asset search results  
+- `/create-assign/search-bars/assignment` - Technician/assignment search results
+
+#### Implementation Structure
+
+1. **User Input Field**: Search input with HTMX attributes
+2. **HTMX Request**: Triggers on input with debounce delay
+3. **Route Endpoint**: Returns HTML fragment with search results
+4. **Service Layer**: Provides filtered data based on search and additional filters
+5. **Template Fragment**: Renders results with match count feedback
+
+
 ## Database Build System
 
 ### Build Command-Line Flags

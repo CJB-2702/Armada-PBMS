@@ -50,7 +50,7 @@
                         <strong>Show / Hide Comments</strong>
                     </summary>
 
-                    <!-- Filter Section -->
+                    <!-- Filter Section with Scroll Buttons -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             {% if filter_human_only|default(false) %}
@@ -72,6 +72,14 @@
                                     <i class="bi bi-funnel"></i> Show Human Comments Only
                                 </a>
                             {% endif %}
+                        </div>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary" id="scroll-to-top-btn" title="Scroll to top">
+                                <i class="bi bi-arrow-up"></i> Top
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="scroll-to-bottom-btn" title="Scroll to bottom">
+                                <i class="bi bi-arrow-down"></i> Bottom
+                            </button>
                         </div>
                     </div>
 
@@ -353,38 +361,28 @@
 </style>
 
 <script>
-// Minimal JavaScript for reply functionality and scroll preservation
+// JavaScript for reply functionality, scroll buttons, and modal management
 (function() {
-    // Store scroll position before HTMX swap
-    document.body.addEventListener('htmx:beforeSwap', function(evt) {
-        const container = document.getElementById('comments-list-container');
-        if (container && evt.detail.target && evt.detail.target.id === 'event-widget-card') {
-            sessionStorage.setItem('comments-scroll-position', container.scrollTop);
-        }
-    });
-
-    // Restore scroll position after HTMX swap
-    document.body.addEventListener('htmx:afterSwap', function(evt) {
-        if (evt.detail.target && evt.detail.target.id === 'event-widget-card') {
+    // Scroll to top button functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#scroll-to-top-btn')) {
             const container = document.getElementById('comments-list-container');
             if (container) {
-                const savedScroll = sessionStorage.getItem('comments-scroll-position');
-                if (savedScroll !== null) {
-                    setTimeout(() => {
-                        container.scrollTop = parseInt(savedScroll, 10);
-                        sessionStorage.removeItem('comments-scroll-position');
-                    }, 50);
-                } else {
-                    // Scroll to bottom on initial load
-                    setTimeout(() => {
-                        container.scrollTop = container.scrollHeight;
-                    }, 100);
-                }
+                container.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
         
-        // Close any open Bootstrap modals after successful swap
-        // This handles edit/delete operations that swap comment elements
+        // Scroll to bottom button functionality
+        if (e.target.closest('#scroll-to-bottom-btn')) {
+            const container = document.getElementById('comments-list-container');
+            if (container) {
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }
+        }
+    });
+    
+    // Close any open Bootstrap modals after successful swap
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
         const target = evt.detail.target;
         const xhr = evt.detail.xhr;
         const isSuccessful = xhr && xhr.status >= 200 && xhr.status < 300;
@@ -486,16 +484,6 @@
                     alert('Failed to copy to clipboard');
                 });
             }
-        }
-    });
-    
-    // Scroll to bottom on initial load
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('comments-list-container');
-        if (container) {
-            setTimeout(() => {
-                container.scrollTop = container.scrollHeight;
-            }, 300);
         }
     });
 })();

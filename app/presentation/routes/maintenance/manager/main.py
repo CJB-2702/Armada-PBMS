@@ -144,10 +144,10 @@ def plan_maintenance():
     return render_template('maintenance/manager/plan_maintenance.html')
 
 
-@manager_bp.route('/build-maintenance')
+@manager_bp.route('/build-maintenance-templates')
 @login_required
 def build_maintenance():
-    """Build maintenance - Create and manage templates and prototypes"""
+    """Build maintenance templates - Create and manage templates and prototypes"""
     logger.info(f"Build maintenance accessed by {current_user.username}")
     
     # Get search parameters

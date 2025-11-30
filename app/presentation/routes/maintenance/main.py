@@ -43,6 +43,28 @@ def index():
     return render_template('maintenance/splash.html', stats=stats)
 
 
+@maintenance_bp.route('/view-events')
+@login_required
+def view_events():
+    """View maintenance events with comprehensive filtering"""
+    logger.info(f"View events accessed by {current_user.username}")
+    
+    try:
+        from app.presentation.routes.maintenance.event_portal import render_view_events_module
+        return render_view_events_module(
+            request=request,
+            current_user=current_user,
+            portal_type='manager',
+            per_page=20
+        )
+    except Exception as e:
+        logger.error(f"Error rendering view events: {e}")
+        import traceback
+        traceback.print_exc()
+        flash("Error loading events. Please try again.", "error")
+        return redirect(url_for('maintenance.index'))
+
+
 @maintenance_bp.route('/maintenance-template/<int:template_set_id>')
 @maintenance_bp.route('/maintenance-template/<int:template_set_id>/view')
 @login_required
